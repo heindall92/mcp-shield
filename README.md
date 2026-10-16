@@ -14,6 +14,9 @@ Simulador de Kill-Chain y auditor SAST **100% client-side** para configuraciones
 - **Exportes:** SARIF 2.1.0 (pestaña Security de GitHub) y Markdown, descargados con Blob local.
 - **Gobernanza:** mapeo orientativo a NSA MCP CSI (may 2026), OWASP Agentic Top 10 2026, ISO/IEC 42001 y CSA.
 
+## Idioma y tema
+Conmutador ES/EN y claro/oscuro en la cabecera (se guardan en localStorage; el tema sigue `prefers-color-scheme` por defecto). Contraste WCAG AA verificado por test en ambos temas (`tests/contrast.test.ts`).
+
 ## Cero telemetría
 Sin backend, sin analytics, sin fuentes externas. CSP con `connect-src 'none'`. Compruébalo en DevTools → Network.
 
@@ -30,3 +33,11 @@ Todas las cifras, CVEs e incidentes están en [docs/SOURCES.md](docs/SOURCES.md)
 
 ## Licencia
 MIT © Yoandy Ramírez Delgado (heindall92)
+
+---
+
+## English
+
+MCP-Shield is a **100% client-side** Kill-Chain simulator and SAST auditor for Model Context Protocol configs. Use the ES/EN switch in the header to read the whole UI, findings and exports in English. Run `npm run dev`, `npm test`, `npm run build`. Sources: [docs/SOURCES.md](docs/SOURCES.md).
+
+Design references (patterns re-implemented, no code copied): 21st.dev Segmented Tabs (micka_design), Segmented Control Tabs (Cnippet), 8-bit Demo Shell (OrcDev) — see docs/DESIGN-REFERENCES.md.

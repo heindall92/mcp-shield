@@ -1,21 +1,24 @@
 import { useEffect, useRef } from 'react'
-import { ShieldCheck, X } from 'lucide-react'
+import { ShieldCheck, X, Check } from 'lucide-react'
+import { usePrefs } from '../../i18n/prefs'
 
 export function ZeroTelemetryModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = usePrefs()
   const ref = useRef<HTMLDialogElement>(null)
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); if (!open && d.open) d.close() }, [open])
   return (
-    <dialog ref={ref} onClose={onClose} onClick={e => e.target === ref.current && onClose()}
-      className="modal m-auto w-[min(92vw,520px)] rounded-2xl border border-white/10 bg-[#0d121b]/95 p-0 text-slate-200 backdrop:bg-black/60 backdrop:backdrop-blur-sm">
+    <dialog ref={ref} onClose={onClose} onClick={e => e.target === ref.current && onClose()} aria-labelledby="zt-title"
+      className="modal m-auto w-[min(92vw,32rem)] rounded-[20px] border border-white/[0.08] bg-elevated p-0 text-slate-200 shadow-[0_30px_80px_-20px_rgb(var(--black)/0.6)] backdrop:bg-black/50 backdrop:backdrop-blur-sm">
       <div className="p-6">
-        <div className="flex items-center gap-2 text-lg font-semibold text-white"><ShieldCheck className="text-emerald-400" />100% Client-Side · Zero Telemetry<button onClick={onClose} aria-label="Cerrar" className="ml-auto rounded-lg p-1 text-slate-400 hover:bg-white/10"><X size={18} /></button></div>
-        <ul className="mt-4 space-y-2 text-sm text-slate-300">
-          <li>• El escaneo, la remediación y los exportes se ejecutan en la memoria de tu navegador.</li>
-          <li>• Sin analytics, sin cookies, sin fuentes ni CDNs externos.</li>
-          <li>• Content-Security-Policy con <code className="text-cyan-300">connect-src 'none'</code>: el navegador bloquea cualquier fetch/XHR/WebSocket.</li>
-          <li>• Los informes se descargan con Blob local; no hay subida.</li>
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-[10px] border border-emerald-300/20 bg-emerald-400/10 text-emerald-300"><ShieldCheck size={16} strokeWidth={1.8} /></span>
+          <h2 id="zt-title" className="text-[1.0625rem] font-semibold text-white">{t.modalTitle}</h2>
+          <button onClick={onClose} aria-label={t.close} className="press focus-ring ml-auto rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-white"><X size={17} /></button>
+        </div>
+        <ul className="mt-5 space-y-2.5 text-[0.875rem] leading-relaxed text-slate-300">
+          {[t.m1, t.m2, t.m3, t.m4].map(m => <li key={m} className="flex gap-2.5"><Check size={15} className="mt-0.5 shrink-0 text-emerald-300" aria-hidden />{m}</li>)}
         </ul>
-        <div className="mt-5 rounded-xl bg-white/[0.04] p-3 text-sm"><b className="text-white">Compruébalo tú:</b> abre DevTools → pestaña <b>Network</b>, pega tu mcp.json en el Auditor y verás 0 peticiones.</div>
+        <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 text-[0.875rem] text-slate-300"><b className="text-white">{t.mCheck}</b> {t.mCheck2}</div>
       </div>
     </dialog>
   )

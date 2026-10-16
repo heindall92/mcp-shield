@@ -3,27 +3,27 @@
 @tailwind utilities;
 html,body,#root{height:100%}
 html{font-size:100%}
-body{@apply bg-[#07090d] text-slate-200 font-sans antialiased;line-height:1.5;font-optical-sizing:auto}
+body{@apply bg-canvas text-slate-200 font-sans antialiased;line-height:1.5;font-optical-sizing:auto}
 .display{font-size:clamp(1.5rem,1.1rem + 1.4vw,1.875rem);line-height:1.1;letter-spacing:-0.022em;font-weight:600;text-wrap:balance}
 h2,h3{letter-spacing:-0.01em}
 .press{transition-property:transform,background-color,color,border-color;transition-duration:160ms;transition-timing-function:cubic-bezier(.23,1,.32,1)}
 .press:active{transform:scale(0.97);transition-duration:100ms}
-.press-soft:active{background-color:#ffffff08}
-::selection{background:#22d3ee55}
+.press-soft:active{background-color:rgb(var(--white)/0.03)}
+::selection{background:rgb(var(--cyan-400)/0.3)}
 .scroll-thin::-webkit-scrollbar{width:6px;height:6px}
-.scroll-thin::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
-.grid-bg{background-image:linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:32px 32px}
+.scroll-thin::-webkit-scrollbar-thumb{background:rgb(var(--slate-800));border-radius:3px}
+.grid-bg{background-image:linear-gradient(rgb(var(--white)/0.025) 1px,transparent 1px),linear-gradient(90deg,rgb(var(--white)/0.025) 1px,transparent 1px);background-size:32px 32px}
 @layer components{
-  .btn-primary{@apply inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-red-500 to-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_0_1px_#f8717180,0_8px_30px_-6px_#ef4444] transition-transform duration-150 ease-out active:scale-[0.97]}
-  .btn-ghost{@apply inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-300 transition-[background-color,transform] duration-150 ease-out hover:bg-white/[0.07] active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40}
-  .btn-chip{@apply inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-xs text-slate-300 transition-[background-color,transform] duration-150 hover:bg-white/[0.07] active:scale-[0.97]}
-  .tab{@apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-400 transition-colors duration-150 hover:text-slate-100}
-  .tab-on{@apply bg-white/[0.08] text-white}
+  .btn-primary{@apply inline-flex h-9 items-center gap-2 rounded-xl bg-slate-50 px-4 text-[0.875rem] font-semibold text-slate-950 shadow-[0_1px_0_rgb(var(--white)/0.4)_inset,0_6px_20px_-8px_rgb(var(--black)/0.6)] transition-[transform,background-color] duration-150 ease-out hover:bg-white active:scale-[0.97]}
+  .btn-ghost{@apply inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-[0.875rem] text-slate-300 transition-[background-color,transform] duration-150 ease-out hover:bg-white/[0.07] hover:text-white active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40}
+  .btn-chip{@apply inline-flex items-center gap-1.5 rounded-lg border border-white/[0.07] bg-white/[0.025] px-2.5 py-1.5 text-[0.75rem] text-slate-300 transition-[background-color,transform] duration-150 hover:bg-white/[0.06] hover:text-white active:scale-[0.97]}
+  .card{@apply rounded-[18px] border border-white/[0.07] bg-white/[0.02] shadow-[inset_0_1px_0_rgb(var(--white)/0.035)]}
+  .focus-ring{@apply outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas}
 }
-.sev-critical{@apply bg-red-500/20 text-red-300}
-.sev-high{@apply bg-orange-500/20 text-orange-300}
-.sev-medium{@apply bg-amber-400/15 text-amber-200}
-.sev-low{@apply bg-slate-500/20 text-slate-300}
+.sev-critical{@apply bg-red-400/[0.14] text-red-200}
+.sev-high{@apply bg-orange-400/[0.14] text-orange-200}
+.sev-medium{@apply bg-amber-400/[0.12] text-amber-200}
+.sev-low{@apply bg-slate-400/[0.14] text-slate-300}
 dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
 @keyframes modal-in{from{opacity:0;transform:scale(.96);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
 /* Reduced motion: gentler, not zero — keep opacity/colour, drop movement, scale and loops */
@@ -36,15 +36,19 @@ dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
   html{scroll-behavior:auto}
 }
 @media (prefers-reduced-transparency: reduce){
-  header.sticky{background:#07090d!important;backdrop-filter:none!important}
-  dialog.modal{background:#0d121b!important}
+  header.sticky{background:rgb(var(--canvas))!important;backdrop-filter:none!important}
+  dialog.modal{background:rgb(var(--elevated))!important}
 }
 @media (prefers-contrast: more){
   .border-white\/\[0\.07\],.border-white\/\[0\.06\],.border-white\/5{border-color:#ffffff40!important}
-  .text-slate-500,.text-slate-600{color:#cbd5e1!important}
+  .text-slate-400{color:rgb(var(--slate-200))!important}
 }
 /* Kill-chain travelling light: soft, neutral, constant motion → linear */
 .kc-spark{left:0;background:radial-gradient(closest-side,rgba(255,255,255,.85),rgba(255,255,255,0));animation:kc-travel 900ms linear infinite}
 .kc-spark-red{background:radial-gradient(closest-side,rgba(254,202,202,.9),rgba(254,202,202,0))}
 @keyframes kc-travel{from{left:0;opacity:0}15%{opacity:1}85%{opacity:1}to{left:calc(100% - 1.5rem);opacity:0}}
 @media (prefers-reduced-motion: reduce){.kc-spark{animation:none;left:calc(50% - .75rem);opacity:.7}}
+
+.kc-caret{animation:kc-blink 1s steps(1) infinite}
+@keyframes kc-blink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.kc-caret{animation:none}}
