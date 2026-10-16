@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.3.0 — 2026-10-16 · Tool Integrity Monitor
+Implementa la parte web offline del RFC-001 en `src/integrity/`.
+- **Nueva vista Integridad** (atajo `2`; los demás pasan a `3–5`): baseline aprobada frente a candidato, chips de huella, métricas de riesgo de integridad y de configuración por separado, eventos filtrables con evidencia antes/después por campo y nivel de confianza, cobertura MCPS-INT, revisión humana y registro de decisiones. ES/EN, claro/oscuro AA, Lucide, sin fondos de cuadrícula.
+- **Importador**: `tools/list` JSON-RPC (única o paginada) y `MCPShieldSnapshot 1.0`; límites de 8 MiB, 1000 herramientas, 128 páginas y profundidad 64; duplicados y cursores circulares son error; huecos de cursor, `resultType` no completo o `nextCursor` final ⇒ captura parcial; `ttlMs`/`cacheScope` de MCP 2026-07-28; `$ref` externos e iconos nunca se cargan; `verifiedCollector` nunca se acepta del archivo. Se ejecuta en un Web Worker con límite de 15 s (con respaldo en el hilo principal).
+- **Huellas**: JCS (RFC 8785) verificado con los vectores del RFC; SHA-256 público de la proyección redactada; HMAC-SHA-256 por herramienta y raíz ligada a perfil, identidad, transporte, protocolo y completitud; clave solo en memoria.
+- **Comparador**: comprobación de comparabilidad (perfil, identidad, transporte, completitud; cambio de protocolo reduce la confianza), `CONTEXT_MISMATCH` bloquea el diff, nombres sensibles a mayúsculas, sin `TOOL_REMOVED` en capturas parciales.
+- **Reglas MCPS-INT-001..008** e Integrity Risk separado del Configuration Risk (TP-001/002/003 sobre el contenido importado).
+- **Aprobación explícita**: nada se aprueba solo; lista TOFU para la primera baseline; aceptar riesgo exige fecha de revisión; no se puede aprobar con contexto distinto.
+- **Paquete de baseline cifrado**: AES-256-GCM, PBKDF2-SHA256 (600 000 iteraciones), sal y nonce aleatorios, cabecera versionada como AAD; la contraseña no se guarda.
+- **Exportes** SARIF, Markdown y JSON redactados, sin clave HMAC, tras el control de salida.
+- CSP: añadido `worker-src 'self'` (sigue `connect-src 'none'`).
+- Demo `acme-mail`: `send_email` con directiva oculta, caracteres Unicode Tag, nuevo `bcc` en `x-mcp-header` y una herramienta con nombre confundible; y una demo de contexto distinto.
+- Captura directa por CLI (RFC §10): documentada como planificada/experimental; no incluida.
+
 ## 1.2.2 — 2026-10-16 · Security Hardening
 Corrige los hallazgos de una auditoría técnica externa de la v1.2.1. Cada uno tiene una prueba de regresión que lo reproducía antes del arreglo (`tests/audit-v122.test.ts`).
 - **P0-1 · Contenedores por lista blanca.** `docker/podman run` se reconstruye desde una base segura (`--rm -i --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user 1000:1000 --pids-limit --memory`); solo sobreviven opciones inocuas (`-e KEY`, montajes no sensibles forzados a solo lectura, `--tmpfs`, `-w`, `--name`…). Se eliminan `--user root`, `--network bridge/host`, `--read-only=false`, `--privileged`, `--cap-add`, `--security-opt *=unconfined`, `--pid/--ipc/--uts/--userns host`, `--device`, el socket de Docker, montajes sensibles (también rutas Windows y UNC) y opciones globales como `--remote`. La config generada se **vuelve a analizar**: solo se etiqueta «Endurecida» si no queda ningún problema crítico o alto; si no, «Parcialmente endurecida» con la lista de lo que falta. Si el original pedía red, se avisa. MCPS-FS-003 detecta ahora `--cap-add`, seccomp/AppArmor `unconfined`, `--ipc/--uts/--userns host`, `--device` y `--user root`.
