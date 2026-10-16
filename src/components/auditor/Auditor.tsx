@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { FileJson, Upload, FileDown, FileCode2, Container, Lock, Copy, Check, RotateCcw, FlaskConical, Info, ClipboardPaste } from 'lucide-react'
+import { FileJson, Upload, FileDown, FileCode2, Container, Lock, Copy, Check, RotateCcw, FlaskConical, Info, ClipboardPaste, Printer, X, Sparkles } from 'lucide-react'
 import { scanText, parseConfig } from '../../engine/scanner'
 import { remediate, removedServers, dockerSnippet } from '../../engine/remediator'
 import { toSarif, toMarkdown, download } from '../../engine/sarifExporter'
@@ -12,9 +12,17 @@ import { ScoreRing } from './ScoreRing'
 import { usePrefs } from '../../i18n/prefs'
 import { Segmented } from '../ui/Segmented'
 import { ConfirmDialog } from '../ui/ConfirmDialog'
+import { useToast } from '../ui/toast'
+import { OPEN_FILE_EVENT, VERSION } from '../../meta'
 
-export function Auditor({ text, setText, onReset }: { text: string; setText: (t: string) => void; onReset: () => void }) {
+const OB_KEY = 'mcps-onboarded'
+const seenOnboarding = () => { try { return localStorage.getItem(OB_KEY) === '1' } catch { return true } }
+
+export function Auditor({ text, setText, onReset, onLoadDemo }: { text: string; setText: (t: string) => void; onReset: () => void; onLoadDemo: (id: string) => void }) {
   const { t, lang } = usePrefs()
+  const toast = useToast()
+  const [onboard, setOnboard] = useState(() => !seenOnboarding())
+  const dismissOnboard = () => { setOnboard(false); try { localStorage.setItem(OB_KEY, '1') } catch { /* private mode */ } }
   const [view, setView] = useState<'diff' | 'hardened' | 'docker'>('diff')
   const [copied, setCopied] = useState(false)
   const [confirm, setConfirm] = useState(false)
@@ -23,7 +31,10 @@ export function Auditor({ text, setText, onReset }: { text: string; setText: (t:
   const [fileName, setFileName] = useState('mcp.json')
   const fileRef = useRef<HTMLInputElement>(null)
   const copyTimer = useRef<number | undefined>(undefined)
+  const [printedAt, setPrintedAt] = useState('')
+  useEffect(() => { const h = () => setPrintedAt(new Date().toLocaleString(lang)); addEventListener('beforeprint', h); return () => removeEventListener('beforeprint', h) }, [lang])
   useEffect(() => () => window.clearTimeout(copyTimer.current), [])
+  useEffect(() => { const h = () => fileRef.current?.click(); addEventListener(OPEN_FILE_EVENT, h); return () => removeEventListener(OPEN_FILE_EVENT, h) }, [])
 
   // Large pastes stay responsive: analysis runs on a deferred copy of the text.
   const input = useDeferredValue(text)
@@ -47,10 +58,11 @@ export function Auditor({ text, setText, onReset }: { text: string; setText: (t:
     r.readAsText(f)
   }
   const copy = async () => {
-    try { await navigator.clipboard?.writeText(view === 'docker' ? docker : hardened) } catch { return }
-    setCopied(true); window.clearTimeout(copyTimer.current); copyTimer.current = window.setTimeout(() => setCopied(false), 1400)
+    try { await navigator.clipboard.writeText(view === 'docker' ? docker : hardened) } catch { toast(t.toastCopyFail, 'error'); return }
+    toast(t.toastCopied); setCopied(true); window.clearTimeout(copyTimer.current); copyTimer.current = window.setTimeout(() => setCopied(false), 1400)
   }
-  const loadDemo = (id: string) => { const s = sampleConfigs.find(x => x.id === id); if (s) { setFileName('demo-mcp.json'); setText(JSON.stringify(s.config, null, 2)) } }
+  const loadDemo = (id: string) => { setFileName('demo-mcp.json'); onLoadDemo(id) }
+  const save = (name: string, content: string, mime: string) => { download(name, content, mime); toast(t.toastDownloaded(name)) }
   const doReset = () => { setFileName('mcp.json'); setFileErr(''); setView('diff'); if (fileRef.current) fileRef.current.value = ''; onReset() }
   const disabled = !res || !!res.parseError
 
@@ -61,7 +73,20 @@ export function Auditor({ text, setText, onReset }: { text: string; setText: (t:
         <h1 className="display mt-1.5 text-white">{t.audTitle}</h1>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400"><Lock size={13} className="text-emerald-400" aria-hidden />{t.audPrivacy}</p>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="print-only">
+        <h1 className="text-xl font-semibold">{t.printTitle}</h1>
+        <p className="text-sm">{t.printDate}: {printedAt} · {fileName} · MCP-Shield v{VERSION}</p>
+        <p className="text-sm">{t.printNote}</p>
+      </div>
+      {onboard && <section data-testid="onboarding" aria-labelledby="ob-title" className="card no-print flex flex-col gap-3 p-4 sm:flex-row sm:items-start">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] border border-white/[0.08] bg-white/[0.04] text-slate-200"><Sparkles size={15} strokeWidth={1.8} aria-hidden /></span>
+        <div className="min-w-0 flex-1">
+          <h2 id="ob-title" className="text-[0.9375rem] font-semibold text-white">{t.obTitle}</h2>
+          <ol className="mt-2 grid gap-2 text-[0.8125rem] leading-relaxed text-slate-300 md:grid-cols-3">{t.obSteps.map((x, i) => <li key={x} className="flex gap-2"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/[0.08] text-[0.6875rem] font-semibold text-white">{i + 1}</span>{x}</li>)}</ol>
+        </div>
+        <button onClick={dismissOnboard} className="btn-ghost focus-ring shrink-0 text-[0.75rem]"><X size={13} aria-hidden />{t.obDismiss}</button>
+      </section>}
+      <div className="no-print flex flex-wrap items-center gap-2">
         <button onClick={() => fileRef.current?.click()} className="btn-primary focus-ring text-[0.8125rem]"><Upload size={14} strokeWidth={1.8} aria-hidden />{t.openFile}</button>
         <input ref={fileRef} type="file" accept=".json,.jsonc,application/json" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
         <label className="btn-chip focus-within:ring-2 focus-within:ring-slate-400/60">
@@ -72,13 +97,14 @@ export function Auditor({ text, setText, onReset }: { text: string; setText: (t:
             {sampleConfigs.map(s => <option key={s.id} value={s.id} className="bg-elevated text-slate-200">{lang === 'en' ? s.labelEn : s.label}</option>)}
           </select>
         </label>
-        <button disabled={!text} onClick={() => setConfirm(true)} className="btn-chip focus-ring ml-auto disabled:opacity-40"><RotateCcw size={13} strokeWidth={1.8} aria-hidden />{t.resetBtn}</button>
+        <button disabled={disabled} onClick={() => print()} className="btn-chip focus-ring ml-auto disabled:opacity-40"><Printer size={13} strokeWidth={1.8} aria-hidden />{t.print}</button>
+        <button disabled={!text} onClick={() => setConfirm(true)} className="btn-chip focus-ring disabled:opacity-40"><RotateCcw size={13} strokeWidth={1.8} aria-hidden />{t.resetBtn}</button>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[1fr_1.1fr]">
-        <section onDragOver={e => { e.preventDefault(); setDrag(true) }} onDragLeave={() => setDrag(false)}
+        <section data-testid="editor-pane" onDragOver={e => { e.preventDefault(); setDrag(true) }} onDragLeave={() => setDrag(false)}
           onDrop={e => { e.preventDefault(); setDrag(false); onFile(e.dataTransfer.files?.[0]) }}
-          className={`relative flex flex-col overflow-hidden rounded-[18px] border bg-surface shadow-[inset_0_1px_0_rgb(var(--white)/0.04)] transition-colors ${drag ? 'border-emerald-400/60' : 'border-white/[0.07]'}`}>
+          className={`no-print relative flex flex-col overflow-hidden rounded-[18px] border bg-surface shadow-[inset_0_1px_0_rgb(var(--white)/0.04)] transition-colors ${drag ? 'border-emerald-400/60' : 'border-white/[0.07]'}`}>
           <header className="flex items-center gap-2 border-b border-white/5 px-4 py-2.5 text-[0.8125rem] font-semibold"><FileJson size={15} className="text-cyan-300" aria-hidden />mcp.json / claude_desktop_config.json</header>
           <textarea data-testid="editor" value={text} onChange={e => setText(e.target.value)} spellCheck={false} autoComplete="off" aria-label={t.editor} placeholder={t.placeholder}
             className="scroll-thin min-h-[320px] flex-1 resize-y bg-transparent p-4 font-mono text-[0.75rem] leading-[1.6] text-slate-200 outline-none placeholder:text-slate-500 lg:min-h-[440px]" />
@@ -104,10 +130,10 @@ export function Auditor({ text, setText, onReset }: { text: string; setText: (t:
                   {(['critical', 'high', 'medium', 'low'] as const).map(k => <span key={k} className={`sev-${k} rounded-md px-1.5 py-0.5`}>{k} {res.counts[k]}</span>)}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button disabled={disabled} onClick={() => download('mcp-shield.sarif', JSON.stringify(toSarif(res, fileName, lang, input), null, 2), 'application/sarif+json')} className="btn-ghost focus-ring text-[0.75rem]"><FileCode2 size={14} aria-hidden />SARIF</button>
-                  <button disabled={disabled} onClick={() => download('mcp-shield-report.md', toMarkdown(res, lang), 'text/markdown')} className="btn-ghost focus-ring text-[0.75rem]"><FileDown size={14} aria-hidden />Markdown</button>
-                  <button disabled={!cfg} onClick={() => download('mcp.hardened.json', hardened, 'application/json')} className="btn-ghost focus-ring text-[0.75rem]"><FileJson size={14} aria-hidden />{t.hardenedJson}</button>
-                  <button disabled={!cfg} onClick={() => download('Dockerfile.mcp-sandbox', docker, 'text/plain')} className="btn-ghost focus-ring text-[0.75rem]"><Container size={14} aria-hidden />Docker</button>
+                  <button disabled={disabled} onClick={() => save('mcp-shield.sarif', JSON.stringify(toSarif(res, fileName, lang, input), null, 2), 'application/sarif+json')} className="btn-ghost focus-ring text-[0.75rem]"><FileCode2 size={14} aria-hidden />SARIF</button>
+                  <button disabled={disabled} onClick={() => save('mcp-shield-report.md', toMarkdown(res, lang), 'text/markdown')} className="btn-ghost focus-ring text-[0.75rem]"><FileDown size={14} aria-hidden />Markdown</button>
+                  <button disabled={!cfg} onClick={() => save('mcp.hardened.json', hardened, 'application/json')} className="btn-ghost focus-ring text-[0.75rem]"><FileJson size={14} aria-hidden />{t.hardenedJson}</button>
+                  <button disabled={!cfg} onClick={() => save('Dockerfile.mcp-sandbox', docker, 'text/plain')} className="btn-ghost focus-ring text-[0.75rem]"><Container size={14} aria-hidden />Docker</button>
                 </div>
               </div>
             </div>
@@ -126,7 +152,7 @@ export function Auditor({ text, setText, onReset }: { text: string; setText: (t:
         {removed.length > 0 && <p className="border-b border-red-400/20 bg-red-400/[0.06] px-4 py-2 text-[0.75rem] text-red-200">{t.removed}: <b>{removed.join(', ')}</b></p>}
         {hasRedaction && <p className="flex items-center gap-1.5 border-b border-white/[0.05] px-4 py-2 text-[0.75rem] text-slate-300"><Info size={13} aria-hidden />{t.redactedNote}</p>}
         {view === 'diff' ? <DiffView before={pretty} after={hardened} />
-          : <pre className="scroll-thin max-h-[460px] overflow-auto p-4 font-mono text-[0.75rem] leading-[1.6] text-slate-200">{view === 'docker' ? docker : hardened}</pre>}
+          : <pre tabIndex={0} className="focus-ring scroll-thin max-h-[460px] overflow-auto p-4 font-mono text-[0.75rem] leading-[1.6] text-slate-200">{view === 'docker' ? docker : hardened}</pre>}
         <p className="border-t border-white/[0.05] px-4 py-2 text-[0.6875rem] text-slate-400">{t.pinNote}</p>
       </section>}
       <ConfirmDialog open={confirm} title={t.resetTitle} body={t.resetBody} confirm={t.resetConfirm} cancel={t.cancel} onConfirm={doReset} onClose={() => setConfirm(false)} />
