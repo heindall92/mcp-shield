@@ -84,3 +84,11 @@ describe('datos simulados', () => {
     for (const m of blob.match(/\b(ghp_|sk-|sk_live_)[A-Za-z0-9_-]+/g) ?? []) expect(m).toMatch(/FAKE/)
   })
 })
+
+describe('iconografía', () => {
+  it('sin emoji en datos ni UI (solo Lucide)', async () => {
+    const { readFileSync, readdirSync } = await import('node:fs')
+    const walk = (d: string): string[] => readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(`${d}/${e.name}`) : [`${d}/${e.name}`])
+    for (const f of walk('src')) expect(readFileSync(f, 'utf8')).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u)
+  })
+})
