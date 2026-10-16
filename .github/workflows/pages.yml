@@ -41,6 +41,8 @@ jobs:
           npx --yes wait-on@8 -t 60000 http://localhost:4173/mcp-shield/
           SHOTS=0 node scripts/e2e.mjs | tee e2e.log
           grep -q "^external \[\] errors \[\] axe \[\]$" e2e.log
+          SHOTS=0 node scripts/e2e-mobile.mjs | tee e2e-mobile.log
+          grep -q "^external \[\] errors 0 \[\] axe \[\]$" e2e-mobile.log
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'push'
         with:

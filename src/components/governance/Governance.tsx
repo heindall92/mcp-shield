@@ -17,7 +17,7 @@ export function Governance() {
         <h1 className="display mt-1.5 text-white">{t.govTitle}</h1>
         <p className="mt-1.5 max-w-3xl text-[0.875rem] leading-relaxed text-slate-400">{t.govIntro}</p>
       </div>
-      <div className="scroll-thin overflow-x-auto rounded-[18px] border border-white/[0.07] bg-surface">
+      <div tabIndex={0} role="region" aria-label="Matriz de gobernanza / governance matrix" className="focus-ring scroll-thin overflow-x-auto rounded-[18px] border border-white/[0.07] bg-surface">
         <table className="w-full min-w-[54rem] text-left text-[0.8125rem]">
           <thead className="border-b border-white/[0.06] text-[0.6875rem] uppercase tracking-[0.08em] text-slate-400">
             <tr><th scope="col" className="p-3.5 font-medium">{t.catRules}</th>{fw.map(f => <th scope="col" key={f.id} className="p-3.5 font-semibold text-slate-300">{f.name}<div className="mt-0.5 font-normal normal-case tracking-normal text-slate-400">{f.date}</div></th>)}</tr>

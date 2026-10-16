@@ -137,12 +137,12 @@ export function IntegrityView() {
       </header>
       <p className="flex items-start gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.06] px-3 py-2 text-[0.8125rem] text-cyan-100"><Info size={15} className="mt-0.5 shrink-0" aria-hidden />{s.untrusted}</p>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0 space-y-5">
           {/* Approved vs candidate */}
           <section aria-labelledby="int-pair" className="card p-4">
             <h2 id="int-pair" className="sr-only">{s.baselineCol} / {s.candidateCol}</h2>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
               {([['baseline', baseline?.snap, res?.firstBaseline ? res.cand : res?.base] as const, ['candidate', baseline?.approved ? candidate : undefined, res?.firstBaseline ? undefined : res?.cand] as const]).map(([k, snap, fp]) => (
                 <div key={k} data-testid={`int-${k}`} className="min-w-0 rounded-xl border border-white/[0.06] bg-white/[0.015] p-3">
                   <div className="flex flex-wrap items-center gap-2">
@@ -290,7 +290,7 @@ function EventCard({ e }: { e: IntegrityEvent }) {
       {e.notes.length > 0 && <p className="mt-1 text-[0.6875rem] text-slate-400">{e.notes.map(n => txt(n, 80)).join(' · ')}</p>}
       {e.changes.length > 0 && <div className="mt-2 space-y-2">{e.changes.slice(0, 12).map((c, i) => (
         <div key={i} className="min-w-0">
-          <code className="text-[0.6875rem] text-slate-400">{txt(c.path, 160)}</code>
+          <code className="break-all text-[0.6875rem] text-slate-400">{txt(c.path, 160)}</code>
           <div className="mt-1 grid gap-1.5 md:grid-cols-2">
             {c.before !== undefined && <pre aria-label={s.before} className="min-w-0 whitespace-pre-wrap break-all rounded-lg border border-red-400/15 bg-red-400/[0.05] px-2 py-1.5 font-mono text-[0.6875rem] leading-relaxed text-red-100"><span className="select-none text-red-300" aria-hidden>- </span>{txt(c.before)}</pre>}
             {c.after !== undefined && <pre aria-label={s.after} className={`min-w-0 whitespace-pre-wrap break-all rounded-lg border border-emerald-400/15 bg-emerald-400/[0.05] px-2 py-1.5 font-mono text-[0.6875rem] leading-relaxed text-emerald-100 ${c.before === undefined ? 'md:col-span-2' : ''}`}><span className="select-none text-emerald-300" aria-hidden>+ </span>{txt(c.after)}</pre>}
