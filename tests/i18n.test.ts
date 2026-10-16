@@ -42,3 +42,13 @@ describe('ES/EN', () => {
     expect(Object.values(controlMap('en')).map(c => c.nsa + c.iso).join(' ')).not.toMatch(/Gestión|Ciclo|Datos/)
   })
 })
+
+describe('ES/EN help content', () => {
+  it('list-valued strings have the same length', () => {
+    for (const k of Object.keys(UI.es) as (keyof typeof UI.es)[]) {
+      const a = UI.es[k], b = UI.en[k]
+      if (Array.isArray(a)) expect((b as readonly unknown[]).length, String(k)).toBe(a.length)
+      else expect(typeof b, String(k)).toBe(typeof a)
+    }
+  })
+})

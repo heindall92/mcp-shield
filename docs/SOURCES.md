@@ -35,3 +35,20 @@ Cada afirmación que aparece en la UI se comprobó contra estas fuentes. Lo que 
 - Estadísticas de Enkrypt AI y CVE-2025-6514: no se usan en la UI (no se verificaron para este build).
 - El mapeo de gobernanza es orientativo (elaborado por MCP-Shield), no un crosswalk oficial.
 - Escenarios "Tool Poisoning calculadora" y "Tool Shadowing": técnicas reales (Invariant Labs), servidores ficticios → marcados como **ilustrativos**.
+
+## Formatos de configuración MCP (verificado 16 oct 2026)
+- Claude Desktop, `claude_desktop_config.json` con `mcpServers` (ejemplo oficial con `npx -y @modelcontextprotocol/server-filesystem`): https://modelcontextprotocol.io/docs/develop/connect-local-servers — la guía no documenta interpolación de variables.
+- Cursor, `.cursor/mcp.json` / `~/.cursor/mcp.json` con `mcpServers`, `url` + `headers`, interpolación `${env:NAME}` en `command`, `args`, `env`, `url` y `headers`: https://cursor.com/docs/context/mcp
+- VS Code, `.vscode/mcp.json` con `servers`, `type` stdio/http/sse, `headers`, `inputs` y `${input:id}`, `envFile`; `.mcp.json` portable con `mcpServers`: https://code.visualstudio.com/docs/copilot/reference/mcp-configuration
+- `mcp.servers` en `settings.json`: formato anterior de VS Code; se acepta por compatibilidad y la UI lo llama «heredado».
+
+## Licencias de terceros
+- Lucide: ISC (iconos derivados de Feather bajo MIT): https://lucide.dev/license
+- React, Tailwind CSS, Vite: MIT (ficheros LICENSE de cada repositorio).
+- Tipografía: solo fuentes del sistema; no se descarga ninguna.
+- Esquema SARIF 2.1.0 (OASIS), solo en pruebas: https://docs.oasis-open.org/sarif/sarif/v2.1.0/
+
+## GitHub Pages y cabeceras HTTP
+- GitHub Pages no permite cabeceras de respuesta propias (respuesta de GitHub en github/pages-gem#415): https://github.com/github/pages-gem/issues/415 · petición abierta: https://github.com/orgs/community/discussions/54257
+- Comprobado con `curl -I` el 16 oct 2026: Pages ya envía `strict-transport-security: max-age=31556952`; no envía `X-Frame-Options` ni CSP como cabecera.
+- `frame-ancestors` se ignora dentro de `<meta http-equiv="Content-Security-Policy">` (CSP Level 3, §6.1/§3.3): https://www.w3.org/TR/CSP3/#meta-element

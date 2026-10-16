@@ -9,13 +9,14 @@ const TEXT = { neutral: 'text-white', danger: 'text-red-200', safe: 'text-emeral
  * Segmented control with a sliding selection pill (pattern inspired by 21st.dev "Segmented Tabs",
  * re-implemented in CSS without framer-motion). Arrow keys move the selection, per WAI-ARIA radiogroup.
  */
-export function Segmented<T extends string>({ options, value, onChange, label, size = 'md', iconOnly = false, full = false }: { options: SegOption<T>[]; value: T; onChange: (v: T) => void; label: string; size?: 'sm' | 'md'; iconOnly?: boolean; full?: boolean }) {
+export function Segmented<T extends string>({ options, value, onChange, label, size = 'md', iconOnly = false, full = false }: { options: SegOption<T>[]; value: T | null; onChange: (v: T) => void; label: string; size?: 'sm' | 'md'; iconOnly?: boolean; full?: boolean }) {
   const wrap = useRef<HTMLDivElement>(null)
   const [pill, setPill] = useState<{ x: number; w: number } | null>(null)
-  const current = options.find(o => o.value === value) ?? options[0]
+  const current0 = options.find(o => o.value === value)
+  const current = current0 ?? options[0]
   useLayoutEffect(() => {
     const el = wrap.current; if (!el) return
-    const measure = () => { const b = el.querySelector<HTMLElement>('[aria-checked="true"]'); if (b) setPill({ x: b.offsetLeft, w: b.offsetWidth }) }
+    const measure = () => { const b = el.querySelector<HTMLElement>('[aria-checked="true"]'); setPill(b ? { x: b.offsetLeft, w: b.offsetWidth } : null) }
     measure(); const ro = new ResizeObserver(measure); ro.observe(el); return () => ro.disconnect()
   }, [value, options])
   const move = (d: number) => { const i = options.findIndex(o => o.value === value); onChange(options[(i + d + options.length) % options.length].value) }
@@ -26,7 +27,7 @@ export function Segmented<T extends string>({ options, value, onChange, label, s
       {options.map(({ value: v, label: l, Icon, tone }) => {
         const on = v === value
         return (
-          <button key={v} type="button" role="radio" aria-checked={on} aria-label={iconOnly ? l : undefined} title={iconOnly ? l : undefined} tabIndex={on ? 0 : -1} onClick={() => onChange(v)}
+          <button key={v} type="button" role="radio" aria-checked={on} aria-label={iconOnly ? l : undefined} title={iconOnly ? l : undefined} tabIndex={on || (!current0 && v === options[0].value) ? 0 : -1} onClick={() => onChange(v)}
             className={`press focus-ring inline-flex items-center justify-center gap-1.5 rounded-lg font-medium ${full ? 'flex-1' : ''} ${size === 'sm' ? 'h-7 px-2 text-[0.75rem]' : 'h-8 px-3 text-[0.8125rem]'} ${on ? TEXT[tone ?? 'neutral'] : 'text-slate-400 hover:text-slate-200'}`}>
             {Icon && <Icon size={size === 'sm' ? 14 : 15} strokeWidth={1.8} aria-hidden />}{!iconOnly && l}
           </button>)

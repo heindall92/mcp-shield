@@ -13,7 +13,7 @@ export function Panel({ title, kicker, Icon, children, count, chrome = false }: 
         <h3 className="text-[0.8125rem] font-semibold text-slate-100">{title}</h3>
         <span className="ml-auto font-mono text-[0.6875rem] text-slate-400">{kicker}</span>
       </header>
-      <div ref={ref} className="scroll-thin flex-1 space-y-2.5 overflow-y-auto p-3 [mask-image:linear-gradient(to_bottom,transparent,black_12px)]">{children}</div>
+      <div ref={ref} tabIndex={0} role="log" aria-label={title} className="focus-ring scroll-thin flex-1 space-y-2.5 overflow-y-auto p-3 [mask-image:linear-gradient(to_bottom,transparent,black_12px)]">{children}</div>
     </section>
   )
 }
