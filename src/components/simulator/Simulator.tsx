@@ -56,13 +56,15 @@ export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
           </button>))}
       </div>
 
-      {/* Glowing graph */}
-      <div className={`relative overflow-hidden rounded-2xl border px-3 pt-4 transition-colors duration-200 ${compromised ? 'border-red-500/40 bg-red-950/20' : hardenedWin ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-white/[0.07] bg-white/[0.02]'}`}>
-        <KillChainGraph active={nodesFor(current)} reached={reached} compromised={compromised} hardened={hardenedWin} />
-        <div className="flex items-center justify-between gap-3 border-t border-white/5 py-2 text-[0.6875rem] text-slate-500">
-          <span className="font-mono">step {shown}/{steps.length}</span>
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/5"><div className={`h-full origin-left rounded-full transition-transform duration-200 ease-out ${mode === 'hardened' ? 'bg-emerald-400' : 'bg-gradient-to-r from-cyan-400 to-red-500'}`} style={{ transform: `scaleX(${steps.length ? shown / steps.length : 0})` }} /></div>
-          {impact && <span className={`flex items-center gap-1 font-semibold ${compromised ? 'text-red-300' : 'text-emerald-300'}`}>{compromised ? <Siren size={13} /> : <ShieldCheck size={13} />}{impact.impact}</span>}
+      {/* Kill-chain graph */}
+      <div data-testid="graph" className={`relative overflow-hidden rounded-[20px] border bg-white/[0.025] px-4 pb-3 pt-5 transition-[border-color,background-color] duration-200 ${compromised ? 'border-red-400/20' : hardenedWin ? 'border-emerald-400/20' : 'border-white/[0.07]'}`}>
+        <KillChainGraph active={nodesFor(current)} reached={reached} compromised={compromised} hardened={hardenedWin} running={status === 'running'} />
+        <div className="mt-4 flex items-center gap-3 border-t border-white/[0.05] pt-3 text-[0.6875rem] text-slate-500">
+          <span className="tabular-nums tracking-wide"><span className="text-slate-300">{String(shown).padStart(2, '0')}</span> / {String(steps.length).padStart(2, '0')}</span>
+          <div className="flex flex-1 gap-1" aria-hidden>
+            {steps.map((st, i) => <span key={i} className={`h-[3px] flex-1 rounded-full transition-colors duration-200 ${i >= shown ? 'bg-white/[0.07]' : i === shown - 1 ? (st.blocked ? 'bg-emerald-300/80' : st.highlight || st.impact ? 'bg-amber-200/80' : 'bg-white/70') : 'bg-white/30'}`} />)}
+          </div>
+          {impact && <span className={`flex items-center gap-1.5 font-medium ${compromised ? 'text-red-200/90' : 'text-emerald-200/90'}`}>{compromised ? <Siren size={13} strokeWidth={1.8} /> : <ShieldCheck size={13} strokeWidth={1.8} />}{impact.impact}</span>}
         </div>
       </div>
 
