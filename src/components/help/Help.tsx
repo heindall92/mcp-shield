@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { REPO, VERSION, modKey } from '../../meta'
-import { Search, Route, MessageCircleQuestion, ListChecks, Keyboard, ShieldCheck, Info, Layers, FolderGit2, ExternalLink, BookOpen, Bug, ChevronDown, Scale, Award } from 'lucide-react'
+import { Search, Route, MessageCircleQuestion, ListChecks, Keyboard, ShieldCheck, Info, Layers, FolderGit2, ExternalLink, BookOpen, Bug, ChevronDown, Scale, Award, Radio } from 'lucide-react'
 import { usePrefs } from '../../i18n/prefs'
 import { pick } from '../../i18n/lang'
+import { ZeroTelemetryFigure } from '../iso/ZeroTelemetryFigure'
 
 
 const RULES: [string, string, string][] = [
@@ -16,6 +17,7 @@ const RULES: [string, string, string][] = [
   ['MCPS-SEC-002', 'Secreto en argumentos CLI', 'Secret in CLI arguments'],
   ['MCPS-TP-001', 'Tool Poisoning en la descripción', 'Tool Poisoning in the description'],
   ['MCPS-TP-002', 'Cross-server tool shadowing', 'Cross-server tool shadowing'],
+  ['MCPS-TP-003', 'ASCII smuggling: Unicode Tag, selectores de variación, Sneaky Bits y ANSI', 'ASCII smuggling: Unicode Tag, variation selectors, Sneaky Bits and ANSI'],
 ]
 const SUITE: [string, string, string, string][] = [
   ['Rosetta', 'Mapa multinorma: ENS, ISO/IEC 27001, NIS2, ISO/IEC 42001…', 'Multi-standard map: ENS, ISO/IEC 27001, NIS2, ISO/IEC 42001…', 'https://heindall92.github.io/rosetta_multinorma/'],
@@ -36,6 +38,7 @@ export function Help({ initial }: { initial?: string }) {
   const keys: [string[], string][] = [[[modKey(), 'K'], t.kPalette], [['/'], t.kSearch], [['?'], t.kHelp], [['1', '2', '3', '4'], t.kTabs], [['T'], t.kTheme], [['L'], t.kLang], [['Esc'], t.kEsc]]
   const sections = [
     { id: 'uso', title: t.hHow, Icon: Route, text: t.hHowItems.join(' '), body: <ul className="space-y-1.5">{t.hHowItems.map(x => <li key={x}>{x}</li>)}</ul> },
+    { id: 'telemetria', title: t.figHow, Icon: Radio, text: `${t.figTitle} ${t.figCaption}`, body: <ZeroTelemetryFigure /> },
     { id: 'faq', title: t.hFaq, Icon: MessageCircleQuestion, text: t.hFaqItems.flat().join(' '), body: <div className="space-y-1.5">{t.hFaqItems.map(([qq, a]) => (
       <details key={qq} className="group rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5">
         <summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-white">{qq}<ChevronDown size={15} className="ml-auto shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180" aria-hidden /></summary>
@@ -59,7 +62,7 @@ export function Help({ initial }: { initial?: string }) {
     </div> },
   ]
   useEffect(() => { if (initial) requestAnimationFrame(() => document.getElementById(`h-${initial}`)?.scrollIntoView({ block: 'start' })) }, [initial])
-  const ORDER = ['uso', 'reglas', 'faq', 'atajos', 'privacidad', 'legal', 'creditos', 'acerca']
+  const ORDER = ['uso', 'telemetria', 'reglas', 'faq', 'atajos', 'privacidad', 'legal', 'creditos', 'acerca']
   sections.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id))
   const shown = sections.filter(s => !q.trim() || norm(`${s.title} ${s.text}`).includes(norm(q.trim())))
   return (
@@ -76,7 +79,7 @@ export function Help({ initial }: { initial?: string }) {
       {!shown.length && <div className="card p-8 text-center text-sm text-slate-400"><Search size={22} className="mx-auto mb-2" aria-hidden />{t.helpNoRes}</div>}
       <div className="grid gap-3 lg:grid-cols-2">
         {shown.map(s => (
-          <section key={s.id} id={`h-${s.id}`} data-initial={s.id === initial || undefined} className={`card scroll-mt-28 p-5 text-[0.875rem] leading-relaxed text-slate-300 ${s.id === 'acerca' || s.id === 'faq' ? 'lg:col-span-2' : ''}`}>
+          <section key={s.id} id={`h-${s.id}`} data-initial={s.id === initial || undefined} className={`card scroll-mt-28 p-5 text-[0.875rem] leading-relaxed text-slate-300 ${s.id === 'acerca' || s.id === 'faq' || s.id === 'telemetria' ? 'lg:col-span-2' : ''}`}>
             <h2 className="mb-3 flex items-center gap-2 text-[1rem] font-semibold text-white"><s.Icon size={16} strokeWidth={1.8} aria-hidden />{s.title}</h2>
             {s.body}
           </section>))}

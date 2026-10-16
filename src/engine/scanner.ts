@@ -4,10 +4,11 @@ import { supplyChainRules } from './rules/supplyChainRules'
 import { secretRules } from './rules/secretRules'
 import { filesystemRules } from './rules/filesystemRules'
 import { poisoningRules } from './rules/poisoningRules'
+import { smugglingRules } from './rules/smugglingRules'
 import { parseMcp } from './parse'
 import { redactFinding } from './redact'
 
-export const ALL_RULES: Rule[] = [...supplyChainRules, ...filesystemRules, ...secretRules, ...poisoningRules]
+export const ALL_RULES: Rule[] = [...supplyChainRules, ...filesystemRules, ...secretRules, ...poisoningRules, ...smugglingRules]
 const WEIGHT: Record<Severity, number> = { critical: 25, high: 12, medium: 6, low: 2 }
 const ORDER: Record<Severity, number> = { critical: 0, high: 1, medium: 2, low: 3 }
 

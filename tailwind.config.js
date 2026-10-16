@@ -10,7 +10,7 @@ export default {
     extend: {
       transitionTimingFunction: { DEFAULT: 'cubic-bezier(0.23, 1, 0.32, 1)', out: 'cubic-bezier(0.23, 1, 0.32, 1)', 'in-out': 'cubic-bezier(0.77, 0, 0.175, 1)' },
       transitionDuration: { DEFAULT: '160ms' },
-      fontFamily: { mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'], sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'system-ui', 'sans-serif'] },
+      fontFamily: { mono: ['"JetBrains Mono Variable"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'], sans: ['"Inter Variable"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'system-ui', 'sans-serif'] },
       keyframes: { fadein: { '0%': { opacity: '0', transform: 'translateY(6px) scale(0.98)' }, '100%': { opacity: '1', transform: 'none' } } },
       animation: { fadein: 'fadein 240ms cubic-bezier(.23,1,.32,1) both' },
     },

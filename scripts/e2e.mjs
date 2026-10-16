@@ -10,7 +10,7 @@ for (const theme of ['dark', 'light']) for (const lang of ['es', 'en']) {
   const p = await ctx.newPage()
   p.on('request', r => { if (!r.url().startsWith(U)) ext.push(r.url()) })
   p.on('console', m => m.type() === 'error' && errs.push(m.text())); p.on('pageerror', e => errs.push(String(e)))
-  const n = v => `/workspace/shots/mcp-shield-v11-${theme}-${lang}-${v}.png`
+  const n = v => `/workspace/shots/mcp-shield-v12-${theme}-${lang}-${v}.png`
   const a11y = async tag => { const r = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa']).analyze(); r.violations.forEach(v => axe.push(`${theme}-${lang}-${tag}: ${v.id} (${v.nodes.length}) ${v.nodes[0]?.target}`)) }
   await p.goto(U); await p.waitForSelector('[data-testid=onboarding]')
   if (shot) await p.screenshot({ path: n('onboarding') }); await a11y('start')
@@ -33,6 +33,18 @@ for (const theme of ['dark', 'light']) for (const lang of ['es', 'en']) {
   await p.fill('#help-q', ''); await p.locator('body').click({ position: { x: 5, y: 5 } })
   await p.goto(U + '#ayuda/legal'); await p.waitForSelector('#h-legal'); await p.waitForTimeout(200)
   if (shot) await p.screenshot({ path: n('legal') })
+  // v1.2: zero-telemetry figure, real readout, fonts
+  await p.goto(U + '#ayuda/telemetria'); await p.waitForSelector('[data-testid=zero-figure] svg'); await p.waitForTimeout(400)
+  const ro = await p.textContent('[data-testid=zero-figure] [data-corner=readout]'); if (!/^0 /.test(ro)) errs.push('readout not 0: ' + ro)
+  if (shot) await p.locator('[data-testid=zero-figure]').screenshot({ path: n('anatomy') }); await a11y('figure')
+  const fonts = await p.evaluate(async () => { await document.fonts.ready; return [document.fonts.check('16px "Inter Variable"'), document.fonts.check('16px "JetBrains Mono Variable"'), getComputedStyle(document.body).fontFamily] })
+  if (!fonts[0] || !fonts[1]) errs.push('fonts not loaded ' + JSON.stringify(fonts))
+  if (shot && lang === 'en') await p.screenshot({ path: n('typography') })
+  // v1.2: ASCII smuggling sample
+  await p.goto(U + '#auditor'); await p.locator('body').click({ position: { x: 5, y: 5 } })
+  await p.selectOption('[data-testid=demo-select]', 'smuggling'); await p.waitForSelector('[data-testid=findings] article:has-text("MCPS-TP-003")')
+  await p.locator('[data-testid=findings] article:has-text("MCPS-TP-003") button').first().click(); await p.waitForTimeout(250)
+  if (shot) await p.screenshot({ path: n('smuggling') }); await a11y('smuggling')
   await p.goto(U + '#gobernanza'); await p.waitForTimeout(300); await a11y('governance')
   await p.locator('body').click({ position: { x: 5, y: 5 } })
   await p.keyboard.press('2'); await p.waitForSelector('[data-testid=demo-badge]'); await a11y('simulator')

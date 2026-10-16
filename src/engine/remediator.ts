@@ -1,6 +1,7 @@
 import type { McpConfig, McpServerConfig } from '../types/mcp.types'
 import { launcher } from './rules/util'
 import { poisoningRules } from './rules/poisoningRules'
+import { smugglingRules } from './rules/smugglingRules'
 import { isRef, isPlaceholder, findSecret, SECRET_KEY, redactString } from './redact'
 
 const PIN_HINT = '1.0.0' // placeholder — user must replace with audited version
@@ -99,7 +100,7 @@ export function hardenServer(name: string, s: McpServerConfig): McpServerConfig 
 
 /** A server is dropped when the scanner's own poisoning rules flag it (single source of truth). */
 const isPoisoned = (name: string, s: McpServerConfig) =>
-  poisoningRules.some(r => r.check({ serverName: name, server: s, lang: 'es' }).some(f => f.severity === 'critical'))
+  [...poisoningRules, ...smugglingRules].some(r => r.check({ serverName: name, server: s, lang: 'es' }).some(f => f.severity === 'critical'))
 
 export function remediate(cfg: McpConfig): McpConfig {
   const out: McpConfig = { mcpServers: {} }

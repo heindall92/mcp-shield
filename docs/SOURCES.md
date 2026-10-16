@@ -45,7 +45,16 @@ Cada afirmación que aparece en la UI se comprobó contra estas fuentes. Lo que 
 ## Licencias de terceros
 - Lucide: ISC (iconos derivados de Feather bajo MIT): https://lucide.dev/license
 - React, Tailwind CSS, Vite: MIT (ficheros LICENSE de cada repositorio).
-- Tipografía: solo fuentes del sistema; no se descarga ninguna.
+- Inter (rsms): SIL OFL 1.1 https://github.com/rsms/inter/blob/master/LICENSE.txt · JetBrains Mono: SIL OFL 1.1 https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt · empaquetadas con Fontsource (@fontsource-variable/inter y /jetbrains-mono 5.3.0, MIT): https://github.com/fontsource/fontsource — los woff2 se sirven desde el propio sitio (`font-src 'self'`).
+- anatomy (kit isométrico, MIT, commit e948829 del 15 oct 2026): https://github.com/wheresryan22/anatomy — copiado en src/components/iso/ con su aviso de licencia.
+- NVIDIA garak (Apache-2.0): https://github.com/NVIDIA/garak — inspiración de MCPS-TP-003; sin código copiado.
+
+## ASCII smuggling (MCPS-TP-003)
+- Sondas de garak `encoding.InjectUnicodeTagChars`, `InjectUnicodeVariantSelectors` e `InjectSneakyBits` (garak/probes/encoding.py, garak/resources/smuggling; revisado en el commit 346497a): https://github.com/NVIDIA/garak/blob/main/garak/probes/encoding.py
+- Caracteres Unicode Tag (U+E0000–E007F) como texto oculto: https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/
+- Sneaky Bits (U+2062 / U+2064): https://embracethered.com/blog/posts/2025/sneaky-bits-and-ascii-smuggler/
+- Datos en selectores de variación (U+FE00–FE0F, U+E0100–E01EF): https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/
+- Bloque Tags y secuencias de bandera de subdivisión (emoji tag sequences): https://www.unicode.org/charts/PDF/UE0000.pdf · https://www.unicode.org/reports/tr51/#valid-emoji-tag-sequences
 - Esquema SARIF 2.1.0 (OASIS), solo en pruebas: https://docs.oasis-open.org/sarif/sarif/v2.1.0/
 
 ## GitHub Pages y cabeceras HTTP

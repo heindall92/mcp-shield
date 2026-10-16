@@ -24,7 +24,7 @@ MCP-Shield revisa el `mcp.json` de Claude Desktop, Cursor o VS Code y te dice qu
 ```text
 mcp-shield:~$ cat mcp-shield.yaml
 ├─ entrada:     mcpServers · servers (.vscode) · mcp.servers · JSONC · BOM · límite 1 MiB / 500 servidores
-├─ reglas:      10 (supply chain 3 · filesystem 3 · secretos 2 · tool poisoning 2)
+├─ reglas:      11 (supply chain 3 · filesystem 3 · secretos 2 · tool poisoning 3)
 ├─ salidas:     SARIF 2.1.0 · Markdown · mcp.json endurecido (${VAR}) · Dockerfile + compose · impresión/PDF
 ├─ gobernanza:  OWASP Agentic Top 10 2026 · NSA MCP CSI · ISO/IEC 42001 · CSA (mapeo orientativo)
 ├─ aplicación:  React 19 · TypeScript · Vite · Tailwind CSS 3 · Lucide
@@ -97,7 +97,7 @@ El despliegue lo hace `.github/workflows/pages.yml` (tests → build → comprob
 ## Arquitectura
 
 ```text
-mcp.json ──► parse.ts (JSONC, formatos, límites) ──► scanner.ts ──► 10 reglas ──► redact.ts
+mcp.json ──► parse.ts (JSONC, formatos, límites) ──► scanner.ts ──► 11 reglas ──► redact.ts
                                                          │                         │
                                                          ▼                         ▼
                                        remediator.ts (config ${VAR}, Docker)   UI · SARIF · Markdown · impresión
@@ -119,6 +119,7 @@ Todo es TypeScript puro en `src/engine/`, sin dependencias de ejecución salvo R
 | MCPS-SEC-002 | Secretos en argumentos de línea de comandos |
 | MCPS-TP-001 | Tool Poisoning: directivas ocultas, ocultación al usuario, ficheros sensibles, exfiltración, zero-width |
 | MCPS-TP-002 | Cross-server tool shadowing |
+| MCPS-TP-003 | ASCII smuggling: caracteres Unicode Tag (U+E0000–E007F, con el texto oculto decodificado), selectores de variación en serie (U+FE00–FE0F, U+E0100–E01EF), Sneaky Bits y secuencias ANSI en nombres, descripciones y args. Inspirada en las sondas de [NVIDIA garak](https://github.com/NVIDIA/garak). Sin falsos positivos con emoji normales (VS16, banderas de subdivisión, ZWJ) |
 
 Las cifras, CVE e incidentes están contrastados con fuentes primarias en [docs/SOURCES.md](docs/SOURCES.md).
 
@@ -130,7 +131,7 @@ Las cifras, CVE e incidentes están contrastados con fuentes primarias en [docs/
 
 ## Seguridad y privacidad
 
-- **Sin servidor, analítica, cookies ni terceros.** Fuentes del sistema; nada se descarga después de cargar la página.
+- **Sin servidor, analítica, cookies ni terceros.** Fuentes Inter y JetBrains Mono (variables, OFL 1.1) autoalojadas con Fontsource bajo `font-src 'self'`, con fuentes del sistema como respaldo; ninguna petición a otro origen. La figura «Cero telemetría» de la ayuda muestra el recuento real de peticiones externas (Resource Timing API).
 - **CSP** en `<meta>`: `default-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'`, más `<meta name="referrer" content="no-referrer">`.
 - **Secretos**: ocultos en pantalla, SARIF, Markdown, impresión y portapapeles; la config corregida usa referencias `${VAR}`. El texto pegado nunca se guarda ni se registra. `localStorage` solo contiene `mcps-lang`, `mcps-theme` y `mcps-onboarded`.
 - **XSS**: React escapa toda salida; los exportes Markdown escapan HTML, `|` y backticks.
@@ -159,7 +160,7 @@ docs/            SOURCES.md · DESIGN-REFERENCES.md · img/
 
 ## Licencia y créditos
 
-MIT © Yoandy Ramírez Delgado. Iconos [Lucide](https://lucide.dev/license) (ISC; los derivados de Feather, MIT). React, Tailwind CSS y Vite (MIT). Patrones de diseño de 21st.dev reimplementados desde cero: [docs/DESIGN-REFERENCES.md](docs/DESIGN-REFERENCES.md). Cambios: [CHANGELOG.md](CHANGELOG.md).
+MIT © Yoandy Ramírez Delgado. Iconos [Lucide](https://lucide.dev/license) (ISC; los derivados de Feather, MIT). React, Tailwind CSS y Vite (MIT). Fuentes Inter y JetBrains Mono (SIL OFL 1.1) vía Fontsource (MIT). Figura isométrica con el kit [anatomy](https://github.com/wheresryan22/anatomy) (MIT, copiado en `src/components/iso/`). Regla MCPS-TP-003 inspirada en [NVIDIA garak](https://github.com/NVIDIA/garak) (Apache-2.0, sin copiar código). Ver [NOTICE](NOTICE). Patrones de diseño de 21st.dev reimplementados desde cero: [docs/DESIGN-REFERENCES.md](docs/DESIGN-REFERENCES.md). Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 El software se ofrece «tal cual», sin garantía. Úsalo solo con configuraciones propias o autorizadas.
 
@@ -177,7 +178,7 @@ Otras herramientas: [Rosetta](https://heindall92.github.io/rosetta_multinorma/) 
 
 ## English
 
-**MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 10 rules for supply chain, filesystem, secrets and tool poisoning; a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. Secrets are masked everywhere and pasted text is never stored. It also ships an educational kill-chain simulator with fictitious data, a governance matrix (OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001, CSA) and a help centre with a command palette (Ctrl/⌘+K) and keyboard shortcuts.
+**MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 11 rules for supply chain, filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. Secrets are masked everywhere and pasted text is never stored. It also ships an educational kill-chain simulator with fictitious data, a governance matrix (OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001, CSA) and a help centre with a command palette (Ctrl/⌘+K) and keyboard shortcuts.
 
 - Live: **https://heindall92.github.io/mcp-shield/**
 - Security headers: GitHub Pages cannot set response headers. HSTS is sent by GitHub; `X-Frame-Options` and header-based CSP/`frame-ancestors` are not available, so the CSP is delivered via `<meta>` (with `connect-src 'none'`) plus a `no-referrer` policy.
