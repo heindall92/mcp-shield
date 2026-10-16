@@ -41,19 +41,12 @@ function base() {
     out.push(S(k.cylinder(x, y, 5.2, -PLATE_H - FOOT_H + 1.6, FOOT_H - 1.6, P, 28), { tone: 'mid' }))
   }
   out.push(S(k.slabOf(PLATE, -PLATE_H, PLATE_H, P, 8, 1.6), { tone: 'mid' }))
-  out.push(L(k.planOutline(k.insetPlan(PLATE, 5), 0, P), { tone: 'lo' }))
   const screws = k.corners(PLATE, 10)
   out.push(L(screws.map(([x, y]) => k.ring(x, y, 2.2, 0, P, 16)).join(''), { tone: 'lo' }))
   out.push(D(screws.map(([x, y]) => at([x, y, 0])), { size: 0.5 }))
-  // ruler strip along the front edge
-  const strip: k.Plan = { x: -104, y: PLATE.y + PLATE.d - 13, w: 150, d: 6, r: 1 }
-  out.push(S(k.slabOf(strip, 0, 0.6, P, 3), { tone: 'lo', crease: 'none' }))
-  const t = k.topTicks(strip.x + 4, strip.x + strip.w - 4, 4, 5, strip.y + 0.8, 0.6, [1.8, 3.4], P)
-  out.push(L(t.minor, { tone: 'lo' }), L(t.major, { tone: 'mid' }))
   // label plate with three rule lines
   const label: k.Plan = { x: 62, y: PLATE.y + PLATE.d - 18, w: 40, d: 12, r: 1.2 }
   out.push(S(k.slabOf(label, 0, 0.8, P, 3, 0.3), { tone: 'mid', crease: 'none' }))
-  for (const [i, w] of [28, 20, 24].entries()) out.push(L(k.lineOnTop([label.x + 4, label.y + 3 + i * 3], [label.x + 4 + w, label.y + 3 + i * 3], 0.8, P), { tone: 'faint', free: true }))
   out.push(D([at([label.x + 2, label.y + 2, 0.8]), at([label.x + label.w - 2, label.y + 2, 0.8]), at([label.x + 2, label.y + label.d - 2, 0.8]), at([label.x + label.w - 2, label.y + label.d - 2, 0.8])], { size: 0.4 }))
   return out.join('')
 }
@@ -61,7 +54,7 @@ function base() {
 /** Network port on the +x face, near the back, with its cap and lead seal. */
 function port() {
   const out: string[] = []
-  const py = BOX.y + 12, pz = 10
+  const py = BOX.y + 5, pz = 10
   const housing: k.Plan = { x: SIDE_X, y: py, w: 4, d: 16, r: 1 }
   out.push(S(k.slabOf(housing, pz, 13, P, 3, 0.4), { tone: 'mid' }))
   const cap: k.Plan = { x: SIDE_X + 4, y: py - 1.5, w: 3.4, d: 19, r: 1.4 }
@@ -70,9 +63,9 @@ function port() {
   out.push(D([at([SIDE_X + 7.4, py + 2.5, pz + 2]), at([SIDE_X + 7.4, py + 15, pz + 2])], { size: 0.5, tone: 'hi' }))
   // seal wire from the cap screw to a crimped lead seal hanging on the face
   const from = at([SIDE_X + 7.4, py + 15, pz + 2])
-  const seal = at([SIDE_X + 1, py + 26, pz - 4])
-  out.push(k.wireSvg(from, seal, { via: [at([SIDE_X + 6, py + 22, pz - 1])], tone: 'lo', size: 0.6 }))
-  out.push(S(k.cylinder(SIDE_X + 1.6, py + 26, 1.8, pz - 6, 3, P, 16), { tone: 'mid' }))
+  const seal = at([SIDE_X + 1, py + 22, pz - 4])
+  out.push(k.wireSvg(from, seal, { via: [at([SIDE_X + 6, py + 19, pz - 1])], tone: 'lo', size: 0.6 }))
+  out.push(S(k.cylinder(SIDE_X + 1.6, py + 22, 1.8, pz - 6, 3, P, 16), { tone: 'mid' }))
   // the "no-network" glyph engraved on the cap: a ring with a bar
   out.push(L(k.sideRing([SIDE_X + 7.45, py + 8.75, pz + 6.5], 3, 'x', P, 18), { tone: 'lo' }))
   out.push(L(seg([SIDE_X + 7.45, py + 6.6, pz + 8.6], [SIDE_X + 7.45, py + 10.9, pz + 4.4]), { tone: 'lo' }))
@@ -87,11 +80,6 @@ function housing() {
   out.push(L(k.planOutline(k.insetPlan(BOX, 6), TOP, P, 6), { tone: 'lo' }))
   const tc = k.corners(BOX, 6)
   out.push(D(tc.map(([x, y]) => at([x, y, TOP])), { size: 0.5 }))
-  // vent slots (closed) on the front face, left end
-  for (let i = 0; i < 6; i++) {
-    const x = BOX.x + 10 + i * 4.2
-    out.push(L(seg([x, FRONT_Y - 0.1, 48], [x, FRONT_Y - 0.1, 38]), { tone: 'lo' }))
-  }
   // readout window on the front face (right half)
   const wx = 14, ww = 50, wz0 = 30, wz1 = 46
   const win = [at([wx, FRONT_Y, wz1]), at([wx + ww, FRONT_Y, wz1]), at([wx + ww, FRONT_Y, wz0]), at([wx, FRONT_Y, wz0])]
@@ -106,7 +94,7 @@ function housing() {
   const slot = [at([sx0, FRONT_Y, sz + 4]), at([sx1, FRONT_Y, sz + 4]), at([sx1, FRONT_Y, sz - 1]), at([sx0, FRONT_Y, sz - 1])]
   out.push(`<path class="iso-shade" data-shade="0" d="${k.pathOf(slot, true)}"/>`, L(k.pathOf(slot, true), { tone: 'lo' }))
   // output slot on the side face
-  const oy0 = -14, oy1 = 30, oz = 36
+  const oy0 = 4, oy1 = 40, oz = 36
   const out2 = [at([SIDE_X, oy0, oz + 4]), at([SIDE_X, oy1, oz + 4]), at([SIDE_X, oy1, oz - 1]), at([SIDE_X, oy0, oz - 1])]
   out.push(`<path class="iso-shade" data-shade="0" d="${k.pathOf(out2, true)}"/>`, L(k.pathOf(out2, true), { tone: 'lo' }))
   out.push(port())
@@ -143,12 +131,12 @@ export function tray() {
 
 /** The findings card, drawn fully out of the side slot. */
 export function card() {
-  const plan: k.Plan = { x: SIDE_X, y: -10, w: CARD_OUT, d: 36, r: 1 }
+  const plan: k.Plan = { x: SIDE_X, y: 7, w: CARD_OUT, d: 30, r: 1 }
   const z = 36
   const out = [S(k.slabOf(plan, z, 0.8, P, 2), { tone: 'hi', crease: 'none' })]
   const rows = [0, 1, 2]
   for (const r of rows) {
-    const y = plan.y + 7 + r * 9
+    const y = plan.y + 6 + r * 8
     out.push(D([at([SIDE_X + 5, y, z + 0.8])], { size: 0.8, tone: r === 0 ? 'hi' : 'mid' }))
     out.push(L(k.lineOnTop([SIDE_X + 9, y], [SIDE_X + 9 + [18, 13, 16][r], y], z + 0.8, P), { tone: r === 0 ? 'mid' : 'lo', free: true }))
   }

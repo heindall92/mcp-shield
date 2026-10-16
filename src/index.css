@@ -12,7 +12,6 @@ h2,h3{letter-spacing:-0.01em}
 ::selection{background:rgb(var(--cyan-400)/0.3)}
 .scroll-thin::-webkit-scrollbar{width:6px;height:6px}
 .scroll-thin::-webkit-scrollbar-thumb{background:rgb(var(--slate-800));border-radius:3px}
-.grid-bg{background-image:linear-gradient(rgb(var(--white)/0.025) 1px,transparent 1px),linear-gradient(90deg,rgb(var(--white)/0.025) 1px,transparent 1px);background-size:32px 32px}
 @layer components{
   .btn-primary{@apply inline-flex h-9 items-center gap-2 rounded-xl bg-slate-50 px-4 text-[0.875rem] font-semibold text-slate-950 shadow-[0_1px_0_rgb(var(--white)/0.4)_inset,0_6px_20px_-8px_rgb(var(--black)/0.6)] transition-[transform,background-color] duration-150 ease-out hover:bg-white active:scale-[0.97]}
   .btn-ghost{@apply inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-[0.875rem] text-slate-300 transition-[background-color,transform] duration-150 ease-out hover:bg-white/[0.07] hover:text-white active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40}
@@ -63,7 +62,6 @@ dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
   @page{margin:14mm}
   :root{color-scheme:light}
   html,body{background:#fff!important;color:#0b0f17!important}
-  .grid-bg{background:none!important}
   .print\:hidden,header.sticky,footer,dialog,.no-print{display:none!important}
   .print-only{display:block!important}
   main{max-width:none!important;padding:0!important}
