@@ -30,9 +30,10 @@ export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
         <div className="min-w-0 flex-1">
-          <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-slate-400">{t.simKicker}</p>
+          <p className="flex items-center gap-2 text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-slate-400">{t.simKicker}<span data-testid="demo-badge" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[0.625rem] tracking-[0.08em] text-amber-200">{t.demoBadge}</span></p>
           <h1 className="display mt-1.5 text-white">{scenario.title}</h1>
           <p className="mt-1 text-[0.875rem] text-slate-400">{scenario.subtitle}</p>
+          <p className="mt-2 max-w-2xl text-[0.75rem] leading-relaxed text-slate-400">{t.simDemoNote}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Segmented label={t.mode} value={mode} onChange={setMode} options={[

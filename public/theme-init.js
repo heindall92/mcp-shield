@@ -4,4 +4,6 @@ try {
   if (t === 'light') document.documentElement.classList.add('light')
   var l = localStorage.getItem('mcps-lang') || 'es'
   document.documentElement.lang = l
-} catch (e) {}
+} catch {
+  /* storage unavailable */
+}

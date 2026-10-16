@@ -12,7 +12,7 @@ describe('catálogo', () => {
     const seen = new Set([...sampleConfigs, ...attackScenarios.map(x => ({ config: x.vulnerableConfig }))].flatMap(x => ids(x.config)))
     ;[{ d: { command: 'docker', args: ['run', '--privileged', 'i'] } }, { k: { command: 'x', args: ['ghp_FAKE_0000000000000000000000000000demo'] } }].forEach(m => ids({ mcpServers: m }).forEach(i => seen.add(i)))
     expect([...seen].sort()).toEqual(['MCPS-FS-001','MCPS-FS-002','MCPS-FS-003','MCPS-SC-001','MCPS-SC-002','MCPS-SC-003','MCPS-SEC-001','MCPS-SEC-002','MCPS-TP-001','MCPS-TP-002'])
-    expect(ALL_RULES.length).toBe(7)
+    expect(ALL_RULES.length).toBe(8)
   })
 })
 

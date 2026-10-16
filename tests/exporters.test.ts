@@ -13,7 +13,7 @@ const res = scanConfig(cfg)
 describe('SARIF 2.1.0', () => {
   const s = toSarif(res)
   it('estructura válida', () => {
-    expect(s.version).toBe('2.1.0'); expect(s.$schema).toMatch(/sarif-2\.1\.0/)
+    expect(s.version).toBe('2.1.0'); expect(s.$schema).toMatch(/sarif-schema-2\.1\.0/)
     expect(s.runs[0].tool.driver.name).toBe('MCP-Shield')
     expect(s.runs[0].results).toHaveLength(res.findings.length)
   })
@@ -48,7 +48,7 @@ describe('remediador', () => {
     expect(h.env?.GITHUB_PERSONAL_ACCESS_TOKEN).toBe('${GITHUB_PERSONAL_ACCESS_TOKEN}')
   })
   it('elimina servidores envenenados', () => expect(removedServers(sampleConfigs[1].config)).toContain('math-helper'))
-  it('git parcheado ≥ 2025.12.18', () => expect(JSON.stringify(remediate(cfg))).toContain('mcp-server-git==2025.12.18'))
+  it('git parcheado ≥ 2025.12.18', () => expect(JSON.stringify(remediate(cfg))).toContain('mcp-sandbox/mcp-server-git:2025.12.18'))
   it('remotos pasan a https', () => expect(remediate(sampleConfigs.find(s => s.id === 'shadowing')!.config).mcpServers.crm.url).toMatch(/^https:/))
   it('Dockerfile sin red y no root', () => { const d = dockerSnippet(cfg); expect(d).toContain('network_mode: "none"'); expect(d).toContain('USER mcp') })
 })

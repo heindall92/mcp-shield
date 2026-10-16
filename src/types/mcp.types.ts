@@ -10,6 +10,10 @@ export interface McpServerConfig {
   args?: string[]
   env?: Record<string, string>
   url?: string
+  /** Transport hint: stdio | sse | http | streamable-http (VS Code / Cursor) */
+  type?: string
+  /** HTTP headers for remote servers (e.g. Authorization) */
+  headers?: Record<string, string>
   /** Non-standard but common: tool metadata snapshot (tools/list) for poisoning analysis */
   tools?: McpToolDefinition[]
 }
@@ -40,6 +44,8 @@ export interface ScanResult {
   grade: 'A' | 'B' | 'C' | 'D' | 'F'
   serversScanned: number
   parseError?: string
+  /** Non-fatal notes from the parser (unknown fields, coerced values…) */
+  warnings?: string[]
   counts: Record<Severity, number>
 }
 

@@ -1,7 +1,14 @@
 /** All UI chrome strings. Engine/data strings are localised at their source. */
 export const UI = {
   es: {
-    tabSim: 'Simulador', tabAudit: 'Auditor', tabGov: 'Gobernanza', navLabel: 'Secciones',
+    demoBadge: 'Demo educativa', simDemoNote: 'Simulación educativa con datos ficticios: nada de esto se ejecuta ni toca tus archivos. Para analizar tu configuración real usa el Auditor.',
+    loadDemo: 'Cargar ejemplo de demo', loadDemoPick: 'Elige un ejemplo…', resetBtn: 'Reiniciar / dejar limpio',
+    resetTitle: '¿Dejar el auditor limpio?', resetBody: 'Se borrará el texto pegado, los resultados y los datos locales de la app. Se conservan solo tus preferencias de idioma y tema.', resetConfirm: 'Sí, limpiar todo', cancel: 'Cancelar',
+    emptyTitle: 'Pega o suelta tu configuración MCP', emptyBody: 'Admite claude_desktop_config.json, .cursor/mcp.json y .vscode/mcp.json (incluye comentarios JSONC). El análisis ocurre solo en tu navegador; los secretos se ocultan en pantalla y en las exportaciones.',
+    dropHere: 'Suelta el archivo para analizarlo', placeholder: '{\n  "mcpServers": {\n    "…": { "command": "npx", "args": ["…"] }\n  }\n}',
+    parseWarnings: 'Avisos de lectura', redactedNote: 'Los secretos detectados se muestran como [REDACTED] y se sustituyen por referencias ${VAR} en la config corregida.',
+    errTitle: 'Algo ha fallado en esta vista', errBody: 'No se ha enviado nada fuera de tu equipo. Puedes reintentar o dejar la app limpia.', errRetry: 'Reintentar', fileTooBig: 'El archivo supera 1 MiB; no parece una configuración MCP.', fileRead: 'No se pudo leer el archivo.',
+    tabSim: 'Simulador (demo)', tabAudit: 'Auditor', tabGov: 'Gobernanza', navLabel: 'Secciones',
     badgeLong: '100% client-side · cero egress', badgeShort: 'Cero egress',
     langLabel: 'Idioma', themeLabel: 'Tema', themeLight: 'Claro', themeDark: 'Oscuro',
     simKicker: 'Simulador de Kill-Chain · 100% simulado', mode: 'Modo', step: 'Paso', reset: 'Reiniciar',
@@ -27,7 +34,14 @@ export const UI = {
     footer: 'Proyecto educativo y defensivo · todos los payloads, claves (sk-FAKE-…, ghp_FAKE…) y hosts son simulados · MIT · Yoandy Ramírez Delgado (heindall92)',
   },
   en: {
-    tabSim: 'Simulator', tabAudit: 'Auditor', tabGov: 'Governance', navLabel: 'Sections',
+    demoBadge: 'Educational demo', simDemoNote: 'Educational simulation with fictitious data: nothing here runs or touches your files. To analyse your real configuration use the Auditor.',
+    loadDemo: 'Load demo example', loadDemoPick: 'Pick an example…', resetBtn: 'Reset / start clean',
+    resetTitle: 'Clear the auditor?', resetBody: 'This deletes the pasted text, the results and the app\'s local data. Only your language and theme preferences are kept.', resetConfirm: 'Yes, clear everything', cancel: 'Cancel',
+    emptyTitle: 'Paste or drop your MCP configuration', emptyBody: 'Supports claude_desktop_config.json, .cursor/mcp.json and .vscode/mcp.json (JSONC comments included). Analysis happens only in your browser; secrets are masked on screen and in exports.',
+    dropHere: 'Drop the file to analyse it', placeholder: '{\n  "mcpServers": {\n    "…": { "command": "npx", "args": ["…"] }\n  }\n}',
+    parseWarnings: 'Parsing notes', redactedNote: 'Detected secrets are shown as [REDACTED] and replaced with ${VAR} references in the fixed config.',
+    errTitle: 'Something went wrong in this view', errBody: 'Nothing was sent off your device. You can retry or reset the app.', errRetry: 'Retry', fileTooBig: 'The file is larger than 1 MiB; it does not look like an MCP configuration.', fileRead: 'The file could not be read.',
+    tabSim: 'Simulator (demo)', tabAudit: 'Auditor', tabGov: 'Governance', navLabel: 'Sections',
     badgeLong: '100% client-side · zero egress', badgeShort: 'Zero egress',
     langLabel: 'Language', themeLabel: 'Theme', themeLight: 'Light', themeDark: 'Dark',
     simKicker: 'Kill-Chain simulator · 100% simulated', mode: 'Mode', step: 'Step', reset: 'Reset',
