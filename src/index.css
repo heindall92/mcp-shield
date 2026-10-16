@@ -76,3 +76,6 @@ dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
 .menu-pop{background:rgb(var(--elevated));transform-origin:top right;animation:menu-in 160ms cubic-bezier(.23,1,.32,1)}
 @keyframes menu-in{from{opacity:0;transform:scale(.96)}}
 @media (prefers-reduced-motion:reduce){.menu-pop{animation:none}}
+.bottom-bar{background:rgb(var(--canvas)/.72);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+@media (prefers-reduced-transparency:reduce){.bottom-bar{background:rgb(var(--canvas));-webkit-backdrop-filter:none;backdrop-filter:none}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.bottom-bar{background:rgb(var(--canvas))}}

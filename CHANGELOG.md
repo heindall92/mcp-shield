@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2 — 2026-10-16 · Barra inferior en móvil
+- En pantallas de menos de 640 px las pestañas pasan a una **barra inferior fija** (estilo iOS): icono Lucide + etiqueta corta (Auditor, Integridad, Simulador, Gobernanza, Ayuda / Auditor, Integrity, Simulator, Governance, Help), translúcida con `backdrop-filter` y fondo opaco con `prefers-reduced-transparency` o sin soporte de desenfoque. Estado activo con `aria-current`, accesible por teclado, objetivos de 44 px o más y respuesta al pulsar.
+- Área segura de iOS: `viewport-fit=cover` y `env(safe-area-inset-bottom)`; el contenido, el pie y los avisos se desplazan para que la barra nunca los tape.
+- Sello «cero egress» compacto en la cabecera móvil que abre el modal existente.
+- e2e móvil ampliado (320/360/390/430 × 844 px, claro/oscuro, ES/EN): barra fija abajo, 5 pestañas sin etiquetas recortadas, objetivos ≥ 44 px, `aria-current` correcto, navegación con teclado, pie no tapado por la barra y sello visible.
+
 ## 1.3.1 — 2026-10-16 · Diseño móvil
 - Cabecera en pantallas de menos de 640 px: logo (el nombre ya no se parte), botón de búsqueda compacto y un único menú (Lucide) con idioma, tema, ayuda y garantía cero egress. Corregido el atajo «Ctrl K», que se mostraba en móvil porque `.kbd` anulaba `hidden`.
 - Pestañas en móvil: barra con desplazamiento horizontal, *snap*, bordes difuminados, sin saltos de línea y la pestaña activa siempre visible.

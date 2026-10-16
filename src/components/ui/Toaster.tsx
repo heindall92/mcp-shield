@@ -17,7 +17,7 @@ export function Toaster({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div aria-live="polite" aria-atomic="false" className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex flex-col items-center gap-2 px-4 print:hidden">
+      <div aria-live="polite" aria-atomic="false" className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 sm:bottom-4 flex flex-col items-center gap-2 px-4 print:hidden">
         {items.map(x => (
           <div key={x.id} data-testid="toast" className="toast-in pointer-events-auto flex max-w-md items-center gap-2 rounded-xl border border-white/[0.1] bg-elevated px-3.5 py-2.5 text-[0.8125rem] text-slate-200 shadow-[0_18px_50px_-18px_rgb(var(--black)/0.7)]">
             {x.kind === 'ok' ? <CheckCircle2 size={15} className="shrink-0 text-emerald-400" aria-hidden /> : <AlertTriangle size={15} className="shrink-0 text-amber-300" aria-hidden />}{x.msg}

@@ -55,3 +55,21 @@ export function MobileMenu({ label, lang, setLang, theme, setTheme, onHelp, onZe
     </div>
   )
 }
+
+/** Fixed bottom tab bar for narrow screens (Apple-style): translucent, safe-area aware, 44px+ targets. */
+export function BottomTabs<T extends string>({ options, value, onChange, label }: { options: { value: T; label: string; Icon: LucideIcon }[]; value: T; onChange: (v: T) => void; label: string }) {
+  return (
+    <nav aria-label={label} data-testid="bottom-bar" className="bottom-bar fixed inset-x-0 bottom-0 z-30 border-t border-white/[0.08] pb-[env(safe-area-inset-bottom)] sm:hidden print:hidden">
+      <ul className="mx-auto flex max-w-md">
+        {options.map(({ value: v, label: l, Icon }) => { const on = v === value; return (
+          <li key={v} className="min-w-0 flex-1">
+            <a href={`#${v}`} aria-current={on ? 'page' : undefined} onClick={e => { e.preventDefault(); onChange(v) }}
+              className={`press focus-ring flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-lg px-0.5 pt-1.5 pb-1 text-[0.625rem] font-medium leading-tight tracking-[-0.01em] active:opacity-60 ${on ? 'text-white' : 'text-slate-400'}`}>
+              <span aria-hidden className={`grid h-7 w-12 place-items-center rounded-full transition-colors duration-200 ${on ? 'bg-white/[0.1]' : ''}`}><Icon size={19} strokeWidth={on ? 2.2 : 1.8} /></span>
+              <span data-label className="whitespace-nowrap">{l}</span>
+            </a>
+          </li>) })}
+      </ul>
+    </nav>
+  )
+}
