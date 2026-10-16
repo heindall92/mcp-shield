@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1 — 2026-10-16 · Diseño móvil
+- Cabecera en pantallas de menos de 640 px: logo (el nombre ya no se parte), botón de búsqueda compacto y un único menú (Lucide) con idioma, tema, ayuda y garantía cero egress. Corregido el atajo «Ctrl K», que se mostraba en móvil porque `.kbd` anulaba `hidden`.
+- Pestañas en móvil: barra con desplazamiento horizontal, *snap*, bordes difuminados, sin saltos de línea y la pestaña activa siempre visible.
+- Pie: el aviso ocupa todo el ancho y los enlaces se colocan debajo, sin solaparse.
+- Sin desbordamiento horizontal en Auditor (rejillas y diff con `minmax(0,1fr)`), Integridad (rutas largas) y Gobernanza (la tabla desplazable ya se puede enfocar con el teclado).
+- Nueva prueba e2e `scripts/e2e-mobile.mjs` en CI: todas las vistas, menú, paleta y modal a 320, 360, 390 y 430 px, claro/oscuro, ES/EN. Falla si hay desbordamiento horizontal o texto de varias palabras en una columna de menos de 80 px; axe a 390 px.
+
 ## 1.3.0 — 2026-10-16 · Tool Integrity Monitor
 Implementa la parte web offline del RFC-001 en `src/integrity/`.
 - **Nueva vista Integridad** (atajo `2`; los demás pasan a `3–5`): baseline aprobada frente a candidato, chips de huella, métricas de riesgo de integridad y de configuración por separado, eventos filtrables con evidencia antes/después por campo y nivel de confianza, cobertura MCPS-INT, revisión humana y registro de decisiones. ES/EN, claro/oscuro AA, Lucide, sin fondos de cuadrícula.

@@ -6,7 +6,7 @@
   <a href="https://heindall92.github.io/mcp-shield/"><img alt="Abrir MCP-Shield" src="https://img.shields.io/badge/ABRIR-heindall92.github.io%2Fmcp--shield-10B981?style=for-the-badge"/></a>
 </p>
 <p align="center">
-  <img alt="Versión 1.3.0" src="https://img.shields.io/badge/versi%C3%B3n-1.3.0-555?style=flat"/>
+  <img alt="Versión 1.3.1" src="https://img.shields.io/badge/versi%C3%B3n-1.3.1-555?style=flat"/>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/LICENCIA-MIT-4169A1?style=flat"/></a>
   <a href="https://github.com/heindall92/mcp-shield/actions/workflows/pages.yml"><img alt="Deploy" src="https://github.com/heindall92/mcp-shield/actions/workflows/pages.yml/badge.svg"/></a>
   <img alt="SARIF 2.1.0" src="https://img.shields.io/badge/SARIF-2.1.0%20validado-3B6FD4?style=flat"/>

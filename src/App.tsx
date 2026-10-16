@@ -7,6 +7,7 @@ import { Help } from './components/help/Help'
 const IntegrityView = lazy(() => import('./components/integrity/IntegrityView').then(m => ({ default: m.IntegrityView })))
 import { ZeroTelemetryModal } from './components/ui/ZeroTelemetry'
 import { Segmented } from './components/ui/Segmented'
+import { MobileTabs, MobileMenu } from './components/ui/MobileBar'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { CommandPalette, type Command } from './components/ui/CommandPalette'
 import { ConfirmDialog } from './components/ui/ConfirmDialog'
@@ -93,29 +94,30 @@ export default function App() {
       <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 h-[26rem] bg-[radial-gradient(60%_60%_at_50%_0%,rgb(var(--slate-400)/0.07),transparent)] print:hidden" />
       <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-canvas/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[87.5rem] items-center gap-3 px-4 py-2.5 sm:px-6">
-          <a href="#auditor" onClick={e => { e.preventDefault(); go('auditor') }} className="focus-ring flex items-center gap-2.5 rounded-lg">
+          <a href="#auditor" onClick={e => { e.preventDefault(); go('auditor') }} className="focus-ring flex shrink-0 items-center gap-2.5 rounded-lg">
             <div className="grid h-8 w-8 place-items-center rounded-[10px] border border-white/[0.1] bg-white/[0.06] text-white shadow-[inset_0_1px_0_rgb(var(--white)/0.08)]"><Shield size={16} strokeWidth={2} aria-hidden /></div>
-            <span className="text-[0.9375rem] font-semibold tracking-[-0.01em] text-white">MCP-Shield</span>
+            <span className="whitespace-nowrap text-[0.9375rem] font-semibold tracking-[-0.01em] text-white">MCP-Shield</span>
           </a>
           <nav aria-label={t.navLabel} className="ml-3 hidden md:block"><Segmented label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex min-w-0 items-center gap-2">
             <button data-testid="search-pill" onClick={() => setPalette(true)} aria-label={t.search} aria-keyshortcuts="Control+K Meta+K"
-              className="press focus-ring inline-flex h-8 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 text-[0.75rem] text-slate-400 hover:bg-white/[0.06] hover:text-white">
-              <Search size={14} aria-hidden /><span className="hidden xl:inline">{t.searchShort}</span><kbd className="kbd hidden sm:inline-flex">{modKey()} K</kbd>
+              className="press focus-ring inline-flex h-8 w-8 shrink-0 items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] text-[0.75rem] sm:w-auto sm:px-2.5 text-slate-400 hover:bg-white/[0.06] hover:text-white">
+              <Search size={14} aria-hidden /><span className="hidden xl:inline">{t.searchShort}</span><span className="hidden sm:inline-flex"><kbd className="kbd whitespace-nowrap">{modKey()} K</kbd></span>
             </button>
             <button onClick={() => setModal(true)} className="press focus-ring hidden h-8 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 text-[0.75rem] font-medium text-slate-300 hover:bg-white/[0.06] sm:inline-flex">
               <span aria-hidden className="relative flex h-1.5 w-1.5"><span className="absolute inset-0 rounded-full bg-emerald-400" /></span>
               <span className="hidden lg:inline">{t.badgeLong}</span><span className="lg:hidden">{t.badgeShort}</span>
             </button>
-            <div className="flex items-center gap-1.5"><Languages size={15} strokeWidth={1.8} className="hidden text-slate-400 sm:block" aria-hidden />
+            <div className="hidden items-center gap-1.5 sm:flex"><Languages size={15} strokeWidth={1.8} className="hidden text-slate-400 sm:block" aria-hidden />
               <Segmented size="sm" label={t.langLabel} value={lang} onChange={setLang} options={[{ value: 'es', label: 'ES' }, { value: 'en', label: 'EN' }]} /></div>
-            <Segmented size="sm" iconOnly label={t.themeLabel} value={theme} onChange={setTheme}
-              options={[{ value: 'light', label: t.themeLight, Icon: Sun }, { value: 'dark', label: t.themeDark, Icon: Moon }]} />
+            <div className="hidden sm:block"><Segmented size="sm" iconOnly label={t.themeLabel} value={theme} onChange={setTheme}
+              options={[{ value: 'light', label: t.themeLight, Icon: Sun }, { value: 'dark', label: t.themeDark, Icon: Moon }]} /></div>
             <button data-testid="help-btn" onClick={() => go('ayuda')} aria-label={t.tabHelp} aria-current={tab === 'ayuda' ? 'page' : undefined} title={`${t.tabHelp} (?)`}
-              className={`press focus-ring grid h-8 w-8 place-items-center rounded-full border border-white/[0.08] hover:bg-white/[0.06] hover:text-white ${tab === 'ayuda' ? 'bg-white/[0.08] text-white' : 'bg-white/[0.03] text-slate-400'}`}><CircleHelp size={16} aria-hidden /></button>
+              className={`press focus-ring hidden h-8 w-8 place-items-center rounded-full sm:grid border border-white/[0.08] hover:bg-white/[0.06] hover:text-white ${tab === 'ayuda' ? 'bg-white/[0.08] text-white' : 'bg-white/[0.03] text-slate-400'}`}><CircleHelp size={16} aria-hidden /></button>
+            <MobileMenu label={lang === 'es' ? 'Más opciones' : 'More options'} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onHelp={() => go('ayuda')} onZero={() => setModal(true)} t={t} />
           </div>
         </div>
-        <nav aria-label={t.navLabel} className="border-t border-white/[0.05] px-3 py-2 md:hidden"><Segmented full label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
+        <nav aria-label={t.navLabel} className="border-t border-white/[0.05] md:hidden"><MobileTabs label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
       </header>
       <main id="main" tabIndex={-1} className="relative mx-auto max-w-[87.5rem] px-4 py-5 outline-none sm:px-6 sm:py-7">
         <ErrorBoundary lang={lang} resetKey={`${tab}-${epoch}`} onReset={resetAll}>
@@ -126,8 +128,8 @@ export default function App() {
           {tab === 'ayuda' && <Help initial={route.section} />}
         </ErrorBoundary>
       </main>
-      <footer className="mx-auto flex max-w-[87.5rem] flex-wrap items-center gap-x-4 gap-y-2 px-6 pb-8 text-[0.75rem] text-slate-400">
-        <span className="min-w-0 flex-1">{t.footer}</span>
+      <footer className="mx-auto flex max-w-[87.5rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 pb-8 sm:px-6 text-[0.75rem] text-slate-400">
+        <p className="w-full min-w-0 leading-relaxed sm:w-auto sm:flex-1">{t.footer}</p>
         <span>v{VERSION}</span>
         <a href={REPO} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-1 rounded hover:text-white"><FolderGit2 size={13} aria-hidden />GitHub</a>
         <a href="#ayuda/legal" onClick={e => { e.preventDefault(); go('ayuda', 'legal') }} className="focus-ring rounded hover:text-white">{t.hLegal}</a>

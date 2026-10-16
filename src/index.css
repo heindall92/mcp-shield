@@ -71,3 +71,8 @@ dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
   .sev-critical,.sev-high,.sev-medium,.sev-low{border:1px solid #64748b!important;background:#fff!important}
   pre,textarea{white-space:pre-wrap!important}
 }
+.no-scrollbar{scrollbar-width:none}.no-scrollbar::-webkit-scrollbar{display:none}
+.fade-x{-webkit-mask-image:linear-gradient(to right,transparent,#000 12px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,transparent,#000 12px,#000 calc(100% - 24px),transparent)}
+.menu-pop{background:rgb(var(--elevated));transform-origin:top right;animation:menu-in 160ms cubic-bezier(.23,1,.32,1)}
+@keyframes menu-in{from{opacity:0;transform:scale(.96)}}
+@media (prefers-reduced-motion:reduce){.menu-pop{animation:none}}

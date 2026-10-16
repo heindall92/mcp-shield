@@ -123,7 +123,7 @@ export function Auditor({ text, setText, onReset, onLoadDemo }: { text: string; 
         <button disabled={!text} onClick={() => setConfirm(true)} className="btn-chip focus-ring disabled:opacity-40"><RotateCcw size={13} strokeWidth={1.8} aria-hidden />{t.resetBtn}</button>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_1.1fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <section data-testid="editor-pane" onDragOver={e => { e.preventDefault(); setDrag(true) }} onDragLeave={() => setDrag(false)}
           onDrop={e => { e.preventDefault(); setDrag(false); onFile(e.dataTransfer.files?.[0]) }}
           className={`no-print relative flex flex-col overflow-hidden rounded-[18px] border bg-surface shadow-[inset_0_1px_0_rgb(var(--white)/0.04)] transition-colors ${drag ? 'border-emerald-400/60' : 'border-white/[0.07]'}`}>
