@@ -1,0 +1,67 @@
+import type { McpConfig, McpServerConfig } from '../types/mcp.types'
+
+const PIN_HINT = '1.0.0' // placeholder — user must replace with audited version
+const DOCKER_IMAGE = (pkg: string) => `mcp-sandbox/${pkg.replace(/^@/, '').replace(/[/@].*$/, '')}:pinned`
+
+function hardenServer(name: string, s: McpServerConfig): McpServerConfig {
+  const refEnv = Object.fromEntries(Object.keys(s.env ?? {}).map(k => [k, `\${${k}}`]))
+  if (s.url) return { url: s.url.replace(/^http:/, 'https:'), ...(s.env ? { env: refEnv } : {}) }
+  const args = [...(s.args ?? [])].filter(a => a !== '-y' && a !== '--yes')
+  const env: Record<string, string> = {}
+  for (const k of Object.keys(s.env ?? {})) env[k] = `\${${k}}`
+  const pkgIdx = args.findIndex(a => !a.startsWith('-'))
+  let pkg = pkgIdx >= 0 ? args[pkgIdx] : name
+  if (pkgIdx >= 0 && s.command === 'npx' && !/@\d/.test(pkg.replace(/^@/, ''))) pkg = `${pkg.replace(/@latest$/, '')}@${PIN_HINT}`
+  if (pkgIdx >= 0 && s.command === 'uvx' && !/==/.test(pkg)) pkg = pkg === 'mcp-server-git' ? 'mcp-server-git==2025.12.18' : `${pkg}==${PIN_HINT}`
+  const rest = args.slice(pkgIdx + 1).map(a => /^(\/|[A-Za-z]:\\|~)/.test(a) ? '/workspace' : a)
+  const dockerArgs = ['run', '--rm', '-i', '--network', 'none', '--read-only', '--cap-drop', 'ALL',
+    '--security-opt', 'no-new-privileges', '--pids-limit', '128', '--memory', '256m', '--user', '1000:1000',
+    '--tmpfs', '/tmp:rw,noexec,nosuid,size=16m', '-v', '${PWD}:/workspace:ro',
+    ...Object.keys(env).flatMap(k => ['-e', k]), DOCKER_IMAGE(pkg), ...rest]
+  return { command: 'docker', args: dockerArgs, ...(Object.keys(env).length ? { env } : {}) }
+}
+
+export function remediate(cfg: McpConfig): McpConfig {
+  const out: McpConfig = { mcpServers: {} }
+  for (const [n, s] of Object.entries(cfg.mcpServers)) {
+    const poisoned = (s.tools ?? []).some(t => /<\s*important|ignore (all )?previous|id_rsa|\.ssh|bcc/i.test(t.description ?? ''))
+    if (poisoned) continue // drop poisoned servers entirely
+    out.mcpServers[n] = hardenServer(n, s)
+  }
+  return out
+}
+
+export function removedServers(cfg: McpConfig): string[] {
+  const kept = Object.keys(remediate(cfg).mcpServers)
+  return Object.keys(cfg.mcpServers).filter(n => !kept.includes(n))
+}
+
+export function dockerSnippet(cfg: McpConfig): string {
+  const first = Object.entries(cfg.mcpServers).find(([, s]) => s.command)
+  const pkg = first ? (first[1].args ?? []).find(a => !a.startsWith('-')) ?? first[0] : 'mcp-server'
+  const base = pkg.replace(/@latest$/, '')
+  return `# Dockerfile — sandbox para servidor MCP (generado por MCP-Shield)
+FROM node:22-alpine@sha256:<digest-auditado>
+RUN addgroup -S mcp && adduser -S mcp -G mcp
+WORKDIR /app
+# Versión EXACTA + lockfile: sin rug-pulls silenciosos
+RUN npm install --omit=dev --ignore-scripts ${base.includes('@', 1) ? base : base + '@' + PIN_HINT}
+USER mcp
+ENTRYPOINT ["npx", "--no-install", "${base.replace(/(.)@.*$/, '$1')}"]
+
+# docker-compose.yml
+services:
+  mcp-sandbox:
+    build: .
+    network_mode: "none"          # sin egress: la exfiltración falla
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    mem_limit: 256m
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=16m"]
+    volumes:
+      - ./workspace:/workspace:ro # nunca /, C:\\ ni ~/.ssh
+    stdin_open: true
+`
+}
