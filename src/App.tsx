@@ -86,7 +86,7 @@ export default function App() {
   }, [tab, go, toggleTheme, toggleLang])
 
   return (
-    <div className="grid-bg min-h-full">
+    <div className="min-h-full">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-elevated focus:px-3 focus:py-2 focus:text-white">{lang === 'es' ? 'Saltar al contenido' : 'Skip to content'}</a>
       <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 h-[26rem] bg-[radial-gradient(60%_60%_at_50%_0%,rgb(var(--slate-400)/0.07),transparent)] print:hidden" />
       <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-canvas/75 backdrop-blur-xl">

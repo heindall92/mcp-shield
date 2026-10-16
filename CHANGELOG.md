@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 — 2026-10-16
+- Eliminados todos los fondos decorativos de cuadrícula, puntos o líneas (fondo de la app y regla/rejilla de la figura) en ambos temas; superficies lisas. Nueva prueba que falla si reaparecen.
+- Figura «Cero telemetría»: la tarjeta de hallazgos ya no tapa el puerto de red precintado.
+
 ## 1.2.0 — 2026-10-16
 - Nueva regla **MCPS-TP-003 · ASCII smuggling** (inspirada en NVIDIA garak, Apache-2.0): caracteres Unicode Tag con el texto oculto decodificado en el hallazgo, selectores de variación en serie, Sneaky Bits y secuencias ANSI en nombres, descripciones, esquemas y args. Incluida en SARIF/Markdown, la ayuda, la remediación y un nuevo ejemplo de demo. Sin falsos positivos con emoji normales (VS16, banderas de subdivisión, ZWJ, CJK).
 - El editor del auditor muestra los caracteres invisibles como ⟨U+XXXX⟩.
