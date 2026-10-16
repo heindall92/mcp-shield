@@ -61,3 +61,11 @@ Cada afirmación que aparece en la UI se comprobó contra estas fuentes. Lo que 
 - GitHub Pages no permite cabeceras de respuesta propias (respuesta de GitHub en github/pages-gem#415): https://github.com/github/pages-gem/issues/415 · petición abierta: https://github.com/orgs/community/discussions/54257
 - Comprobado con `curl -I` el 16 oct 2026: Pages ya envía `strict-transport-security: max-age=31556952`; no envía `X-Frame-Options` ni CSP como cabecera.
 - `frame-ancestors` se ignora dentro de `<meta http-equiv="Content-Security-Policy">` (CSP Level 3, §6.1/§3.3): https://www.w3.org/TR/CSP3/#meta-element
+
+## Monitor de integridad (v1.3.0)
+- Esquema oficial MCP 2026-07-28 (`Tool`, `ToolAnnotations`, `ListToolsResult` con `nextCursor`, `ttlMs`, `cacheScope`, `resultType`; `x-mcp-header` en propiedades de `inputSchema`; iconos): https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts · versiones: https://modelcontextprotocol.io/specification/versioning
+- Las anotaciones son pistas no fiables: el propio esquema indica que los clientes no deben decidir el uso de herramientas basándose en ellas.
+- `extensions` **no** es un campo de `Tool` en el esquema; MCP-Shield lo usa solo como contenedor propio para claves desconocidas.
+- JSON Canonicalization Scheme, RFC 8785 (vectores del apéndice B usados en las pruebas): https://www.rfc-editor.org/rfc/rfc8785
+- OWASP Password Storage Cheat Sheet: «PBKDF2-HMAC-SHA256: 600,000 iterations» (comprobado el 16 oct 2026): https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+- Web Crypto API (SHA-256, HMAC, PBKDF2, AES-GCM; sin Argon2): https://www.w3.org/TR/WebCryptoAPI/

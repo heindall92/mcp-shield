@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { REPO, VERSION, modKey } from '../../meta'
-import { Search, Route, MessageCircleQuestion, ListChecks, Keyboard, ShieldCheck, Info, Layers, FolderGit2, ExternalLink, BookOpen, Bug, ChevronDown, Scale, Award, Radio } from 'lucide-react'
+import { Search, Route, MessageCircleQuestion, ListChecks, Keyboard, ShieldCheck, Info, Layers, FolderGit2, ExternalLink, BookOpen, Bug, ChevronDown, Scale, Award, Radio, Fingerprint } from 'lucide-react'
 import { usePrefs } from '../../i18n/prefs'
 import { pick } from '../../i18n/lang'
 import { ZeroTelemetryFigure } from '../iso/ZeroTelemetryFigure'
+import { INT_RULES } from '../../integrity/rules/integrityRules'
+import { intHelp } from '../../i18n/integrity'
 
 
 const RULES: [string, string, string][] = [
@@ -18,6 +20,7 @@ const RULES: [string, string, string][] = [
   ['MCPS-TP-001', 'Tool Poisoning en la descripción', 'Tool Poisoning in the description'],
   ['MCPS-TP-002', 'Cross-server tool shadowing', 'Cross-server tool shadowing'],
   ['MCPS-TP-003', 'ASCII smuggling: Unicode Tag, selectores de variación, Sneaky Bits y ANSI', 'ASCII smuggling: Unicode Tag, variation selectors, Sneaky Bits and ANSI'],
+  ...INT_RULES.map(r => [r.id, r.name.es, r.name.en] as [string, string, string]),
 ]
 const SUITE: [string, string, string, string][] = [
   ['Rosetta', 'Mapa multinorma: ENS, ISO/IEC 27001, NIS2, ISO/IEC 42001…', 'Multi-standard map: ENS, ISO/IEC 27001, NIS2, ISO/IEC 42001…', 'https://heindall92.github.io/rosetta_multinorma/'],
@@ -35,10 +38,11 @@ export function Help({ initial }: { initial?: string }) {
   const { t, lang } = usePrefs()
   const L = (es: string, en: string) => pick(lang, es, en)
   const [q, setQ] = useState('')
-  const keys: [string[], string][] = [[[modKey(), 'K'], t.kPalette], [['/'], t.kSearch], [['?'], t.kHelp], [['1', '2', '3', '4'], t.kTabs], [['T'], t.kTheme], [['L'], t.kLang], [['Esc'], t.kEsc]]
+  const keys: [string[], string][] = [[[modKey(), 'K'], t.kPalette], [['/'], t.kSearch], [['?'], t.kHelp], [['1', '2', '3', '4', '5'], t.kTabs], [['T'], t.kTheme], [['L'], t.kLang], [['Esc'], t.kEsc]]
   const sections = [
     { id: 'uso', title: t.hHow, Icon: Route, text: t.hHowItems.join(' '), body: <ul className="space-y-1.5">{t.hHowItems.map(x => <li key={x}>{x}</li>)}</ul> },
     { id: 'telemetria', title: t.figHow, Icon: Radio, text: `${t.figTitle} ${t.figCaption}`, body: <ZeroTelemetryFigure /> },
+    { id: 'integridad', title: intHelp(lang).title, Icon: Fingerprint, text: intHelp(lang).items.join(' '), body: <ul className="list-disc space-y-1.5 pl-4">{intHelp(lang).items.map(x => <li key={x}>{x}</li>)}</ul> },
     { id: 'faq', title: t.hFaq, Icon: MessageCircleQuestion, text: t.hFaqItems.flat().join(' '), body: <div className="space-y-1.5">{t.hFaqItems.map(([qq, a]) => (
       <details key={qq} className="group rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5">
         <summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-white">{qq}<ChevronDown size={15} className="ml-auto shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180" aria-hidden /></summary>

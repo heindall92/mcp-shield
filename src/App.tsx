@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Shield, Swords, ScanSearch, Landmark, Sun, Moon, Languages, Search, CircleHelp, Upload, Printer, RotateCcw, Keyboard, ShieldCheck, Info, FlaskConical, FolderGit2 } from 'lucide-react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { Shield, Swords, ScanSearch, Landmark, Sun, Moon, Languages, Search, CircleHelp, Upload, Printer, RotateCcw, Keyboard, ShieldCheck, Info, FlaskConical, FolderGit2, Fingerprint } from 'lucide-react'
 import { Simulator } from './components/simulator/Simulator'
 import { Auditor } from './components/auditor/Auditor'
 import { Governance } from './components/governance/Governance'
 import { Help } from './components/help/Help'
+const IntegrityView = lazy(() => import('./components/integrity/IntegrityView').then(m => ({ default: m.IntegrityView })))
 import { ZeroTelemetryModal } from './components/ui/ZeroTelemetry'
 import { Segmented } from './components/ui/Segmented'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
@@ -15,8 +16,8 @@ import { usePrefs } from './i18n/prefs'
 import { sampleConfigs } from './data/sampleConfigs'
 import { REPO, VERSION, modKey, OPEN_FILE_EVENT } from './meta'
 
-type Tab = 'auditor' | 'simulador' | 'gobernanza' | 'ayuda'
-const IDS: Tab[] = ['auditor', 'simulador', 'gobernanza', 'ayuda']
+type Tab = 'auditor' | 'integridad' | 'simulador' | 'gobernanza' | 'ayuda'
+const IDS: Tab[] = ['auditor', 'integridad', 'simulador', 'gobernanza', 'ayuda']
 const parseHash = (): { tab: Tab; section?: string } => {
   const [h, section] = location.hash.slice(1).split('/')
   return { tab: IDS.find(t => t === h) ?? 'auditor', section }
@@ -52,12 +53,13 @@ export default function App() {
 
   const tabs = [
     { value: 'auditor' as const, label: t.tabAudit, Icon: ScanSearch },
+    { value: 'integridad' as const, label: t.tabInt, Icon: Fingerprint },
     { value: 'simulador' as const, label: t.tabSim, Icon: Swords },
     { value: 'gobernanza' as const, label: t.tabGov, Icon: Landmark },
   ]
   const commands: Command[] = useMemo(() => [
     ...tabs.map((x, i) => ({ id: `go-${x.value}`, group: t.grpGo, label: x.label, Icon: x.Icon, run: () => go(x.value), hint: String(i + 1) })),
-    { id: 'go-ayuda', group: t.grpGo, label: t.tabHelp, Icon: CircleHelp, run: () => go('ayuda'), hint: '4' },
+    { id: 'go-ayuda', group: t.grpGo, label: t.tabHelp, Icon: CircleHelp, run: () => go('ayuda'), hint: '5' },
     { id: 'open', group: t.grpAct, label: t.cmdOpen, Icon: Upload, run: () => { go('auditor'); requestAnimationFrame(() => dispatchEvent(new Event(OPEN_FILE_EVENT))) }, keywords: 'json file archivo import' },
     { id: 'print', group: t.grpAct, label: t.cmdPrint, Icon: Printer, run: () => { go('auditor'); setTimeout(() => print(), 50) }, keywords: 'pdf report informe' },
     { id: 'reset', group: t.grpAct, label: t.resetBtn, Icon: RotateCcw, run: () => setConfirmReset(true), keywords: 'clear limpiar borrar' },
@@ -78,7 +80,7 @@ export default function App() {
       if (e.metaKey || e.ctrlKey || e.altKey || typing(e.target) || document.querySelector('dialog[open]')) return
       if (e.key === '/') { e.preventDefault(); const q = document.getElementById('help-q'); if (q && tab === 'ayuda') q.focus(); else setPalette(true) }
       else if (e.key === '?') { e.preventDefault(); go('ayuda', 'atajos') }
-      else if (/^[1-4]$/.test(e.key)) go(IDS[Number(e.key) - 1])
+      else if (/^[1-5]$/.test(e.key)) go(IDS[Number(e.key) - 1])
       else if (e.key === 't' || e.key === 'T') toggleTheme()
       else if (e.key === 'l' || e.key === 'L') toggleLang()
     }
@@ -118,6 +120,7 @@ export default function App() {
       <main id="main" tabIndex={-1} className="relative mx-auto max-w-[87.5rem] px-4 py-5 outline-none sm:px-6 sm:py-7">
         <ErrorBoundary lang={lang} resetKey={`${tab}-${epoch}`} onReset={resetAll}>
           {tab === 'auditor' && <Auditor key={epoch} text={text} setText={setText} onReset={resetAll} onLoadDemo={loadDemo} />}
+          {tab === 'integridad' && <Suspense fallback={<p role="status" className="text-[0.8125rem] text-slate-400">…</p>}><IntegrityView key={epoch} /></Suspense>}
           {tab === 'simulador' && <Simulator onAudit={j => { setText(j); go('auditor') }} />}
           {tab === 'gobernanza' && <Governance />}
           {tab === 'ayuda' && <Help initial={route.section} />}
