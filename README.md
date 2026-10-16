@@ -6,6 +6,7 @@
   <a href="https://heindall92.github.io/mcp-shield/"><img alt="Abrir MCP-Shield" src="https://img.shields.io/badge/ABRIR-heindall92.github.io%2Fmcp--shield-10B981?style=for-the-badge"/></a>
 </p>
 <p align="center">
+  <img alt="Versión 1.2.2" src="https://img.shields.io/badge/versi%C3%B3n-1.2.2-555?style=flat"/>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/LICENCIA-MIT-4169A1?style=flat"/></a>
   <a href="https://github.com/heindall92/mcp-shield/actions/workflows/pages.yml"><img alt="Deploy" src="https://github.com/heindall92/mcp-shield/actions/workflows/pages.yml/badge.svg"/></a>
   <img alt="SARIF 2.1.0" src="https://img.shields.io/badge/SARIF-2.1.0%20validado-3B6FD4?style=flat"/>
@@ -17,7 +18,7 @@
 
 <p align="center"><img src="docs/img/auditor-dark.png" alt="Auditor de MCP-Shield con una configuración real: risk score, hallazgos con secretos ocultos y diff vulnerable frente a endurecida" width="880"/></p>
 
-MCP-Shield revisa el `mcp.json` de Claude Desktop, Cursor o VS Code y te dice qué servidores MCP te ponen en riesgo: paquetes sin versión fijada, acceso a `~/.ssh` o a todo el disco, contenedores sin aislamiento, secretos en texto plano y descripciones de herramientas envenenadas. Para cada hallazgo propone la corrección y genera una configuración endurecida, un sandbox Docker y exportes SARIF y Markdown. **Tu configuración no sale del navegador** y los secretos se ocultan en pantalla y en cada exporte.
+MCP-Shield revisa el `mcp.json` de Claude Desktop, Cursor o VS Code y te dice qué servidores MCP te ponen en riesgo: paquetes sin versión fijada, acceso a `~/.ssh` o a todo el disco, contenedores sin aislamiento, secretos en texto plano y descripciones de herramientas envenenadas. Para cada hallazgo propone la corrección y genera una configuración endurecida, un sandbox Docker y exportes SARIF y Markdown. **Tu configuración no sale del navegador** y los secretos detectados se ocultan en pantalla y en cada exporte, con un control final que bloquea la descarga si queda algo con forma de secreto (protección de mejor esfuerzo, no una garantía).
 
 > Proyecto educativo y defensivo. Los ataques del simulador y todas las claves de ejemplo (`sk-FAKE-…`, `ghp_FAKE…`) son ficticios.
 
@@ -29,7 +30,7 @@ mcp-shield:~$ cat mcp-shield.yaml
 ├─ gobernanza:  OWASP Agentic Top 10 2026 · NSA MCP CSI · ISO/IEC 42001 · CSA (mapeo orientativo)
 ├─ aplicación:  React 19 · TypeScript · Vite · Tailwind CSS 3 · Lucide
 ├─ pruebas:     vitest 160 · Playwright + axe-core (4 vistas × 2 temas × 2 idiomas) · esquema SARIF oficial
-╰─ seguridad:   CSP connect-src 'none' · referrer no-referrer · cero terceros · secretos nunca persistidos
+╰─ seguridad:   CSP connect-src 'none' · referrer no-referrer · cero terceros · lo pegado no se persiste
 version: 1.1.0 · licencia: MIT
 ```
 
@@ -55,7 +56,7 @@ version: 1.1.0 · licencia: MIT
 
 1. Abre **https://heindall92.github.io/mcp-shield/**.
 2. Pega tu configuración, suéltala sobre el editor o pulsa **Abrir archivo local** (`claude_desktop_config.json`, `.cursor/mcp.json`, `.vscode/mcp.json`). ¿Sin archivo a mano? **Cargar ejemplo de demo**.
-3. Revisa los hallazgos: riesgo, evidencia (con secretos ocultos), ubicación y corrección.
+3. Revisa los hallazgos: riesgo, evidencia (con los secretos detectados ocultos), ubicación y corrección.
 4. Exporta **SARIF** (pestaña *Security* de GitHub) o **Markdown**, copia el `mcp.json` endurecido o imprime el informe.
 5. **Reiniciar / dejar limpio** borra el texto, los resultados y los datos locales de la app (se conservan idioma y tema).
 
@@ -65,7 +66,7 @@ Atajos: <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> paleta de comandos · <kbd>/
 
 | Vista | Para qué |
 |---|---|
-| **Auditor** (inicio) | Análisis de tu configuración real: risk score, hallazgos, diff *Vulnerable vs Hardened*, config corregida, sandbox Docker, exportes. |
+| **Auditor** (inicio) | Análisis de tu configuración real: risk score, hallazgos, panel de **cobertura** (estado PASS/FAIL/NOT_EVALUATED/ERROR de cada regla y superficies analizadas), importador de respuestas **`tools/list`** por servidor, diff *Vulnerable vs Hardened* con veredicto **Endurecida / Parcialmente endurecida** tras re-escanear la config generada, sandbox Docker y exportes con control final de secretos. |
 | **Simulador (demo)** | Cuatro kill-chains con datos ficticios en tres paneles sincronizados (lo que ve el usuario, el JSON-RPC que recibe el modelo, el impacto en el host). Modo *Vulnerable* / *Hardened*. |
 | **Gobernanza** | Cada regla mapeada a OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001 y CSA, más incidentes reales verificados. |
 | **Ayuda** | Buscador, uso, FAQ, reglas, atajos, privacidad, aviso legal, créditos y licencias, acerca de. |
@@ -125,7 +126,8 @@ Las cifras, CVE e incidentes están contrastados con fuentes primarias en [docs/
 
 ## Calidad
 
-- **160 pruebas vitest**: reglas, falsos positivos con configuraciones de la documentación oficial, parser (BOM, JSONC, formatos, tamaño, entradas no objeto), ocultación de secretos en cada salida, SARIF validado con el esquema OASIS, inyección Markdown, reset, paridad ES/EN y contraste WCAG AA en ambos temas.
+- **Más de 220 pruebas vitest**: reglas, falsos positivos con configuraciones de la documentación oficial, parser (BOM, JSONC, formatos, tamaño, entradas no objeto), ocultación contextual de secretos y control de salida en cada exporte, endurecimiento de contenedores por lista blanca con re-escaneo, cobertura de reglas, importación `tools/list`, SARIF validado con el esquema OASIS, inyección Markdown, pruebas adversariales (JSONC roto, Unicode enorme, caracteres invisibles, rutas Windows, argumentos Docker contradictorios), versión única, paridad ES/EN y contraste WCAG AA en ambos temas. Las pruebas de regresión de la auditoría externa están en `tests/audit-v122.test.ts`.
+- **CI**: el despliegue en Pages solo ocurre si pasan lint, tipos, pruebas, build, comprobación de cero egress, `npm audit --omit=dev`, e2e (Playwright + axe + prueba negativa de red) y CodeQL; dependency review en pull requests.
 - **Playwright + axe-core**: 0 violaciones WCAG 2 A/AA en Auditor, paleta, Ayuda, Gobernanza y Simulador, en claro/oscuro y ES/EN; cero peticiones externas; ningún secreto en `localStorage`.
 - `oxlint` sin avisos. `npm audit --omit=dev`: 0 vulnerabilidades (los avisos restantes son de herramientas de desarrollo ligadas a Tailwind 3).
 
@@ -133,7 +135,7 @@ Las cifras, CVE e incidentes están contrastados con fuentes primarias en [docs/
 
 - **Sin servidor, analítica, cookies ni terceros.** Fuentes Inter y JetBrains Mono (variables, OFL 1.1) autoalojadas con Fontsource bajo `font-src 'self'`, con fuentes del sistema como respaldo; ninguna petición a otro origen. La figura «Cero telemetría» de la ayuda muestra el recuento real de peticiones externas (Resource Timing API).
 - **CSP** en `<meta>`: `default-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'`, más `<meta name="referrer" content="no-referrer">`.
-- **Secretos**: ocultos en pantalla, SARIF, Markdown, impresión y portapapeles; la config corregida usa referencias `${VAR}`. El texto pegado nunca se guarda ni se registra. `localStorage` solo contiene `mcps-lang`, `mcps-theme` y `mcps-onboarded`.
+- **Secretos (mejor esfuerzo)**: los detectados —formatos conocidos y cualquier valor en posiciones sensibles (`env`, `-e KEY=VAL`, `--env`, cabeceras, parámetros de URL, valor tras `--token`/`--key`/`--password`…) salvo literales seguros— se ocultan en pantalla, SARIF, Markdown, impresión y portapapeles; la config corregida usa referencias `${VAR}`. Un control final escanea cada exportación (patrones y cadenas de alta entropía) y la bloquea si queda algo sospechoso. Ninguna detección es perfecta: revisa lo que compartes. El texto pegado nunca se guarda ni se registra. `localStorage` solo contiene `mcps-lang`, `mcps-theme` y `mcps-onboarded`.
 - **XSS**: React escapa toda salida; los exportes Markdown escapan HTML, `|` y backticks.
 - **Cabeceras HTTP en GitHub Pages**: Pages no permite configurar cabeceras de respuesta ([github/pages-gem#415](https://github.com/github/pages-gem/issues/415)). GitHub ya envía `Strict-Transport-Security` (comprobado con `curl -I`), pero no es posible añadir `X-Frame-Options` ni `Content-Security-Policy` como cabecera, y `frame-ancestors` se ignora dentro de `<meta>` ([CSP3](https://www.w3.org/TR/CSP3/#meta-element)). La app no tiene acciones con estado que un *clickjacking* pueda aprovechar; si lo necesitas, sírvela tras un proxy (p. ej. Cloudflare) que añada esas cabeceras.
 - Para informar de una vulnerabilidad: [SECURITY.md](SECURITY.md).
@@ -178,7 +180,7 @@ Otras herramientas: [Rosetta](https://heindall92.github.io/rosetta_multinorma/) 
 
 ## English
 
-**MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 11 rules for supply chain, filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. Secrets are masked everywhere and pasted text is never stored. It also ships an educational kill-chain simulator with fictitious data, a governance matrix (OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001, CSA) and a help centre with a command palette (Ctrl/⌘+K) and keyboard shortcuts.
+**MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 11 rules for supply chain, filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. Detected secrets are masked on screen and in every export, and a final output check blocks a download if anything secret-shaped remains (best effort, not a guarantee). Pasted text is never stored. It also ships an educational kill-chain simulator with fictitious data, a governance matrix (OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001, CSA) and a help centre with a command palette (Ctrl/⌘+K) and keyboard shortcuts.
 
 - Live: **https://heindall92.github.io/mcp-shield/**
 - Security headers: GitHub Pages cannot set response headers. HSTS is sent by GitHub; `X-Frame-Options` and header-based CSP/`frame-ancestors` are not available, so the CSP is delivered via `<meta>` (with `connect-src 'none'`) plus a `no-referrer` policy.

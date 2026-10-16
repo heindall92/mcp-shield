@@ -1,6 +1,6 @@
 import type { Rule, Finding, Severity } from '../../types/mcp.types'
 import { pick } from '../../i18n/lang'
-import { mk, launcher } from './util'
+import { mk, launcher, volumeSource } from './util'
 
 const DANGEROUS: { re: RegExp; es: string; en: string; sev: Severity }[] = [
   { re: /^\/$/, es: 'raíz del sistema (/)', en: 'system root (/)', sev: 'critical' },
@@ -20,7 +20,7 @@ export function gitPatched(s: string): boolean {
 }
 
 export const excessiveMounts: Rule = {
-  id: 'MCPS-FS-001', category: 'filesystem', name: { es: 'Exposición excesiva del sistema de ficheros', en: 'Excessive filesystem exposure' },
+  id: 'MCPS-FS-001', category: 'filesystem', emits: [{ id: 'MCPS-FS-002', name: { es: 'mcp-server-git < 2025.12.18 (CVE-2025-68144)', en: 'mcp-server-git < 2025.12.18 (CVE-2025-68144)' } }], name: { es: 'Exposición excesiva del sistema de ficheros', en: 'Excessive filesystem exposure' },
   check: ({ serverName, server, lang }) => {
     const L = (es: string, en: string) => pick(lang, es, en)
     const out: Finding[] = []
@@ -28,7 +28,7 @@ export const excessiveMounts: Rule = {
     args.forEach((raw, i) => {
       const prev = args[i - 1] ?? ''
       let paths: string[]
-      if (/^(-v|--volume)$/.test(prev) || /^(-v|--volume)=/.test(raw)) paths = [raw.replace(/^(-v|--volume)=/, '').split(':')[0]]
+      if (/^(-v|--volume)$/.test(prev) || /^(-v|--volume)=/.test(raw)) paths = [volumeSource(raw.replace(/^(-v|--volume)=/, ''))]
       else if (prev === '--mount' || raw.startsWith('--mount=')) paths = [...raw.matchAll(/(?:^|,)(?:src|source)=([^,]+)/g)].map(m => m[1])
       else paths = [raw.replace(/^--?[\w-]+=/, '')]
       const hit = paths.map(p => DANGEROUS.find(d => d.re.test(p.trim()))).find(Boolean)
@@ -71,6 +71,11 @@ export const dangerousContainer: Rule = {
       [/(--network|--net)[ =]host\b/, '--network host (sin aislamiento de red)', '--network host (no network isolation)', 'high'],
       [/(docker|podman)\.sock/, 'socket de Docker montado (escape trivial)', 'Docker socket mounted (trivial escape)', 'critical'],
       [/--pid[ =]host\b/, '--pid host', '--pid host', 'high'],
+      [/--(ipc|uts|userns|cgroupns)[ =]host\b/, 'espacio de nombres del host (--ipc/--uts/--userns host)', 'host namespace (--ipc/--uts/--userns host)', 'high'],
+      [/--cap-add\b/, '--cap-add (capacidades extra del kernel)', '--cap-add (extra kernel capabilities)', 'high'],
+      [/--security-opt[ =](seccomp|apparmor|label)[=:](unconfined|disable)/, 'seccomp/AppArmor desactivado (unconfined)', 'seccomp/AppArmor disabled (unconfined)', 'high'],
+      [/--device\b/, '--device (acceso directo a dispositivos del host)', '--device (direct host device access)', 'high'],
+      [/(--user|-u)[ =](root|0)(:|\s|$)/, 'usuario root explícito', 'explicit root user', 'high'],
     ]
     for (const [re, es, en, severity] of flags) if (re.test(j)) out.push(mk({
       ruleId: 'MCPS-FS-003', category: 'filesystem', severity, server: serverName, title: L(`Contenedor con ${es}`, `Container with ${en}`),

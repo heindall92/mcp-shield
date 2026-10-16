@@ -1,8 +1,10 @@
 import type { McpConfig, McpServerConfig } from '../types/mcp.types'
-import { launcher } from './rules/util'
+import { launcher, volumeSource } from './rules/util'
 import { poisoningRules } from './rules/poisoningRules'
 import { smugglingRules } from './rules/smugglingRules'
-import { isRef, isPlaceholder, findSecret, SECRET_KEY, redactString } from './redact'
+import { isRef, isPlaceholder, findSecret, SECRET_KEY, redactString, isSafeLiteral, isSensitiveName, isFlag } from './redact'
+import { scanConfig } from './scanner'
+import type { Finding } from '../types/mcp.types'
 
 const PIN_HINT = '1.0.0' // placeholder — user must replace with audited version
 const PATCHED_GIT = 'mcp-server-git==2025.12.18'
@@ -12,7 +14,6 @@ const DOCKER_IMAGE = (pkg: string) => {
   return `mcp-sandbox/${imageName(pkg)}:${v && v !== PIN_HINT ? v : 'pinned'}`
 }
 const envName = (server: string, suffix: string) => `${server}_${suffix}`.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
-const DANGEROUS_PATH = /^(\/|[A-Za-z]:\\?|~|\$HOME|\/home\/[^/]+|\/Users\/[^/]+|C:\\Users\\[^\\]+)[\\/]?$|(^|[\\/])\.(ssh|aws|gnupg|kube|docker)([\\/]|$)|^\/(etc|root|boot|proc|sys|run|var\/run)([\\/]|$)|(docker|podman)\.sock/
 
 /** Every value becomes a `${NAME}` reference: real secrets never reach the fixed config. */
 const refMap = (bag: Record<string, string> | undefined) =>
@@ -23,67 +24,106 @@ function headerRefs(name: string, h: Record<string, string> | undefined) {
   return Object.fromEntries(Object.entries(h).map(([k, v]) => {
     if (isRef(v) || isPlaceholder(v) || /\$\{[^}]+\}/.test(v)) return [k, v]
     const scheme = /^(Bearer|Basic|Token)\s+/i.exec(v)
-    const secretish = scheme || SECRET_KEY.test(k) || findSecret(v)
+    const secretish = scheme || SECRET_KEY.test(k) || findSecret(v) || !isSafeLiteral(v)
     return [k, secretish ? `${scheme ? scheme[1] + ' ' : ''}\${${envName(name, k.replace(/^x-/i, '') + (scheme ? '_TOKEN' : ''))}}` : redactString(v)]
   }))
 }
 
-/** Replace secret-looking args with env references, collecting the new env names. */
+/** Query values that are not known-safe literals become ${SERVER_PARAM} references. */
+const urlRefs = (name: string, u: string) =>
+  u.replace(/(:\/\/[^\s/@:]+:)([^\s@/]+)(@)/, (_, a, _pw, c) => `${a}\${${envName(name, 'PASSWORD')}}${c}`)
+    .replace(/([?&])([^=&#\s]+)=([^&#\s]*)/g, (all, sep, k, v) => (isSafeLiteral(v) ? all : `${sep}${k}=\${${envName(name, k)}}`))
+
+/** Replace sensitive args with env references, collecting the new env names. */
 function argRefs(name: string, args: string[], env: Record<string, string>): string[] {
+  const ref = (suffix: string) => { const v = envName(name, suffix); env[v] = `\${${v}}`; return `\${${v}}` }
   return args.map((a, i) => {
     if (isRef(a)) return a
-    const inline = /^(--?[\w-]*(?:token|key|secret|password)[\w-]*=)(.+)$/i.exec(a)
-    if (inline && !isRef(inline[2])) { const v = envName(name, inline[1].replace(/^-+|=$/g, '')); env[v] = `\${${v}}`; return `${inline[1]}\${${v}}` }
-    const afterFlag = i > 0 && /^--?[\w-]*(token|key|secret|password)[\w-]*$/i.test(args[i - 1]) && a.length >= 8
-    if (afterFlag || findSecret(a)) { const v = envName(name, afterFlag ? args[i - 1].replace(/^-+/, '') : 'SECRET'); env[v] = `\${${v}}`; return `\${${v}}` }
-    if (/[a-z][a-z0-9+.-]*:\/\/[^\s:/@]+:[^\s@/]+@/i.test(a)) { const v = envName(name, 'URL'); env[v] = `\${${v}}`; return `\${${v}}` } // postgres://user:pass@host
+    const prev = args[i - 1] ?? ''
+    if (/^(-e|--env)$/.test(prev) || /^--env=/.test(a)) { // -e KEY=VAL (docker, many CLIs)
+      const body = a.replace(/^--env=/, ''); const eq = body.indexOf('=')
+      if (eq > 0) {
+        const key = body.slice(0, eq), val = body.slice(eq + 1)
+        if (!isSafeLiteral(val)) { env[key] = `\${${key}}`; return `${a.startsWith('--env=') ? '--env=' : ''}${key}` }
+      }
+      return a
+    }
+    const inline = /^(--?[A-Za-z][\w.-]*=)(.+)$/s.exec(a)
+    if (inline && isSensitiveName(inline[1].slice(0, -1)) && !isSafeLiteral(inline[2])) return `${inline[1]}${ref(inline[1].replace(/^-+|=$/g, ''))}`
+    if (isFlag(prev) && isSensitiveName(prev) && !a.startsWith('-') && !isSafeLiteral(a)) return ref(prev.replace(/^-+/, ''))
+    if (findSecret(a)) return ref('SECRET')
+    if (/[a-z][a-z0-9+.-]*:\/\/[^\s:/@]+:[^\s@/]+@/i.test(a)) return ref('URL') // postgres://user:pass@host
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(a)) return urlRefs(name, a)
     return redactString(a)
   })
 }
 
-const FLAGS_WITH_VALUE = new Set(['-v', '--volume', '--mount', '-e', '--env', '--network', '--net', '--pid', '--user', '-u', '--name', '-w', '--workdir', '--memory', '-m', '--pids-limit', '--cap-drop', '--cap-add', '--security-opt', '--tmpfs', '--entrypoint', '--env-file', '-p', '--publish'])
+/* ── Container hardening: ALLOWLIST ────────────────────────────────────────────────────
+ * The generated `docker run` is rebuilt from a safe baseline. Only options known to be harmless
+ * survive; everything else (--user, --network, --privileged, --cap-add, --security-opt, --pid/--ipc/--uts/--userns,
+ * --device, -p, --env-file, --volumes-from, --entrypoint, unknown flags…) is dropped. */
+const BASELINE = ['--rm', '-i', '--network', 'none', '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--user', '1000:1000']
+/** Flags that take a separate value. Needed to find where the image starts. */
+const VALUE_FLAGS = new Set(['-v', '--volume', '--mount', '-e', '--env', '--env-file', '--network', '--net', '--network-alias', '--pid', '--ipc', '--uts', '--userns', '--cgroupns', '--user', '-u', '--name', '-w', '--workdir', '--memory', '-m', '--memory-swap', '--pids-limit', '--cpus', '--cpu-shares', '-c', '--cap-drop', '--cap-add', '--security-opt', '--tmpfs', '--entrypoint', '-p', '--publish', '--expose', '--device', '--device-cgroup-rule', '--add-host', '--dns', '--dns-search', '--dns-option', '--group-add', '--label', '-l', '--label-file', '--hostname', '-h', '--volumes-from', '--runtime', '--platform', '--restart', '--ulimit', '--log-driver', '--log-opt', '--gpus', '--cidfile', '--sysctl', '--shm-size', '--stop-signal', '--stop-timeout', '--mac-address', '--ip', '--ip6', '--link', '--pull', '--storage-opt', '--health-cmd', '--health-interval', '--health-retries', '--health-timeout', '--health-start-period', '--isolation', '--kernel-memory', '--blkio-weight', '--cgroup-parent', '--detach-keys', '--domainname', '--oom-score-adj', '--attach', '-a', '--annotation'])
+/** Allowlisted options and how to keep them. */
+const KEEP_VALUE = new Set(['--name', '-w', '--workdir', '--memory', '-m', '--pids-limit', '--cpus', '--tmpfs', '-e', '--env', '-v', '--volume', '--mount', '--label', '-l', '--stop-timeout'])
+const DANGEROUS_PATH = /^(\/|[A-Za-z]:[\\/]?|~|\$HOME|\$\{?HOME\}?|%USERPROFILE%|\/home\/[^/]+|\/Users\/[^/]+|[A-Za-z]:[\\/]Users[\\/][^\\/]+|\\\\.*)[\\/]?$|(^|[\\/])\.(ssh|aws|gnupg|kube|docker|config[\\/]gcloud|azure)([\\/]|$)|^\/(etc|root|boot|proc|sys|dev|run|var\/run|var\/lib\/docker)([\\/]|$)|(docker|podman|containerd)\.sock/i
 
-/** Server already launched through docker/podman: keep its image and env, strip escapes, enforce hardening flags. */
-function hardenContainer(cmd: string, args: string[], env: Record<string, string>): McpServerConfig {
+export interface ContainerNote { kind: 'dropped' | 'network'; flag: string }
+function hardenContainer(cmd: string, args: string[], env: Record<string, string>, notes: ContainerNote[]): McpServerConfig {
   const runIdx = args.indexOf('run')
-  const pre = runIdx >= 0 ? args.slice(0, runIdx) : []
   const run = runIdx >= 0 ? args.slice(runIdx + 1) : args
-  const opts: string[] = []
+  if (runIdx > 0) notes.push({ kind: 'dropped', flag: args.slice(0, runIdx).filter(isFlag).join(' ') || 'global options' }) // global flags such as -H tcp://remote
+  const keep: string[] = []
+  let memory = '512m', pids = '128'
   let i = 0
   for (; i < run.length && run[i].startsWith('-'); i++) {
     const a = run[i]
-    const [flag, inlineVal] = a.includes('=') ? [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)] : [a, undefined]
-    const val = inlineVal ?? (FLAGS_WITH_VALUE.has(flag) ? run[++i] : undefined)
-    if (flag === '--privileged' || flag === '--cap-add') continue
-    if ((flag === '--network' || flag === '--net' || flag === '--pid') && val === 'host') continue
-    if ((flag === '-v' || flag === '--volume') && val && DANGEROUS_PATH.test(val.split(':')[0])) continue
-    if (flag === '--mount' && val && [...val.matchAll(/(?:^|,)(?:src|source)=([^,]+)/g)].some(m => DANGEROUS_PATH.test(m[1]))) continue
-    opts.push(...(inlineVal !== undefined ? [a] : val !== undefined ? [flag, val] : [flag]))
+    const eq = a.startsWith('--') ? a.indexOf('=') : -1
+    const flag = eq > 0 ? a.slice(0, eq) : a
+    const val = eq > 0 ? a.slice(eq + 1) : VALUE_FLAGS.has(flag) ? run[++i] : undefined
+    if (/^-[a-z]{2,}$/.test(flag)) { // -it, -dit…
+      if (!/^-[itd]+$/.test(flag)) notes.push({ kind: 'dropped', flag })
+      continue
+    }
+    if (flag === '--rm' || flag === '-i' || flag === '--interactive' || flag === '-t' || flag === '--tty' || flag === '--init' || flag === '--read-only') continue // baseline sets these
+    if (flag === '--network' || flag === '--net') { if (val !== 'none') notes.push({ kind: 'network', flag: `${flag} ${val && isSafeLiteral(val) ? val : ''}`.trim() }); continue }
+    if (flag === '--memory' || flag === '-m') { if (val && /^\d+[bkmg]?$/i.test(val)) memory = val; continue }
+    if (flag === '--pids-limit') { if (val && /^[1-9]\d{0,4}$/.test(val)) pids = val; continue }
+    if (!KEEP_VALUE.has(flag) || val === undefined) { notes.push({ kind: 'dropped', flag: val !== undefined && !/^(-e|--env|--env-file)$/.test(flag) && isSafeLiteral(val) ? `${flag} ${val}` : flag }); continue }
+    if (flag === '-e' || flag === '--env') {
+      const k = val.split('=')[0]
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(k)) { notes.push({ kind: 'dropped', flag }); continue }
+      if (val.includes('=')) { const v = val.slice(k.length + 1); env[k] = isRef(v) ? v : `\${${k}}` }
+      keep.push('-e', k); continue
+    }
+    if (flag === '-v' || flag === '--volume') {
+      const src = volumeSource(val)
+      if (DANGEROUS_PATH.test(src) || !src) { notes.push({ kind: 'dropped', flag: `${flag} ${isSafeLiteral(src) ? src : ''}`.trim() }); continue }
+      const parts = val.slice(src.length + 1).split(':')
+      keep.push('-v', `${src}:${parts[0]}:ro`); continue
+    }
+    if (flag === '--mount') {
+      const srcs = [...val.matchAll(/(?:^|,)(?:src|source)=([^,]+)/g)].map(m => m[1])
+      if (/type=(?!bind|volume|tmpfs)/.test(val) || srcs.some(x => DANGEROUS_PATH.test(x)) || /bind-propagation=(r?shared)/.test(val)) { notes.push({ kind: 'dropped', flag: `--mount ${srcs.filter(isSafeLiteral).join(',')}`.trim() }); continue }
+      keep.push('--mount', /(^|,)(readonly|ro)(=true|=1)?(,|$)/.test(val) ? val.replace(/(^|,)(readonly|ro)=(false|0)/, '') : `${val.replace(/(^|,)(readonly|ro)=(false|0)/, '')},readonly`); continue
+    }
+    keep.push(flag, val)
   }
   const rest = run.slice(i)
-  const has = (f: string) => opts.some(o => o === f || o.startsWith(f + '='))
-  const add: string[] = []
-  if (!has('--rm')) add.push('--rm')
-  if (!has('-i') && !has('--interactive')) add.push('-i')
-  if (!has('--read-only')) add.push('--read-only')
-  if (!has('--cap-drop')) add.push('--cap-drop', 'ALL')
-  if (!opts.some(o => /no-new-privileges/.test(o))) add.push('--security-opt', 'no-new-privileges')
-  if (!has('--pids-limit')) add.push('--pids-limit', '128')
-  if (!has('--memory') && !has('-m')) add.push('--memory', '512m')
-  if (!has('--user') && !has('-u')) add.push('--user', '1000:1000')
-  return { command: cmd, args: [...pre, 'run', ...add, ...opts, ...rest], ...(Object.keys(env).length ? { env } : {}) }
+  return { command: cmd, args: ['run', ...BASELINE, '--pids-limit', pids, '--memory', memory, ...keep, ...rest], ...(Object.keys(env).length ? { env } : {}) }
 }
 
-export function hardenServer(name: string, s: McpServerConfig): McpServerConfig {
+export function hardenServer(name: string, s: McpServerConfig, notes: ContainerNote[] = []): McpServerConfig {
   const env = refMap(s.env)
   if (s.url) {
-    const u = redactString(s.url.trim().replace(/^http:\/\/(?!(localhost|127\.0\.0\.1|\[::1\])(:|\/|$))/i, 'https://').replace(/^ws:\/\/(?!(localhost|127\.0\.0\.1)(:|\/|$))/i, 'wss://'))
+    const u = redactString(urlRefs(name, s.url.trim()).replace(/^http:\/\/(?!(localhost|127\.0\.0\.1|\[::1\])(:|\/|$))/i, 'https://').replace(/^ws:\/\/(?!(localhost|127\.0\.0\.1)(:|\/|$))/i, 'wss://'))
     const headers = headerRefs(name, s.headers)
     return { ...(s.type ? { type: s.type } : {}), url: u, ...(headers ? { headers } : {}), ...(Object.keys(env).length ? { env } : {}) }
   }
   const { cmd, args: rawArgs } = launcher(s)
   const args = argRefs(name, rawArgs, env)
-  if (cmd === 'docker' || cmd === 'podman') return hardenContainer(cmd, args, env)
+  if (cmd === 'docker' || cmd === 'podman') return hardenContainer(cmd, args, env, notes)
   const filtered = args.filter(a => a !== '-y' && a !== '--yes')
   const pkgIdx = filtered.findIndex((a, i) => !a.startsWith('-') && !(i > 0 && /^(--from|--with|-p|--package|--python)$/.test(filtered[i - 1])))
   let pkg = pkgIdx >= 0 ? filtered[pkgIdx] : name
@@ -102,11 +142,13 @@ export function hardenServer(name: string, s: McpServerConfig): McpServerConfig 
 const isPoisoned = (name: string, s: McpServerConfig) =>
   [...poisoningRules, ...smugglingRules].some(r => r.check({ serverName: name, server: s, lang: 'es' }).some(f => f.severity === 'critical'))
 
-export function remediate(cfg: McpConfig): McpConfig {
+export function remediate(cfg: McpConfig, notes: (ContainerNote & { server: string })[] = []): McpConfig {
   const out: McpConfig = { mcpServers: {} }
   for (const [n, s] of Object.entries(cfg.mcpServers)) {
     if (isPoisoned(n, s)) continue
-    out.mcpServers[n] = hardenServer(n, s)
+    const local: ContainerNote[] = []
+    out.mcpServers[n] = hardenServer(n, s, local)
+    notes.push(...local.map(x => ({ ...x, server: n })))
   }
   return out
 }
@@ -165,4 +207,21 @@ services:
       - ./workspace:/workspace:ro # ${en ? 'never /, C:\\ or ~/.ssh' : 'nunca /, C:\\ ni ~/.ssh'}
     stdin_open: true
 `
+}
+
+export interface HardeningVerdict {
+  /** 'hardened' only when a re-scan of the generated config finds zero critical/high issues. */
+  status: 'hardened' | 'partial'
+  remaining: Finding[]
+  /** Options removed from container commands; kind 'network' means the original asked for a network. */
+  notes: (ContainerNote & { server: string })[]
+  config: McpConfig
+}
+/** Generate the hardened config and RE-SCAN it with the same rules: the label is earned, not assumed. */
+export function hardeningVerdict(cfg: McpConfig, lang: 'es' | 'en' = 'es'): HardeningVerdict {
+  const notes: HardeningVerdict['notes'] = []
+  const config = remediate(cfg, notes)
+  const res = scanConfig(config, lang)
+  const remaining = res.findings.filter(f => f.severity === 'critical' || f.severity === 'high')
+  return { status: remaining.length || res.coverage.some(c => c.status === 'ERROR') ? 'partial' : 'hardened', remaining, notes, config }
 }

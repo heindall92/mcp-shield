@@ -36,12 +36,28 @@ export interface Finding {
 }
 
 export interface RuleContext { serverName: string; server: McpServerConfig; lang: Lang }
-export type Rule = { id: string; category: RuleCategory; name: { es: string; en: string }; check: (ctx: RuleContext) => Finding[] }
+/** 'tools' rules can only run when a tool inventory (tools/list) is present. */
+export type RuleSurface = 'config' | 'tools'
+export type Rule = { id: string; category: RuleCategory; name: { es: string; en: string }; surface?: RuleSurface; emits?: { id: string; name: { es: string; en: string } }[]; check: (ctx: RuleContext) => Finding[] }
+export type RuleStatus = 'PASS' | 'FAIL' | 'NOT_EVALUATED' | 'ERROR'
+export interface RuleCoverage {
+  ruleId: string
+  name: { es: string; en: string }
+  status: RuleStatus
+  surface: RuleSurface
+  /** Non-sensitive: error class and counts only, never messages, values or server names. */
+  diagnostic?: string
+}
+export interface ScanSurfaces { config: boolean; toolServers: number; tools: number; servers: number }
 
 export interface ScanResult {
   findings: Finding[]
   riskScore: number // 0-100
-  grade: 'A' | 'B' | 'C' | 'D' | 'F'
+  /** 'N/A' when the analysis is incomplete (parse failure, rule ERROR or nothing to scan): never a clean A. */
+  grade: 'A' | 'B' | 'C' | 'D' | 'F' | 'N/A'
+  complete: boolean
+  coverage: RuleCoverage[]
+  surfaces: ScanSurfaces
   serversScanned: number
   parseError?: string
   /** Non-fatal notes from the parser (unknown fields, coerced values…) */

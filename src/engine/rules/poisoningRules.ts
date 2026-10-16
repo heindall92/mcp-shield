@@ -17,7 +17,7 @@ const SIGNALS: { re: RegExp; es: string; en: string; sev: Severity }[] = [
 ]
 
 export const toolPoisoning: Rule = {
-  id: 'MCPS-TP-001', category: 'tool-poisoning', name: { es: 'Tool Poisoning en descripción', en: 'Tool Poisoning in description' },
+  id: 'MCPS-TP-001', category: 'tool-poisoning', surface: 'tools', name: { es: 'Tool Poisoning en descripción', en: 'Tool Poisoning in description' },
   check: ({ serverName, server, lang }) => {
     const L = (es: string, en: string) => pick(lang, es, en)
     const out: Finding[] = []
@@ -45,7 +45,7 @@ export const toolPoisoning: Rule = {
 const SHADOW = /((when|whenever|before|after|if)\b.{0,80}\b(any other|another|other|all) (servers?|tools?)\b.{0,40}\b(is |are |gets? )?(called|used|invoked)|(cuando|siempre que|antes de)\b.{0,80}\b(otro servidor|otras herramientas|cualquier servidor)|\b(any|all) (other )?servers?'? tools?\b.{0,60}\b(must|should|always)|(whenever|when) .{0,60}\b(send_email|create_pull_request|write_file)\b.{0,20}(is |gets? )?(called|used|invoked)|cuando se use la tool)/i
 
 export const toolShadowing: Rule = {
-  id: 'MCPS-TP-002', category: 'tool-poisoning', name: { es: 'Cross-server tool shadowing', en: 'Cross-server tool shadowing' },
+  id: 'MCPS-TP-002', category: 'tool-poisoning', surface: 'tools', name: { es: 'Cross-server tool shadowing', en: 'Cross-server tool shadowing' },
   check: ({ serverName, server, lang }) => (server.tools ?? []).flatMap((t, i) => {
     const m = (t.description ?? '').slice(0, MAX_DESC).match(SHADOW)
     const L = (es: string, en: string) => pick(lang, es, en)
