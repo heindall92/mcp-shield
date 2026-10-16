@@ -43,3 +43,8 @@ dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
   .border-white\/\[0\.07\],.border-white\/\[0\.06\],.border-white\/5{border-color:#ffffff40!important}
   .text-slate-500,.text-slate-600{color:#cbd5e1!important}
 }
+/* Kill-chain travelling light: soft, neutral, constant motion → linear */
+.kc-spark{left:0;background:radial-gradient(closest-side,rgba(255,255,255,.85),rgba(255,255,255,0));animation:kc-travel 900ms linear infinite}
+.kc-spark-red{background:radial-gradient(closest-side,rgba(254,202,202,.9),rgba(254,202,202,0))}
+@keyframes kc-travel{from{left:0;opacity:0}15%{opacity:1}85%{opacity:1}to{left:calc(100% - 1.5rem);opacity:0}}
+@media (prefers-reduced-motion: reduce){.kc-spark{animation:none;left:calc(50% - .75rem);opacity:.7}}
