@@ -1,4 +1,5 @@
 /** Core MCP-Shield types. Pure data — no React. */
+import type { Lang } from '../i18n/lang'
 export type Severity = 'critical' | 'high' | 'medium' | 'low'
 export type RuleCategory = 'supply-chain' | 'filesystem' | 'secrets' | 'tool-poisoning'
 
@@ -30,8 +31,8 @@ export interface Finding {
   cwe?: string
 }
 
-export interface RuleContext { serverName: string; server: McpServerConfig }
-export type Rule = { id: string; category: RuleCategory; name: string; check: (ctx: RuleContext) => Finding[] }
+export interface RuleContext { serverName: string; server: McpServerConfig; lang: Lang }
+export type Rule = { id: string; category: RuleCategory; name: { es: string; en: string }; check: (ctx: RuleContext) => Finding[] }
 
 export interface ScanResult {
   findings: Finding[]
@@ -69,4 +70,4 @@ export interface AttackScenario {
   mitigations: string[]
 }
 
-export interface SampleConfig { id: string; label: string; config: McpConfig }
+export interface SampleConfig { id: string; label: string; labelEn: string; config: McpConfig }

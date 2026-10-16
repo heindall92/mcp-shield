@@ -1,4 +1,6 @@
 import type { AttackScenario } from '../types/mcp.types'
+import { scenariosEn } from './attackScenarios.en'
+import type { Lang } from '../i18n/lang'
 
 /**
  * 4 kill-chains, step-by-step. 100% SIMULATED: fake keys, fake hosts, no working payloads.
@@ -78,3 +80,16 @@ export const attackScenarios: AttackScenario[] = [
     mitigations: ['Aislar contexto por servidor: las descripciones de uno no deben afectar a otro', 'Namespacing de tools y allow-list por tarea', 'Revisar el body completo antes de acciones con efectos externos', 'Escáner de poisoning en tools/list en cada arranque'],
   },
 ]
+
+
+/** Scenarios in the requested language (EN overlay merged by step index). */
+export function getScenarios(lang: Lang): AttackScenario[] {
+  if (lang === 'es') return attackScenarios
+  return attackScenarios.map(s => {
+    const o = scenariosEn[s.id]
+    if (!o) return s
+    return { ...s, title: o.title, subtitle: o.subtitle, threatClass: o.threatClass, sourceNote: o.sourceNote, mitigations: o.mitigations,
+      references: s.references.map((r, i) => ({ ...r, label: o.refLabels[i] ?? r.label })),
+      steps: s.steps.map((st, i) => ({ ...st, ...(o.steps[i] ?? {}) })) }
+  })
+}
