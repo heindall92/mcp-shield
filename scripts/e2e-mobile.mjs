@@ -45,7 +45,7 @@ for (const w of [320, 360, 390, 430]) for (const theme of ['dark', 'light']) for
     }, v)
     if (r.err) errs.push(tag(`bottom bar (${v}): ${r.err}`))
   }
-  const a11y = async v => { if (w !== 390) return; const r = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa']).analyze(); r.violations.forEach(x => axe.push(`${tag(v)}: ${x.id} ${x.nodes[0]?.target}`)) }
+  const a11y = async v => { if (w !== 390) return; await p.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => {})))); const r = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa']).analyze(); r.violations.forEach(x => axe.push(`${tag(v)}: ${x.id} ${x.nodes[0]?.target}`)) }
   await p.goto(U); await p.waitForSelector('[data-testid=onboarding]'); await check(p, tag('home')); await S('home-top'); await a11y('home')
   const brandH = await p.evaluate(() => [...document.querySelectorAll('header a span')].find(s => s.textContent === 'MCP-Shield').getBoundingClientRect().height)
   if (brandH > 26) errs.push(tag('brand wraps'))

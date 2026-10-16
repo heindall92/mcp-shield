@@ -11,7 +11,7 @@ for (const theme of ['dark', 'light']) for (const lang of ['es', 'en']) {
   p.on('request', r => { if (!r.url().startsWith(U)) ext.push(r.url()) })
   p.on('console', m => m.type() === 'error' && errs.push(m.text())); p.on('pageerror', e => errs.push(String(e)))
   const n = v => `/workspace/shots/mcp-shield-v130-${theme}-${lang}-${v}.png`
-  const a11y = async tag => { const r = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa']).analyze(); r.violations.forEach(v => axe.push(`${theme}-${lang}-${tag}: ${v.id} (${v.nodes.length}) ${v.nodes[0]?.target}`)) }
+  const a11y = async tag => { await p.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => {})))); const r = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa']).analyze(); r.violations.forEach(v => axe.push(`${theme}-${lang}-${tag}: ${v.id} (${v.nodes.length}) ${v.nodes[0]?.target}`)) }
   await p.goto(U); await p.waitForSelector('[data-testid=onboarding]')
   if (shot) await p.screenshot({ path: n('onboarding') }); await a11y('start')
   // palette via keyboard
