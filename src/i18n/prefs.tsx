@@ -20,3 +20,4 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
 }
 // eslint-disable-next-line react-refresh/only-export-components
 export function usePrefs() { const c = useContext(Ctx); if (!c) throw new Error('PrefsProvider missing'); return c }
+

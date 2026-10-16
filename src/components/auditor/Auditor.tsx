@@ -1,86 +1,135 @@
-import { useMemo, useRef, useState } from 'react'
-import { FileJson, Upload, FileDown, FileCode2, Container, AlertTriangle, CheckCircle2, Lock, Copy, Check } from 'lucide-react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { FileJson, Upload, FileDown, FileCode2, Container, Lock, Copy, Check, RotateCcw, FlaskConical, Info, ClipboardPaste } from 'lucide-react'
 import { scanText, parseConfig } from '../../engine/scanner'
 import { remediate, removedServers, dockerSnippet } from '../../engine/remediator'
 import { toSarif, toMarkdown, download } from '../../engine/sarifExporter'
+import { redactValue } from '../../engine/redact'
+import { MAX_INPUT_BYTES } from '../../engine/parse'
 import { sampleConfigs } from '../../data/sampleConfigs'
 import { FindingCard } from './FindingCard'
 import { DiffView } from './DiffView'
 import { ScoreRing } from './ScoreRing'
 import { usePrefs } from '../../i18n/prefs'
 import { Segmented } from '../ui/Segmented'
+import { ConfirmDialog } from '../ui/ConfirmDialog'
 
-export function Auditor({ text, setText }: { text: string; setText: (t: string) => void }) {
+export function Auditor({ text, setText, onReset }: { text: string; setText: (t: string) => void; onReset: () => void }) {
   const { t, lang } = usePrefs()
   const [view, setView] = useState<'diff' | 'hardened' | 'docker'>('diff')
   const [copied, setCopied] = useState(false)
+  const [confirm, setConfirm] = useState(false)
+  const [drag, setDrag] = useState(false)
+  const [fileErr, setFileErr] = useState('')
+  const [fileName, setFileName] = useState('mcp.json')
   const fileRef = useRef<HTMLInputElement>(null)
-  const res = useMemo(() => scanText(text, lang), [text, lang])
-  const cfg = useMemo(() => parseConfig(text, lang).config, [text, lang])
+  const copyTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(copyTimer.current), [])
+
+  // Large pastes stay responsive: analysis runs on a deferred copy of the text.
+  const input = useDeferredValue(text)
+  const empty = input.trim() === ''
+  const res = useMemo(() => (empty ? null : scanText(input, lang)), [input, lang, empty])
+  const cfg = useMemo(() => (empty ? undefined : parseConfig(input, lang).config), [input, lang, empty])
   const hardened = useMemo(() => (cfg ? JSON.stringify(remediate(cfg), null, 2) : ''), [cfg])
   const removed = useMemo(() => (cfg ? removedServers(cfg) : []), [cfg])
   const docker = useMemo(() => (cfg ? dockerSnippet(cfg, lang) : ''), [cfg, lang])
-  const pretty = useMemo(() => (cfg ? JSON.stringify(cfg, null, 2) : text), [cfg, text])
+  // The "before" view never renders raw secrets.
+  const pretty = useMemo(() => (cfg ? JSON.stringify(redactValue(cfg), null, 2) : ''), [cfg])
+  const hasRedaction = pretty.includes('[REDACTED]')
 
-  const onFile = (f?: File) => { if (!f) return; const r = new FileReader(); r.onload = () => setText(String(r.result)); r.readAsText(f) }
-  const copy = async () => { await navigator.clipboard?.writeText(view === 'docker' ? docker : hardened); setCopied(true); setTimeout(() => setCopied(false), 1400) }
+  const onFile = (f?: File | null) => {
+    setFileErr('')
+    if (!f) return
+    if (f.size > MAX_INPUT_BYTES) { setFileErr(t.fileTooBig); return }
+    const r = new FileReader()
+    r.onload = () => { setFileName(f.name || 'mcp.json'); setText(String(r.result ?? '')) }
+    r.onerror = () => setFileErr(t.fileRead)
+    r.readAsText(f)
+  }
+  const copy = async () => {
+    try { await navigator.clipboard?.writeText(view === 'docker' ? docker : hardened) } catch { return }
+    setCopied(true); window.clearTimeout(copyTimer.current); copyTimer.current = window.setTimeout(() => setCopied(false), 1400)
+  }
+  const loadDemo = (id: string) => { const s = sampleConfigs.find(x => x.id === id); if (s) { setFileName('demo-mcp.json'); setText(JSON.stringify(s.config, null, 2)) } }
+  const doReset = () => { setFileName('mcp.json'); setFileErr(''); setView('diff'); if (fileRef.current) fileRef.current.value = ''; onReset() }
+  const disabled = !res || !!res.parseError
 
   return (
     <div className="space-y-4">
       <div>
         <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-slate-400">{t.audKicker}</p>
         <h1 className="display mt-1.5 text-white">{t.audTitle}</h1>
-        <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400"><Lock size={13} className="text-emerald-400" />{t.audPrivacy}</p>
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400"><Lock size={13} className="text-emerald-400" aria-hidden />{t.audPrivacy}</p>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {sampleConfigs.map(s => (
-          <button key={s.id} onClick={() => setText(JSON.stringify(s.config, null, 2))} className="btn-chip focus-ring">
-            {s.id === 'hardened' ? <CheckCircle2 size={13} strokeWidth={1.8} className="text-emerald-400" aria-hidden /> : <AlertTriangle size={13} strokeWidth={1.8} className="text-amber-300" aria-hidden />}{lang === 'en' ? s.labelEn : s.label}
-          </button>))}
-        <button onClick={() => fileRef.current?.click()} className="btn-chip focus-ring"><Upload size={13} strokeWidth={1.8} aria-hidden />{t.openFile}</button>
-        <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
+      <div className="flex flex-wrap items-center gap-2">
+        <button onClick={() => fileRef.current?.click()} className="btn-primary focus-ring text-[0.8125rem]"><Upload size={14} strokeWidth={1.8} aria-hidden />{t.openFile}</button>
+        <input ref={fileRef} type="file" accept=".json,.jsonc,application/json" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
+        <label className="btn-chip focus-within:ring-2 focus-within:ring-slate-400/60">
+          <FlaskConical size={13} strokeWidth={1.8} className="text-slate-400" aria-hidden />
+          <span className="sr-only">{t.loadDemo}</span>
+          <select data-testid="demo-select" value="" onChange={e => loadDemo(e.target.value)} className="cursor-pointer bg-transparent text-[0.75rem] outline-none">
+            <option value="" disabled>{t.loadDemo}</option>
+            {sampleConfigs.map(s => <option key={s.id} value={s.id} className="bg-elevated text-slate-200">{lang === 'en' ? s.labelEn : s.label}</option>)}
+          </select>
+        </label>
+        <button disabled={!text} onClick={() => setConfirm(true)} className="btn-chip focus-ring ml-auto disabled:opacity-40"><RotateCcw size={13} strokeWidth={1.8} aria-hidden />{t.resetBtn}</button>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[1fr_1.1fr]">
-        <section className="flex flex-col overflow-hidden rounded-[18px] border border-white/[0.07] bg-surface shadow-[inset_0_1px_0_rgb(var(--white)/0.04)]">
-          <header className="flex items-center gap-2 border-b border-white/5 px-4 py-2.5 text-[0.8125rem] font-semibold"><FileJson size={15} className="text-cyan-300" />mcp.json / claude_desktop_config.json</header>
-          <textarea value={text} onChange={e => setText(e.target.value)} spellCheck={false} aria-label={t.editor}
-            className="scroll-thin min-h-[320px] flex-1 resize-y bg-transparent p-4 font-mono text-[0.75rem] leading-[1.6] text-slate-200 outline-none lg:min-h-[440px]" />
-          {res.parseError && <p className="border-t border-red-400/25 bg-red-400/[0.07] px-4 py-2 text-[0.75rem] text-red-200">{t.invalidJson}: {res.parseError}</p>}
+        <section onDragOver={e => { e.preventDefault(); setDrag(true) }} onDragLeave={() => setDrag(false)}
+          onDrop={e => { e.preventDefault(); setDrag(false); onFile(e.dataTransfer.files?.[0]) }}
+          className={`relative flex flex-col overflow-hidden rounded-[18px] border bg-surface shadow-[inset_0_1px_0_rgb(var(--white)/0.04)] transition-colors ${drag ? 'border-emerald-400/60' : 'border-white/[0.07]'}`}>
+          <header className="flex items-center gap-2 border-b border-white/5 px-4 py-2.5 text-[0.8125rem] font-semibold"><FileJson size={15} className="text-cyan-300" aria-hidden />mcp.json / claude_desktop_config.json</header>
+          <textarea data-testid="editor" value={text} onChange={e => setText(e.target.value)} spellCheck={false} autoComplete="off" aria-label={t.editor} placeholder={t.placeholder}
+            className="scroll-thin min-h-[320px] flex-1 resize-y bg-transparent p-4 font-mono text-[0.75rem] leading-[1.6] text-slate-200 outline-none placeholder:text-slate-500 lg:min-h-[440px]" />
+          {drag && <div className="pointer-events-none absolute inset-0 grid place-items-center bg-canvas/80 text-sm font-medium text-white">{t.dropHere}</div>}
+          {(fileErr || res?.parseError) && <p role="alert" className="border-t border-red-400/25 bg-red-400/[0.07] px-4 py-2 text-[0.75rem] text-red-200">{fileErr || `${t.invalidJson}: ${res?.parseError}`}</p>}
+          {!!res?.warnings?.length && <div className="border-t border-amber-300/20 bg-amber-300/[0.06] px-4 py-2 text-[0.75rem] text-amber-100">
+            <b>{t.parseWarnings}:</b><ul className="mt-1 list-disc space-y-0.5 pl-4">{res.warnings.slice(0, 8).map((w, i) => <li key={i}>{w}</li>)}</ul></div>}
         </section>
 
         <section className="flex flex-col gap-3">
-          <div className="flex items-center gap-4 card p-4">
-            <ScoreRing score={res.riskScore} grade={res.grade} label={t.score(res.riskScore, res.grade)} gradeWord={t.grade} />
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-white">{res.findings.length ? t.findingsIn(res.findings.length, res.serversScanned) : res.parseError ? t.waiting : t.clean}</div>
-              <div className="mt-2 flex flex-wrap gap-1.5 text-[0.6875rem] font-medium">
-                {(['critical', 'high', 'medium', 'low'] as const).map(k => <span key={k} className={`sev-${k} rounded-md px-1.5 py-0.5`}>{k} {res.counts[k]}</span>)}
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button disabled={!!res.parseError} onClick={() => download('mcp-shield.sarif', JSON.stringify(toSarif(res, 'mcp.json', lang), null, 2), 'application/sarif+json')} className="btn-ghost focus-ring text-[0.75rem]"><FileCode2 size={14} />SARIF</button>
-                <button disabled={!!res.parseError} onClick={() => download('mcp-shield-report.md', toMarkdown(res, lang), 'text/markdown')} className="btn-ghost focus-ring text-[0.75rem]"><FileDown size={14} />Markdown</button>
-                <button disabled={!cfg} onClick={() => download('mcp.hardened.json', hardened, 'application/json')} className="btn-ghost focus-ring text-[0.75rem]"><FileJson size={14} />{t.hardenedJson}</button>
-                <button disabled={!cfg} onClick={() => download('Dockerfile.mcp-sandbox', docker, 'text/plain')} className="btn-ghost focus-ring text-[0.75rem]"><Container size={14} />Docker</button>
+          {!res ? (
+            <div data-testid="empty-state" className="card flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+              <span className="grid h-11 w-11 place-items-center rounded-[14px] border border-white/[0.08] bg-white/[0.04] text-slate-300"><ClipboardPaste size={20} strokeWidth={1.6} aria-hidden /></span>
+              <h2 className="text-[1.0625rem] font-semibold text-white">{t.emptyTitle}</h2>
+              <p className="max-w-md text-sm leading-relaxed text-slate-400">{t.emptyBody}</p>
+            </div>
+          ) : <>
+            <div className="flex items-center gap-4 card p-4">
+              <ScoreRing score={res.riskScore} grade={res.grade} label={t.score(res.riskScore, res.grade)} gradeWord={t.grade} />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-white" aria-live="polite">{res.findings.length ? t.findingsIn(res.findings.length, res.serversScanned) : res.parseError ? t.waiting : t.clean}</div>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[0.6875rem] font-medium">
+                  {(['critical', 'high', 'medium', 'low'] as const).map(k => <span key={k} className={`sev-${k} rounded-md px-1.5 py-0.5`}>{k} {res.counts[k]}</span>)}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button disabled={disabled} onClick={() => download('mcp-shield.sarif', JSON.stringify(toSarif(res, fileName, lang, input), null, 2), 'application/sarif+json')} className="btn-ghost focus-ring text-[0.75rem]"><FileCode2 size={14} aria-hidden />SARIF</button>
+                  <button disabled={disabled} onClick={() => download('mcp-shield-report.md', toMarkdown(res, lang), 'text/markdown')} className="btn-ghost focus-ring text-[0.75rem]"><FileDown size={14} aria-hidden />Markdown</button>
+                  <button disabled={!cfg} onClick={() => download('mcp.hardened.json', hardened, 'application/json')} className="btn-ghost focus-ring text-[0.75rem]"><FileJson size={14} aria-hidden />{t.hardenedJson}</button>
+                  <button disabled={!cfg} onClick={() => download('Dockerfile.mcp-sandbox', docker, 'text/plain')} className="btn-ghost focus-ring text-[0.75rem]"><Container size={14} aria-hidden />Docker</button>
+                </div>
               </div>
             </div>
-          </div>
-          <div data-testid="findings" className="scroll-thin max-h-[380px] space-y-2 overflow-y-auto pr-1">
-            {res.findings.map(f => <FindingCard key={f.id} f={f} />)}
-          </div>
+            <div data-testid="findings" className="scroll-thin max-h-[380px] space-y-2 overflow-y-auto pr-1">
+              {res.findings.map(f => <FindingCard key={f.id} f={f} />)}
+            </div>
+          </>}
         </section>
       </div>
 
       {cfg && <section className="overflow-hidden rounded-[18px] border border-white/[0.07] bg-surface shadow-[inset_0_1px_0_rgb(var(--white)/0.04)]">
         <header className="flex flex-wrap items-center gap-2 border-b border-white/5 px-3 py-2">
           <Segmented size="sm" label={t.diffTab} value={view} onChange={setView} options={[{ value: 'diff', label: t.diffTab }, { value: 'hardened', label: t.fixedTab }, { value: 'docker', label: t.dockerTab }]} />
-          <button onClick={copy} className="press ml-auto flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-slate-400 hover:text-white">{copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}{copied ? t.copied : t.copy}</button>
+          <button onClick={copy} className="press focus-ring ml-auto flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-slate-400 hover:text-white">{copied ? <Check size={13} className="text-emerald-400" aria-hidden /> : <Copy size={13} aria-hidden />}{copied ? t.copied : t.copy}</button>
         </header>
         {removed.length > 0 && <p className="border-b border-red-400/20 bg-red-400/[0.06] px-4 py-2 text-[0.75rem] text-red-200">{t.removed}: <b>{removed.join(', ')}</b></p>}
+        {hasRedaction && <p className="flex items-center gap-1.5 border-b border-white/[0.05] px-4 py-2 text-[0.75rem] text-slate-300"><Info size={13} aria-hidden />{t.redactedNote}</p>}
         {view === 'diff' ? <DiffView before={pretty} after={hardened} />
           : <pre className="scroll-thin max-h-[460px] overflow-auto p-4 font-mono text-[0.75rem] leading-[1.6] text-slate-200">{view === 'docker' ? docker : hardened}</pre>}
         <p className="border-t border-white/[0.05] px-4 py-2 text-[0.6875rem] text-slate-400">{t.pinNote}</p>
       </section>}
+      <ConfirmDialog open={confirm} title={t.resetTitle} body={t.resetBody} confirm={t.resetConfirm} cancel={t.cancel} onConfirm={doReset} onClose={() => setConfirm(false)} />
     </div>
   )
 }

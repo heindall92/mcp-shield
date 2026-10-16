@@ -5,23 +5,27 @@ import { Auditor } from './components/auditor/Auditor'
 import { Governance } from './components/governance/Governance'
 import { ZeroTelemetryModal } from './components/ui/ZeroTelemetry'
 import { Segmented } from './components/ui/Segmented'
-import { sampleConfigs } from './data/sampleConfigs'
+import { ErrorBoundary } from './components/ui/ErrorBoundary'
+import { clearAppStorage } from './i18n/storage'
 import { usePrefs } from './i18n/prefs'
 
 type Tab = 'simulador' | 'auditor' | 'gobernanza'
-const IDS: Tab[] = ['simulador', 'auditor', 'gobernanza']
-const fromHash = (): Tab => IDS.find(t => `#${t}` === location.hash) ?? 'simulador'
+const IDS: Tab[] = ['auditor', 'simulador', 'gobernanza']
+const fromHash = (): Tab => IDS.find(t => `#${t}` === location.hash) ?? 'auditor'
 
 export default function App() {
   const { t, lang, setLang, theme, setTheme } = usePrefs()
   const [tab, setTab] = useState<Tab>(fromHash)
   const [modal, setModal] = useState(false)
-  const [text, setText] = useState(() => JSON.stringify(sampleConfigs[0].config, null, 2))
+  // User input lives only in memory: never persisted to storage, never logged.
+  const [text, setText] = useState('')
+  const [epoch, setEpoch] = useState(0)
+  const resetAll = () => { setText(''); clearAppStorage(); setEpoch(e => e + 1) }
   useEffect(() => { const h = () => setTab(fromHash()); addEventListener('hashchange', h); return () => removeEventListener('hashchange', h) }, [])
   const go = (x: Tab) => { history.replaceState(null, '', `#${x}`); setTab(x); scrollTo({ top: 0 }) }
   const tabs = [
-    { value: 'simulador' as const, label: t.tabSim, Icon: Swords },
     { value: 'auditor' as const, label: t.tabAudit, Icon: ScanSearch },
+    { value: 'simulador' as const, label: t.tabSim, Icon: Swords },
     { value: 'gobernanza' as const, label: t.tabGov, Icon: Landmark },
   ]
 
@@ -49,9 +53,11 @@ export default function App() {
         <nav aria-label={t.navLabel} className="border-t border-white/[0.05] px-3 py-2 md:hidden"><Segmented full label={t.navLabel} options={tabs} value={tab} onChange={go} /></nav>
       </header>
       <main className="relative mx-auto max-w-[87.5rem] px-4 py-5 sm:px-6 sm:py-7">
-        {tab === 'simulador' && <Simulator onAudit={j => { setText(j); go('auditor') }} />}
-        {tab === 'auditor' && <Auditor text={text} setText={setText} />}
-        {tab === 'gobernanza' && <Governance />}
+        <ErrorBoundary lang={lang} resetKey={`${tab}-${epoch}`} onReset={resetAll}>
+          {tab === 'simulador' && <Simulator onAudit={j => { setText(j); go('auditor') }} />}
+          {tab === 'auditor' && <Auditor key={epoch} text={text} setText={setText} onReset={resetAll} />}
+          {tab === 'gobernanza' && <Governance />}
+        </ErrorBoundary>
       </main>
       <footer className="mx-auto max-w-[87.5rem] px-6 pb-8 text-[0.75rem] text-slate-400">{t.footer}</footer>
       <ZeroTelemetryModal open={modal} onClose={() => setModal(false)} />
