@@ -2,7 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 html,body,#root{height:100%}
-body{@apply bg-[#07090d] text-slate-200 font-sans antialiased}
+html{font-size:100%}
+body{@apply bg-[#07090d] text-slate-200 font-sans antialiased;line-height:1.5;font-optical-sizing:auto}
+.display{font-size:clamp(1.5rem,1.1rem + 1.4vw,1.875rem);line-height:1.1;letter-spacing:-0.022em;font-weight:600;text-wrap:balance}
+h2,h3{letter-spacing:-0.01em}
+.press{transition-property:transform,background-color,color,border-color;transition-duration:160ms;transition-timing-function:cubic-bezier(.23,1,.32,1)}
+.press:active{transform:scale(0.97);transition-duration:100ms}
+.press-soft:active{background-color:#ffffff08}
 ::selection{background:#22d3ee55}
 .scroll-thin::-webkit-scrollbar{width:6px;height:6px}
 .scroll-thin::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
@@ -20,6 +26,20 @@ body{@apply bg-[#07090d] text-slate-200 font-sans antialiased}
 .sev-low{@apply bg-slate-500/20 text-slate-300}
 dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
 @keyframes modal-in{from{opacity:0;transform:scale(.96);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+/* Reduced motion: gentler, not zero — keep opacity/colour, drop movement, scale and loops */
 @media (prefers-reduced-motion: reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  @keyframes modal-in{from{opacity:0}to{opacity:1}}
+  .animate-pulseGlow{animation:none!important}
+  .press:active,.btn-primary:active,.btn-ghost:active,.btn-chip:active{transform:none!important}
+  [class*="scale-1"]{transform:none!important}
+  html{scroll-behavior:auto}
+}
+@media (prefers-reduced-transparency: reduce){
+  header.sticky{background:#07090d!important;backdrop-filter:none!important}
+  dialog.modal{background:#0d121b!important}
+}
+@media (prefers-contrast: more){
+  .border-white\/\[0\.07\],.border-white\/\[0\.06\],.border-white\/5{border-color:#ffffff40!important}
+  .text-slate-500,.text-slate-600{color:#cbd5e1!important}
 }

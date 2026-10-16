@@ -10,8 +10,8 @@ export function Panel({ title, kicker, Icon, tone, children, count }: { title: s
       <div className="flex min-h-0 flex-1 flex-col rounded-[15px] bg-[#0b0f16]/95">
         <header className="flex items-center gap-2 border-b border-white/5 px-4 py-2.5">
           <Icon size={15} className={tone === 'red' ? 'text-red-400' : tone === 'cyan' ? 'text-cyan-300' : 'text-slate-300'} />
-          <h3 className="text-[13px] font-semibold text-slate-100">{title}</h3>
-          <span className="ml-auto text-[10px] uppercase tracking-[0.14em] text-slate-500">{kicker}</span>
+          <h3 className="text-[0.8125rem] font-semibold text-slate-100">{title}</h3>
+          <span className="ml-auto text-[0.625rem] uppercase tracking-[0.14em] text-slate-500">{kicker}</span>
         </header>
         <div ref={ref} className="scroll-thin flex-1 space-y-2.5 overflow-y-auto p-3 [mask-image:linear-gradient(to_bottom,transparent,black_12px)]">{children}</div>
       </div>

@@ -26,15 +26,15 @@ export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
       {/* Scenario picker + controls */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300/80">Simulador de Kill-Chain · 100% simulado</p>
-          <h1 className="mt-1 text-balance text-2xl font-semibold tracking-tight text-white sm:text-[28px]">{scenario.title}</h1>
+          <p className="text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-cyan-300/80">Simulador de Kill-Chain · 100% simulado</p>
+          <h1 className="mt-1 text-balance display text-white">{scenario.title}</h1>
           <p className="mt-1 text-sm text-slate-400">{scenario.subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div role="radiogroup" aria-label="Modo" className="flex rounded-xl border border-white/10 bg-white/[0.03] p-1 text-xs font-medium">
             {(['vulnerable', 'hardened'] as const).map(m => (
               <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-colors duration-150 ${mode === m ? (m === 'vulnerable' ? 'bg-red-500/20 text-red-200' : 'bg-emerald-500/20 text-emerald-200') : 'text-slate-400 hover:text-slate-200'}`}>
+                className={`press flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-[background-color,color,transform] duration-150 ${mode === m ? (m === 'vulnerable' ? 'bg-red-500/20 text-red-200' : 'bg-emerald-500/20 text-emerald-200') : 'text-slate-400 hover:text-slate-200'}`}>
                 {m === 'vulnerable' ? <ShieldAlert size={14} /> : <ShieldCheck size={14} />}{m === 'vulnerable' ? 'Vulnerable' : 'Hardened'}
               </button>))}
           </div>
@@ -49,19 +49,19 @@ export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
       <div className="scroll-thin -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
         {attackScenarios.map((s, n) => (
           <button key={s.id} onClick={() => setSid(s.id)} aria-pressed={s.id === sid}
-            className={`group flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs transition-[background-color,border-color] duration-150 ${s.id === sid ? 'border-cyan-400/50 bg-cyan-400/10 text-white' : 'border-white/[0.07] bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-slate-200'}`}>
-            <span className="font-mono text-[10px] text-slate-500">0{n + 1}</span>
+            className={`press group flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs transition-[background-color,border-color,transform] duration-150 ${s.id === sid ? 'border-cyan-400/50 bg-cyan-400/10 text-white' : 'border-white/[0.07] bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-slate-200'}`}>
+            <span className="font-mono text-[0.625rem] text-slate-500">0{n + 1}</span>
             <span className="font-medium">{s.title}</span>
             {s.verification === 'verified' ? <BadgeCheck size={13} className="text-emerald-400" aria-label="Caso real verificado" /> : <FlaskConical size={13} className="text-amber-300" aria-label="Escenario ilustrativo" />}
           </button>))}
       </div>
 
       {/* Glowing graph */}
-      <div className={`relative overflow-hidden rounded-2xl border px-3 pt-4 transition-colors duration-500 ${compromised ? 'border-red-500/40 bg-red-950/20' : hardenedWin ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-white/[0.07] bg-white/[0.02]'}`}>
+      <div className={`relative overflow-hidden rounded-2xl border px-3 pt-4 transition-colors duration-200 ${compromised ? 'border-red-500/40 bg-red-950/20' : hardenedWin ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-white/[0.07] bg-white/[0.02]'}`}>
         <KillChainGraph active={nodesFor(current)} reached={reached} compromised={compromised} hardened={hardenedWin} />
-        <div className="flex items-center justify-between gap-3 border-t border-white/5 py-2 text-[11px] text-slate-500">
+        <div className="flex items-center justify-between gap-3 border-t border-white/5 py-2 text-[0.6875rem] text-slate-500">
           <span className="font-mono">step {shown}/{steps.length}</span>
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/5"><div className={`h-full origin-left rounded-full transition-transform duration-300 ease-out ${mode === 'hardened' ? 'bg-emerald-400' : 'bg-gradient-to-r from-cyan-400 to-red-500'}`} style={{ transform: `scaleX(${steps.length ? shown / steps.length : 0})` }} /></div>
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/5"><div className={`h-full origin-left rounded-full transition-transform duration-200 ease-out ${mode === 'hardened' ? 'bg-emerald-400' : 'bg-gradient-to-r from-cyan-400 to-red-500'}`} style={{ transform: `scaleX(${steps.length ? shown / steps.length : 0})` }} /></div>
           {impact && <span className={`flex items-center gap-1 font-semibold ${compromised ? 'text-red-300' : 'text-emerald-300'}`}>{compromised ? <Siren size={13} /> : <ShieldCheck size={13} />}{impact.impact}</span>}
         </div>
       </div>
@@ -71,8 +71,8 @@ export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
         <Panel title="Lo que ve el usuario" kicker="Agent View · IDE" Icon={MessageSquare} tone="slate" count={by('agent').length}>
           {!shown && <Empty text="Pulsa “Ejecutar” y mira cómo un chat totalmente normal…" />}
           {by('agent').map(s => (
-            <div key={s.i} className={`animate-fadein max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed ${s.role === 'user' ? 'ml-auto rounded-br-md bg-cyan-500/15 text-cyan-50' : 'rounded-bl-md bg-white/[0.05] text-slate-200'}`}>
-              <div className="mb-0.5 text-[10px] uppercase tracking-wider text-slate-500">{s.role === 'user' ? 'Tú' : 'Asistente'}</div>
+            <div key={s.i} className={`animate-fadein max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[0.8125rem] leading-relaxed ${s.role === 'user' ? 'ml-auto rounded-br-md bg-cyan-500/15 text-cyan-50' : 'rounded-bl-md bg-white/[0.05] text-slate-200'}`}>
+              <div className="mb-0.5 text-[0.625rem] uppercase tracking-wider text-slate-500">{s.role === 'user' ? 'Tú' : 'Asistente'}</div>
               {s.content.replace(/\*\*/g, '')}
             </div>))}
         </Panel>
@@ -80,17 +80,17 @@ export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
           {!shown && <Empty text="…esconde un payload que el usuario nunca ve." />}
           {by('wire').map(s => (
             <div key={s.i} className={`animate-fadein rounded-xl border p-2.5 ${s.highlight ? 'border-red-500/40 bg-red-500/[0.06]' : s.blocked ? 'border-emerald-500/40 bg-emerald-500/[0.06]' : 'border-white/[0.06] bg-black/30'}`}>
-              <div className="mb-1.5 flex items-center gap-2 font-mono text-[10px]">
+              <div className="mb-1.5 flex items-center gap-2 font-mono text-[0.625rem]">
                 <span className={s.role === 'client→server' ? 'text-cyan-300' : 'text-violet-300'}>{s.role === 'client→server' ? '→ client ▸ server' : '← server ▸ client'}</span>
                 {s.highlight && <span className="ml-auto rounded bg-red-500/20 px-1.5 py-0.5 font-semibold text-red-300">INYECCIÓN</span>}
               </div>
-              <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.55] text-slate-300"><Payload text={s.content} /></pre>
+              <pre className="whitespace-pre-wrap break-words font-mono text-[0.71875rem] leading-[1.55] text-slate-300"><Payload text={s.content} /></pre>
             </div>))}
         </Panel>
         <Panel title="Impacto en el host" kicker="OS Console" Icon={TerminalSquare} tone="red" count={by('host').length}>
           {!shown && <Empty text="…y lo que pasa de verdad en tu máquina." />}
           {by('host').map(s => (
-            <pre key={s.i} className={`animate-fadein whitespace-pre-wrap break-words rounded-lg px-2.5 py-2 font-mono text-[11.5px] leading-[1.55] ${s.role === 'alert' ? (s.blocked ? 'bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-500/40' : 'bg-red-500/15 text-red-200 ring-1 ring-red-500/50 shadow-[0_0_30px_-6px_#ef4444]') : 'text-emerald-200/80'}`}><Payload text={s.content} /></pre>))}
+            <pre key={s.i} className={`animate-fadein whitespace-pre-wrap break-words rounded-lg px-2.5 py-2 font-mono text-[0.71875rem] leading-[1.55] ${s.role === 'alert' ? (s.blocked ? 'bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-500/40' : 'bg-red-500/15 text-red-200 ring-1 ring-red-500/50 shadow-[0_0_30px_-6px_#ef4444]') : 'text-emerald-200/80'}`}><Payload text={s.content} /></pre>))}
           {impact && <div className={`animate-fadein mt-2 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold ${compromised ? 'bg-red-500 text-white shadow-[0_0_40px_-4px_#ef4444]' : 'bg-emerald-500 text-emerald-950'}`}>
             {compromised ? <Siren size={16} /> : <ShieldCheck size={16} />}{compromised ? `IMPACTO: ${impact.impact}` : 'Kill-chain cortada por la config endurecida'}</div>}
         </Panel>

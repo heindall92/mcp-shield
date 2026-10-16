@@ -10,8 +10,8 @@ export function stepsFor(s: AttackScenario, mode: SimMode): SimStep[] {
   return [
     ...pre,
     { panel: 'wire', role: 'server→client', blocked: true, content: `// MCP-Shield · política aplicada\n⟪BLOQUEADO⟫ ${s.mitigations[0]}` },
-    { panel: 'host', role: 'alert', blocked: true, impact: 'Ataque contenido', content: `[sandbox] --network none · --read-only · --cap-drop ALL\n⟪✓ sin acceso a secretos ni egress⟫` },
-    { panel: 'agent', role: 'assistant', content: 'He detectado instrucciones sospechosas en una herramienta y he pedido tu confirmación antes de continuar. 🛡️' },
+    { panel: 'host', role: 'alert', blocked: true, impact: 'Ataque contenido', content: `[sandbox] --network none · --read-only · --cap-drop ALL\n⟪OK: sin acceso a secretos ni egress⟫` },
+    { panel: 'agent', role: 'assistant', content: 'He detectado instrucciones sospechosas en una herramienta y he pedido tu confirmación antes de continuar.' },
   ]
 }
 
