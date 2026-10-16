@@ -39,8 +39,8 @@ function toTool(raw: unknown, at: string, issues: Issue[]): MCPToolDefinition | 
   if (isObj(raw.annotations)) t.annotations = raw.annotations
   if (Array.isArray(raw.icons)) { t.icons = raw.icons; if (raw.icons.some(i => isObj(i) && typeof i.src === 'string')) issues.push({ code: 'icon-url', level: 'warning', at: `${at}.icons` }) }
   if (isObj(raw._meta)) t._meta = raw._meta
-  const ext: Record<string, unknown> = isObj(raw.extensions) ? { ...raw.extensions } : {}
-  for (const [k, v] of Object.entries(raw)) if (!KNOWN.has(k)) ext[k] = v
+  // Object.fromEntries defines own data properties, so an untrusted "__proto__" key stays inert data.
+  const ext: Record<string, unknown> = Object.fromEntries([...Object.entries(isObj(raw.extensions) ? raw.extensions : {}), ...Object.entries(raw).filter(([k]) => !KNOWN.has(k))])
   if (Object.keys(ext).length) t.extensions = ext
   walkRefs(t.inputSchema, `${at}.inputSchema`, issues); if (t.outputSchema) walkRefs(t.outputSchema, `${at}.outputSchema`, issues)
   return t
