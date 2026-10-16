@@ -1,0 +1,5 @@
+/* MCP-Shield overrides for the anatomy kit: AA contrast for small text and the app's own mono font. */
+.mcps-iso{--anatomy-muted:#9a9a9a;--anatomy-text:#b8b8b8;--anatomy-mono:"JetBrains Mono Variable",ui-monospace,"SF Mono",Menlo,Consolas,monospace;margin:0}
+.mcps-iso[data-theme="light"]{--anatomy-muted:#646468;--anatomy-text:#4a4a4e}
+.mcps-iso .iso-plate{border-radius:14px;overflow:hidden}
+.mcps-iso .iso-svg{max-width:640px}

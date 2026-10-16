@@ -1,0 +1,22 @@
+MCP-Shield
+Copyright (c) 2026 Yoandy Ramírez Delgado. Licensed under the MIT License (see LICENSE).
+
+This product includes or is informed by third-party work:
+
+- anatomy isometric kit (src/components/iso/iso-kit.ts, iso.css)
+  https://github.com/wheresryan22/anatomy - MIT License, Copyright (c) 2026 Ryan.
+  Full text: src/components/iso/LICENSE-anatomy.txt
+
+- Inter typeface (via @fontsource-variable/inter) - SIL Open Font License 1.1
+  https://github.com/rsms/inter
+- JetBrains Mono typeface (via @fontsource-variable/jetbrains-mono) - SIL Open Font License 1.1
+  https://github.com/JetBrains/JetBrainsMono
+- Fontsource packaging - MIT License. https://github.com/fontsource/fontsource
+
+- NVIDIA garak - Apache License 2.0. https://github.com/NVIDIA/garak
+  Rule MCPS-TP-003 (ASCII smuggling) is an independent TypeScript implementation inspired by
+  garak's encoding probes (InjectUnicodeTagChars, InjectUnicodeVariantSelectors, InjectSneakyBits).
+  No garak source code is included.
+
+- Lucide icons - ISC License (portions MIT, from Feather). https://lucide.dev/license
+- React, Tailwind CSS, Vite - MIT License.

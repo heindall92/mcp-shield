@@ -4,6 +4,7 @@ import { scanText, parseConfig } from '../../engine/scanner'
 import { remediate, removedServers, dockerSnippet } from '../../engine/remediator'
 import { toSarif, toMarkdown, download } from '../../engine/sarifExporter'
 import { redactValue } from '../../engine/redact'
+import { visible } from '../../engine/rules/smugglingRules'
 import { MAX_INPUT_BYTES } from '../../engine/parse'
 import { sampleConfigs } from '../../data/sampleConfigs'
 import { FindingCard } from './FindingCard'
@@ -45,7 +46,7 @@ export function Auditor({ text, setText, onReset, onLoadDemo }: { text: string; 
   const removed = useMemo(() => (cfg ? removedServers(cfg) : []), [cfg])
   const docker = useMemo(() => (cfg ? dockerSnippet(cfg, lang) : ''), [cfg, lang])
   // The "before" view never renders raw secrets.
-  const pretty = useMemo(() => (cfg ? JSON.stringify(redactValue(cfg), null, 2) : ''), [cfg])
+  const pretty = useMemo(() => (cfg ? visible(JSON.stringify(redactValue(cfg), null, 2), Infinity) : ''), [cfg])
   const hasRedaction = pretty.includes('[REDACTED]')
 
   const onFile = (f?: File | null) => {
