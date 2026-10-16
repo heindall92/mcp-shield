@@ -56,4 +56,10 @@ describe('Capture adapter', () => {
     expect(codes(importCapture(JSON.stringify({ ...s, schemaVersion: '2.0' })))).toContain('format-version')
   })
   it('warns on unknown protocol versions', () => { expect(codes(importCapture(JSON.stringify(page([tool('a')])), { ...ctx, protocolVersion: '2099-01-01' }))).toContain('unknown-protocol') })
+  it('treats __proto__ keys as inert data (no prototype pollution)', () => {
+    const r = importCapture('{"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"a","inputSchema":{"type":"object"},"__proto__":{"polluted":1},"extensions":{"__proto__":{"x":1}}}]}}', ctx)
+    const ext = r.snapshot!.tools[0].extensions!
+    expect(Object.getPrototypeOf(ext)).toBe(Object.prototype); expect((ext as Record<string, unknown>).polluted).toBeUndefined(); expect(({} as Record<string, unknown>).polluted).toBeUndefined()
+    expect(Object.keys(ext)).toContain('__proto__')
+  })
 })
