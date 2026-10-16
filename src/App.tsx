@@ -7,7 +7,7 @@ import { Help } from './components/help/Help'
 const IntegrityView = lazy(() => import('./components/integrity/IntegrityView').then(m => ({ default: m.IntegrityView })))
 import { ZeroTelemetryModal } from './components/ui/ZeroTelemetry'
 import { Segmented } from './components/ui/Segmented'
-import { MobileTabs, MobileMenu } from './components/ui/MobileBar'
+import { MobileTabs, MobileMenu, BottomTabs } from './components/ui/MobileBar'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { CommandPalette, type Command } from './components/ui/CommandPalette'
 import { ConfirmDialog } from './components/ui/ConfirmDialog'
@@ -89,7 +89,7 @@ export default function App() {
   }, [tab, go, toggleTheme, toggleLang])
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-elevated focus:px-3 focus:py-2 focus:text-white">{lang === 'es' ? 'Saltar al contenido' : 'Skip to content'}</a>
       <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 h-[26rem] bg-[radial-gradient(60%_60%_at_50%_0%,rgb(var(--slate-400)/0.07),transparent)] print:hidden" />
       <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-canvas/75 backdrop-blur-xl">
@@ -100,6 +100,10 @@ export default function App() {
           </a>
           <nav aria-label={t.navLabel} className="ml-3 hidden md:block"><Segmented label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
           <div className="ml-auto flex min-w-0 items-center gap-2">
+            <button data-testid="seal-mobile" onClick={() => setModal(true)} aria-label={t.badgeLong} title={t.badgeLong}
+              className="press focus-ring inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-2 text-[0.6875rem] font-semibold text-emerald-200 sm:hidden">
+              <ShieldCheck size={14} aria-hidden /><span aria-hidden>0</span>
+            </button>
             <button data-testid="search-pill" onClick={() => setPalette(true)} aria-label={t.search} aria-keyshortcuts="Control+K Meta+K"
               className="press focus-ring inline-flex h-8 w-8 shrink-0 items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] text-[0.75rem] sm:w-auto sm:px-2.5 text-slate-400 hover:bg-white/[0.06] hover:text-white">
               <Search size={14} aria-hidden /><span className="hidden xl:inline">{t.searchShort}</span><span className="hidden sm:inline-flex"><kbd className="kbd whitespace-nowrap">{modKey()} K</kbd></span>
@@ -117,7 +121,7 @@ export default function App() {
             <MobileMenu label={lang === 'es' ? 'Más opciones' : 'More options'} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onHelp={() => go('ayuda')} onZero={() => setModal(true)} t={t} />
           </div>
         </div>
-        <nav aria-label={t.navLabel} className="border-t border-white/[0.05] md:hidden"><MobileTabs label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
+        <nav aria-label={t.navLabel} className="hidden border-t border-white/[0.05] sm:block md:hidden"><MobileTabs label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
       </header>
       <main id="main" tabIndex={-1} className="relative mx-auto max-w-[87.5rem] px-4 py-5 outline-none sm:px-6 sm:py-7">
         <ErrorBoundary lang={lang} resetKey={`${tab}-${epoch}`} onReset={resetAll}>
@@ -136,6 +140,9 @@ export default function App() {
         <a href="#ayuda/creditos" onClick={e => { e.preventDefault(); go('ayuda', 'creditos') }} className="focus-ring rounded hover:text-white">{t.hCredits}</a>
         <a href="#ayuda/atajos" onClick={e => { e.preventDefault(); go('ayuda', 'atajos') }} className="focus-ring rounded hover:text-white">{t.hKeys}</a>
       </footer>
+      <BottomTabs label={t.navLabel} value={tab} onChange={x => go(x)} options={[
+        { value: 'auditor', label: t.tabAudit, Icon: ScanSearch }, { value: 'integridad', label: t.tabInt, Icon: Fingerprint },
+        { value: 'simulador', label: t.tabSimShort, Icon: Swords }, { value: 'gobernanza', label: t.tabGov, Icon: Landmark }, { value: 'ayuda', label: t.tabHelp, Icon: CircleHelp }]} />
       <ZeroTelemetryModal open={modal} onClose={() => setModal(false)} />
       <CommandPalette open={palette} onClose={() => setPalette(false)} commands={commands} title={t.palTitle} placeholder={t.search} empty={t.palEmpty} hint={t.palHint} />
       <ConfirmDialog open={confirmReset} title={t.resetTitle} body={t.resetBody} confirm={t.resetConfirm} cancel={t.cancel} onConfirm={() => { resetAll(); go('auditor') }} onClose={() => setConfirmReset(false)} />
