@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html,body,#root{height:100%}
+body{@apply bg-[#07090d] text-slate-200 font-sans antialiased}
+::selection{background:#22d3ee55}
+.scroll-thin::-webkit-scrollbar{width:6px;height:6px}
+.scroll-thin::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.grid-bg{background-image:linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:32px 32px}
+@layer components{
+  .btn-primary{@apply inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-red-500 to-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_0_1px_#f8717180,0_8px_30px_-6px_#ef4444] transition-transform duration-150 ease-out active:scale-[0.97]}
+  .btn-ghost{@apply inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-300 transition-[background-color,transform] duration-150 ease-out hover:bg-white/[0.07] active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40}
+  .btn-chip{@apply inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-xs text-slate-300 transition-[background-color,transform] duration-150 hover:bg-white/[0.07] active:scale-[0.97]}
+  .tab{@apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-400 transition-colors duration-150 hover:text-slate-100}
+  .tab-on{@apply bg-white/[0.08] text-white}
+}
+.sev-critical{@apply bg-red-500/20 text-red-300}
+.sev-high{@apply bg-orange-500/20 text-orange-300}
+.sev-medium{@apply bg-amber-400/15 text-amber-200}
+.sev-low{@apply bg-slate-500/20 text-slate-300}
+dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
+@keyframes modal-in{from{opacity:0;transform:scale(.96);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
