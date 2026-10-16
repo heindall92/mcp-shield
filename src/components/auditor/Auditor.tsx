@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { FileJson, Upload, FileDown, FileCode2, Container, Lock, Copy, Check, RotateCcw, FlaskConical, Info, ClipboardPaste, Printer, X, Sparkles, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react'
+import { FileJson, Upload, FileDown, FileCode2, Container, Lock, Copy, Check, RotateCcw, FlaskConical, Info, ClipboardPaste, Printer, X, Sparkles, ShieldCheck, ShieldAlert, ShieldX, Swords, ArrowRight, ChevronDown } from 'lucide-react'
 import { scanText, scanConfig, parseConfig } from '../../engine/scanner'
 import { hardeningVerdict, removedServers, dockerSnippet } from '../../engine/remediator'
 import { gate } from '../../engine/exportGate'
@@ -24,7 +24,8 @@ import { OPEN_FILE_EVENT, VERSION } from '../../meta'
 const OB_KEY = 'mcps-onboarded'
 const seenOnboarding = () => { try { return localStorage.getItem(OB_KEY) === '1' } catch { return true } }
 
-export function Auditor({ text, setText, onReset, onLoadDemo }: { text: string; setText: (t: string) => void; onReset: () => void; onLoadDemo: (id: string) => void }) {
+export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text: string; setText: (t: string) => void; onReset: () => void; onLoadDemo: (id: string) => void; onAttack?: () => void }) {
+  const [obOpen, setObOpen] = useState(false)
   const { t, lang } = usePrefs()
   const toast = useToast()
   const [onboard, setOnboard] = useState(() => !seenOnboarding())
@@ -94,33 +95,41 @@ export function Auditor({ text, setText, onReset, onLoadDemo }: { text: string; 
         <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-slate-400">{t.audKicker}</p>
         <h1 className="display mt-1.5 text-white">{t.audTitle}</h1>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400"><Lock size={13} className="text-emerald-400" aria-hidden />{t.audPrivacy}</p>
+        {empty && onAttack && <button data-testid="attack-cta" onClick={onAttack} className="btn-tertiary focus-ring no-print mt-3 text-[0.8125rem]"><Swords size={14} strokeWidth={1.8} className="text-red-400" aria-hidden />{t.attackCta}<ArrowRight size={14} strokeWidth={1.8} aria-hidden /></button>}
       </div>
       <div className="print-only">
         <h1 className="text-xl font-semibold">{t.printTitle}</h1>
         <p className="text-sm">{t.printDate}: {printedAt} · {fileName} · MCP-Shield v{VERSION}</p>
         <p className="text-sm">{t.printNote}</p>
       </div>
-      {onboard && <section data-testid="onboarding" aria-labelledby="ob-title" className="card no-print flex flex-col gap-3 p-4 sm:flex-row sm:items-start">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] border border-white/[0.08] bg-white/[0.04] text-slate-200"><Sparkles size={15} strokeWidth={1.8} aria-hidden /></span>
-        <div className="min-w-0 flex-1">
-          <h2 id="ob-title" className="text-[0.9375rem] font-semibold text-white">{t.obTitle}</h2>
-          <ol className="mt-2 grid gap-2 text-[0.8125rem] leading-relaxed text-slate-300 md:grid-cols-3">{t.obSteps.map((x, i) => <li key={x} className="flex gap-2"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/[0.08] text-[0.6875rem] font-semibold text-white">{i + 1}</span>{x}</li>)}</ol>
+      {onboard && <section data-testid="onboarding" data-open={obOpen} aria-labelledby="ob-title" className="card no-print flex flex-col gap-3 px-3 py-1 sm:flex-row sm:items-start sm:p-4">
+        <div className="flex items-center gap-2 sm:hidden">
+          <button data-testid="ob-toggle" aria-expanded={obOpen} aria-controls="ob-steps" onClick={() => setObOpen(o => !o)} className="focus-ring flex min-h-[2.75rem] min-w-0 flex-1 items-center gap-2 rounded-lg text-left text-[0.8125rem] text-slate-200">
+            <Sparkles size={15} strokeWidth={1.8} className="shrink-0" aria-hidden /><span className="font-semibold text-white">{t.obTitle}</span><span className="truncate text-slate-400">· {t.obShow}</span>
+            <ChevronDown size={15} className={`ml-auto shrink-0 transition-transform duration-200 ${obOpen ? 'rotate-180' : ''}`} aria-hidden />
+          </button>
+          <button onClick={dismissOnboard} aria-label={t.obDismiss} className="focus-ring grid h-11 w-11 shrink-0 place-items-center rounded-lg text-slate-300 hover:text-white"><X size={16} aria-hidden /></button>
         </div>
-        <button onClick={dismissOnboard} className="btn-ghost focus-ring shrink-0 text-[0.75rem]"><X size={13} aria-hidden />{t.obDismiss}</button>
+        <span className="hidden h-8 w-8 shrink-0 place-items-center rounded-[10px] border border-white/[0.08] bg-white/[0.04] text-slate-200 sm:grid"><Sparkles size={15} strokeWidth={1.8} aria-hidden /></span>
+        <div id="ob-steps" className={`min-w-0 flex-1 ${obOpen ? '' : 'hidden'} sm:block`}>
+          <h2 id="ob-title" className="sr-only text-[0.9375rem] font-semibold text-white sm:not-sr-only">{t.obTitle}</h2>
+          <ol className="grid sm:mt-2 gap-2 text-[0.8125rem] leading-relaxed text-slate-300 md:grid-cols-3">{t.obSteps.map((x, i) => <li key={x} className="flex gap-2"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/[0.08] text-[0.6875rem] font-semibold text-white">{i + 1}</span>{x}</li>)}</ol>
+        </div>
+        <button onClick={dismissOnboard} className="btn-tertiary focus-ring hidden shrink-0 text-[0.75rem] sm:inline-flex"><X size={13} aria-hidden />{t.obDismiss}</button>
       </section>}
-      <div className="no-print flex flex-wrap items-center gap-2">
-        <button onClick={() => fileRef.current?.click()} className="btn-primary focus-ring text-[0.8125rem]"><Upload size={14} strokeWidth={1.8} aria-hidden />{t.openFile}</button>
+      <div data-testid="aud-actions" className="no-print flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <button onClick={() => fileRef.current?.click()} className="btn-primary focus-ring w-full justify-start text-[0.8125rem] sm:w-auto"><Upload size={14} strokeWidth={1.8} aria-hidden />{t.openFile}</button>
         <input ref={fileRef} type="file" accept=".json,.jsonc,application/json" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
-        <label className="btn-chip focus-within:ring-2 focus-within:ring-slate-400/60">
-          <FlaskConical size={13} strokeWidth={1.8} className="text-slate-400" aria-hidden />
+        <label className="btn-secondary w-full justify-start focus-within:ring-2 focus-within:ring-cyan-400 sm:w-auto">
+          <FlaskConical size={14} strokeWidth={1.8} aria-hidden />
           <span className="sr-only">{t.loadDemo}</span>
-          <select data-testid="demo-select" value="" onChange={e => loadDemo(e.target.value)} className="cursor-pointer bg-transparent text-[0.75rem] outline-none">
+          <select data-testid="demo-select" value="" onChange={e => loadDemo(e.target.value)} className="min-w-0 flex-1 cursor-pointer bg-transparent text-[0.8125rem] outline-none">
             <option value="" disabled>{t.loadDemo}</option>
             {sampleConfigs.map(s => <option key={s.id} value={s.id} className="bg-elevated text-slate-200">{lang === 'en' ? s.labelEn : s.label}</option>)}
           </select>
         </label>
-        <button disabled={disabled} onClick={() => print()} className="btn-chip focus-ring ml-auto disabled:opacity-40"><Printer size={13} strokeWidth={1.8} aria-hidden />{t.print}</button>
-        <button disabled={!text} onClick={() => setConfirm(true)} className="btn-chip focus-ring disabled:opacity-40"><RotateCcw size={13} strokeWidth={1.8} aria-hidden />{t.resetBtn}</button>
+        <button disabled={disabled} onClick={() => print()} className="btn-tertiary focus-ring w-full justify-start sm:ml-auto sm:w-auto"><Printer size={14} strokeWidth={1.8} aria-hidden />{t.print}</button>
+        <button disabled={!text} onClick={() => setConfirm(true)} className="btn-tertiary focus-ring w-full justify-start sm:w-auto"><RotateCcw size={14} strokeWidth={1.8} aria-hidden />{t.resetBtn}</button>
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">

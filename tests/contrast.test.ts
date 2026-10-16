@@ -10,16 +10,16 @@ const ratio = (a: string, b: string) => { const [x, y] = [lum(a), lum(b)].sort((
 
 /** [foreground, base surface, optional tint over the base, minimum ratio, where it is used] */
 type Pair = [string, string, [string, number] | null, number, string]
-const TEXT = 4.5, UI = 3
+const BODY = 7, TEXT = 4.5, UI = 3
 const PAIRS: Pair[] = [
-  ['slate-200', 'canvas', null, TEXT, 'body text'],
-  ['white', 'surface', null, TEXT, 'headings'],
-  ['slate-300', 'surface', null, TEXT, 'panel copy / terminal output'],
-  ['slate-400', 'surface', null, TEXT, 'muted text, kickers, mono labels'],
-  ['slate-400', 'canvas', null, TEXT, 'footer, muted on page'],
-  ['slate-400', 'elevated', null, TEXT, 'modal muted'],
-  ['slate-400', 'surface', ['white', 0.035], TEXT, 'muted inside cards'],
-  ['slate-300', 'surface', ['black', 0.2], TEXT, 'JSON-RPC code blocks'],
+  ['slate-200', 'canvas', null, BODY, 'body text'],
+  ['white', 'surface', null, BODY, 'headings'],
+  ['slate-300', 'surface', null, BODY, 'panel copy / terminal output'],
+  ['slate-400', 'surface', null, BODY, 'muted text, kickers, mono labels'],
+  ['slate-400', 'canvas', null, BODY, 'footer, muted on page'],
+  ['slate-400', 'elevated', null, BODY, 'modal muted'],
+  ['slate-400', 'surface', ['white', 0.035], BODY, 'muted inside cards'],
+  ['slate-300', 'surface', ['black', 0.2], BODY, 'JSON-RPC code blocks'],
   ['cyan-300', 'surface', null, TEXT, 'links'],
   ['red-200', 'surface', ['red-400', 0.07], TEXT, 'terminal alert'],
   ['red-200', 'surface', ['red-400', 0.14], TEXT, 'injection highlight / critical chip'],
@@ -34,12 +34,26 @@ const PAIRS: Pair[] = [
   ['red-200', 'canvas', ['red-400', 0.14], TEXT, 'Vulnerable segment'],
   ['emerald-200', 'canvas', ['emerald-400', 0.14], TEXT, 'Hardened segment'],
   ['amber-100', 'surface', ['amber-200', 0.07], TEXT, 'active graph chip label/icon'],
+  ['slate-100', 'slate-800', null, BODY, 'secondary button'],
+  ['slate-200', 'canvas', null, BODY, 'tertiary button'],
+  ['slate-400', 'canvas', null, BODY, 'tertiary button (disabled)'],
+  ['slate-500', 'canvas', null, UI, 'tertiary button outline'],
+  ['emerald-200', 'canvas', ['emerald-400', 0.08], BODY, 'header zero-egress seal'],
+  ['red-400', 'canvas', null, UI, 'attack CTA icon'],
   ['cyan-400', 'canvas', null, UI, 'focus ring'],
   ['red-400', 'surface', null, UI, 'danger dot / score ring'],
   ['emerald-400', 'surface', null, UI, 'verified dot'],
   ['amber-300', 'surface', null, UI, 'illustrative dot / active step'],
   ['slate-400', 'surface', null, UI, 'icons, idle graph nodes'],
 ]
+
+describe('palette discipline', () => {
+  it('uses at most 5 hues', async () => {
+    // @ts-expect-error plain JS module
+    const { HUES } = await import('../palette.js'); expect(HUES.length).toBeLessThanOrEqual(5)
+    for (const [a, b] of [['orange-400', 'amber-400'], ['yellow-300', 'amber-300'], ['violet-400', 'slate-400']]) for (const t of ['dark', 'light'] as Theme[]) expect(hex(a, t)).toBe(hex(b, t))
+  })
+})
 
 describe.each(['dark', 'light'] as Theme[])('WCAG AA contrast — %s theme', theme => {
   it.each(PAIRS)('%s on %s (%s) ≥ %s — %s', (fg, base, tint, min) => {

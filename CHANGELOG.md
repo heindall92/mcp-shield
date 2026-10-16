@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.3.3 — 2026-10-16 · Guía de diseño móvil
+- **Paleta de 4 tonos**: pizarra (neutro), rojo (único acento saturado: inyección y peligro), esmeralda (seguro) y ámbar (aviso), más cian atenuado solo para foco e información. Naranja, amarillo y violeta se integran en ámbar o pizarra; esmeralda, ámbar y cian se desaturan mezclándolos con pizarra.
+- **Contraste**: el texto de cuerpo y el atenuado alcanzan al menos 7:1 en ambos temas (pizarra-400 ajustada); todo el texto, al menos 4.5:1. La prueba de contraste exige 7:1 en los pares de cuerpo y comprueba que no haya más de 5 tonos.
+- **Jerarquía de botones**: primario sólido, secundario gris neutro y terciario con contorno (44 px de alto en táctil). Imprimir y Reiniciar son terciarios legibles; deshabilitados se muestran con borde discontinuo y texto ≥ 7:1. Reiniciar mantiene la confirmación.
+- **Acciones del Auditor en móvil**: apiladas a todo el ancho, alineadas a la izquierda, mismo ancho y espaciado.
+- **«Ver un ataque en 5 s»**: botón terciario bajo el título del Auditor vacío que abre el Simulador e inicia la cadena de ataque. El Auditor sigue siendo la vista inicial.
+- **Primeros pasos en móvil**: una sola línea descartable que se despliega al tocarla.
+- **Sello de la cabecera móvil**: «0 egress» con escudo, título y `aria-label`; abre el modal y cabe a 320 px.
+- Iconos solo de contorno (se quita el relleno del icono Play).
+- **Integridad (revisión R1–R4, con prueba de regresión antes de cada corrección)**:
+  - R1: el estado de Integridad (clave HMAC, baseline, candidato, registro) vive en un proveedor por encima de las pestañas; ya no se pierde al cambiar de vista. Solo en memoria y se borra al Reiniciar.
+  - R2: `schemaDiff` clasifica de forma conservadora cada cambio de esquema como AMPLIADO, RESTRINGIDO o DESCONOCIDO; un cambio desconocido nunca se trata como compatible (nota `unknown`, confianza baja, hallazgo MCPS-INT-003 medio).
+  - R3: TOFU solo crea una baseline completa con una captura completa; con una parcial solo se puede crear una «Baseline provisional», marcada en la interfaz y en los exportes (`baselineStatus: provisional-no-coverage-guarantee`).
+  - R4: `openBaseline` valida de forma estricta la carga descifrada (mismo validador y límites, a prueba de `__proto__`) y la rechaza con un error ES/EN.
+- **Sin CLI de captura**: la interfaz y el README explican que la captura local aún no está implementada; Integridad funciona con snapshots importados y demos. El siguiente paso previsto es un recolector local opcional para servidores autorizados.
+- **Simulador, terminal «Impacto en el host» en móvil**: el panel se ajusta a su contenido (sin desplazamiento interno, sin máscara ni hueco en blanco) y las líneas largas se parten; el desplazamiento automático solo actúa cuando el panel realmente desplaza (escritorio). Se corrige la última línea recortada a 390 px.
+- e2e móvil: CTA visible arriba y ataque iniciado en menos de 5 s, acciones apiladas e iguales, primeros pasos plegados, sello con texto y última línea del terminal visible a 390 px sin hueco.
+
 ## 1.3.2 — 2026-10-16 · Barra inferior en móvil
 - En pantallas de menos de 640 px las pestañas pasan a una **barra inferior fija** (estilo iOS): icono Lucide + etiqueta corta (Auditor, Integridad, Simulador, Gobernanza, Ayuda / Auditor, Integrity, Simulator, Governance, Help), translúcida con `backdrop-filter` y fondo opaco con `prefers-reduced-transparency` o sin soporte de desenfoque. Estado activo con `aria-current`, accesible por teclado, objetivos de 44 px o más y respuesta al pulsar.
 - Área segura de iOS: `viewport-fit=cover` y `env(safe-area-inset-bottom)`; el contenido, el pie y los avisos se desplazan para que la barra nunca los tape.

@@ -1,4 +1,4 @@
-import type { DecisionRecord, ReviewState } from './types'
+import type { DecisionRecord, ReviewState, CaptureCompleteness } from './types'
 
 /**
  * Human review (RFC-001 §9). Nothing is ever approved automatically: every state change is an explicit call
@@ -19,16 +19,23 @@ export interface DecideInput {
   reviewBy?: string
   note?: string
   comparable: boolean
+  /** Completeness of the capture being decided on. */
+  completeness?: CaptureCompleteness
 }
 
 export function decide(log: readonly DecisionRecord[], d: DecideInput, now = () => new Date().toISOString()): DecisionRecord[] {
   const firstBaseline = !d.baselineRoot
   if (!/^[0-9a-f]{64}$/.test(d.candidateRoot)) throw new DecisionError('root')
   if ((d.decision === 'approved' || d.decision === 'accepted-risk') && !d.comparable) throw new DecisionError('context')
-  if (d.decision === 'approved' && firstBaseline && !TOFU_CHECKLIST.every(i => d.tofu?.includes(i))) throw new DecisionError('tofu')
+  const complete = d.completeness === 'pagination-complete' || d.completeness === 'claimed-complete'
+  if (d.completeness === 'invalid' && (d.decision === 'approved' || d.decision === 'provisional' || d.decision === 'accepted-risk')) throw new DecisionError('invalid')
+  // A full baseline needs a complete capture; a partial one can only become a clearly labelled provisional baseline.
+  if (d.decision === 'approved' && !complete) throw new DecisionError('partial')
+  if (d.decision === 'provisional' && (complete || !firstBaseline)) throw new DecisionError('provisional')
+  if ((d.decision === 'approved' || d.decision === 'provisional') && firstBaseline && !TOFU_CHECKLIST.every(i => d.tofu?.includes(i))) throw new DecisionError('tofu')
   if (d.decision === 'accepted-risk' && !(d.reviewBy && /^\d{4}-\d{2}-\d{2}$/.test(d.reviewBy))) throw new DecisionError('reviewBy')
   const rec: DecisionRecord = { at: now(), decision: d.decision, candidateRoot: d.candidateRoot, baselineRoot: d.baselineRoot, candidateSnapshotId: d.candidateSnapshotId.slice(0, 128), firstBaseline,
-    ...(firstBaseline && d.decision === 'approved' ? { tofuChecklist: [...TOFU_CHECKLIST] } : {}), ...(d.reviewBy ? { reviewBy: d.reviewBy } : {}), ...(d.note ? { note: d.note.slice(0, 500) } : {}) }
+    ...(firstBaseline && (d.decision === 'approved' || d.decision === 'provisional') ? { tofuChecklist: [...TOFU_CHECKLIST] } : {}), ...(d.decision === 'provisional' ? { provisional: true } : {}), ...(d.reviewBy ? { reviewBy: d.reviewBy } : {}), ...(d.note ? { note: d.note.slice(0, 500) } : {}) }
   return [...log, rec]
 }
 
