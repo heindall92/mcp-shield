@@ -25,6 +25,7 @@ export function evidenceJson(a: Analysis, log: readonly DecisionRecord[]) {
   return {
     format: 'mcp-shield-integrity-evidence', version: 1, tool: { name: 'MCP-Shield', version: VERSION },
     baseline: meta(a.baseline), candidate: meta(a.candidate),
+    baselineStatus: !a.baseline ? 'none' : a.baseline.capture.completeness === 'partial' ? 'provisional-no-coverage-guarantee' : 'full',
     hashes: { params: a.cand.params, candidate: { publicRoot: a.cand.publicRoot, root: a.cand.root }, baseline: a.base && { publicRoot: a.base.publicRoot, root: a.base.root } },
     comparability: a.comparability, unconfirmedMissing: a.unconfirmedMissing.map(s),
     events: a.events.map(e => ({ ...e, tool: e.tool && s(e.tool), changes: e.changes.map(c => ({ path: s(c.path), before: c.before && s(c.before), after: c.after && s(c.after) })) })),
@@ -60,7 +61,7 @@ export function exportMarkdown(a: Analysis, lang: Lang, log: readonly DecisionRe
     `# MCP-Shield · ${L('Informe de integridad', 'Integrity report')}`, '',
     `- ${L('Servidor', 'Server')}: ${m(a.candidate.target.serverLabel)} · ${L('perfil', 'profile')} ${m(a.candidate.target.profileId)} · ${m(a.candidate.target.transport)} · MCP ${m(a.candidate.target.protocolVersion)}`,
     `- ${L('Candidato', 'Candidate')}: ${m(a.candidate.snapshotId)} (${m(a.candidate.capture.completeness)}) · root \`${a.cand.root.slice(0, 16)}\``,
-    a.baseline ? `- Baseline: ${m(a.baseline.snapshotId)} · root \`${a.base!.root.slice(0, 16)}\`` : `- ${L('Sin baseline aprobada (TOFU)', 'No approved baseline (TOFU)')}`,
+    a.baseline ? `- Baseline${a.baseline.capture.completeness === 'partial' ? L(' PROVISIONAL (sin garantía de cobertura)', ' PROVISIONAL (no coverage guarantee)') : ''}: ${m(a.baseline.snapshotId)} · root \`${a.base!.root.slice(0, 16)}\`` : `- ${L('Sin baseline aprobada (TOFU)', 'No approved baseline (TOFU)')}`,
     `- ${L('Comparable', 'Comparable')}: ${a.comparability.comparable ? L('sí', 'yes') : L('no', 'no') + ' (' + a.comparability.blockers.join(', ') + ')'}`,
     `- Integrity Risk: ${a.integrityRisk}/100 · Configuration Risk: ${a.configRisk.riskScore}/100`, '',
     `## ${L('Eventos', 'Events')}`, '', '| Evento | Tool | Confianza | Campos |', '|---|---|---|---|',

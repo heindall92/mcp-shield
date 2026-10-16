@@ -7,7 +7,8 @@ import { intStrings } from '../../i18n/integrity'
 import { useToast } from '../ui/toast'
 import { Badge } from '../ui/Badge'
 import { analyze, type Analysis } from '../../integrity/analysis'
-import { generateHmacKey, importHmacKey, type HmacKey } from '../../integrity/crypto/hashes'
+import { useIntegrity } from './integrityCtx'
+import { generateHmacKey, importHmacKey } from '../../integrity/crypto/hashes'
 import { sealBaseline, openBaseline, keyToB64, keyFromB64, PackageError, MIN_PASSWORD } from '../../integrity/crypto/encryptedBaseline'
 import { decide, stateOf, TOFU_CHECKLIST, DecisionError } from '../../integrity/domain/decisions'
 import { exportJson, exportSarif, exportMarkdown, type Gated } from '../../integrity/evidence/integrityExporter'
@@ -39,10 +40,12 @@ export function IntegrityView() {
   const { lang, t } = usePrefs()
   const s = intStrings(lang)
   const toast = useToast()
-  const [key, setKey] = useState<HmacKey>()
-  const [baseline, setBaseline] = useState<{ snap: MCPShieldSnapshot; approved: boolean }>()
-  const [candidate, setCandidate] = useState<MCPShieldSnapshot>()
-  const [log, setLog] = useState<DecisionRecord[]>([])
+  // Snapshots, HMAC key and decisions live in the provider above the tabs (memory only).
+  const st = useIntegrity()
+  const { key, baseline, candidate, log } = st
+  const setBaseline = (b?: { snap: MCPShieldSnapshot; approved: boolean; provisional?: boolean }) => st.set({ baseline: b && { ...b, provisional: !!b.provisional } })
+  const setCandidate = (c?: MCPShieldSnapshot) => st.set({ candidate: c })
+  const setLog = (l: DecisionRecord[]) => st.set({ log: l })
   const [raw, setRes] = useState<Analysis>()
   const [issues, setIssues] = useState<Issue[]>([])
   const [text, setText] = useState('')
@@ -57,7 +60,7 @@ export function IntegrityView() {
   const [pkgBusy, setPkgBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null), pkgRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { void generateHmacKey().then(setKey) }, [])
+  useEffect(() => { if (!key) void generateHmacKey().then(k => st.set({ key: k })) }, [key]) // eslint-disable-line react-hooks/exhaustive-deps
   // TOFU mode analyses the unapproved baseline alone; once approved, the candidate is diffed against it.
   const subject = baseline && !baseline.approved ? baseline.snap : candidate
   const reference = baseline?.approved ? baseline.snap : undefined
@@ -69,8 +72,8 @@ export function IntegrityView() {
   }, [key, subject, reference, lang])
   const res = raw && subject && raw.candidate === subject && raw.baseline === reference ? raw : undefined
 
-  const reset = () => { setBaseline(undefined); setCandidate(undefined); setLog([]); setIssues([]); setTofu([]); setFilter('all') }
-  const loadDemo = (other = false) => { reset(); setBaseline({ snap: demoBaseline(), approved: false }); setCandidate(other ? demoOtherContext() : demoCandidate()); toast(s.demo) }
+  const reset = () => { st.set({ baseline: undefined, candidate: undefined, log: [] }); setIssues([]); setTofu([]); setFilter('all') }
+  const loadDemo = (other = false) => { setIssues([]); setTofu([]); setFilter('all'); st.set({ baseline: { snap: demoBaseline(), approved: false, provisional: false }, candidate: other ? demoOtherContext() : demoCandidate(), log: [] }); toast(s.demo) }
 
   const doImport = async (raw: string) => {
     setBusy(true)
@@ -89,10 +92,10 @@ export function IntegrityView() {
   const record = (decision: DecisionRecord['decision']) => {
     if (!res) return
     try {
-      const next = decide(log, { decision, candidateRoot: res.cand.root, baselineRoot: res.base?.root, candidateSnapshotId: res.candidate.snapshotId, tofu, reviewBy: reviewBy || undefined, note: note || undefined, comparable: res.comparability.comparable })
+      const next = decide(log, { decision, candidateRoot: res.cand.root, baselineRoot: res.base?.root, candidateSnapshotId: res.candidate.snapshotId, tofu, reviewBy: reviewBy || undefined, note: note || undefined, comparable: res.comparability.comparable, completeness: res.candidate.capture.completeness })
       setLog(next); setNote('')
-      if (decision === 'approved') {
-        setBaseline({ snap: res.candidate, approved: true }); if (!res.firstBaseline) setCandidate(undefined); else setTofu([])
+      if (decision === 'approved' || decision === 'provisional') {
+        st.set({ baseline: { snap: res.candidate, approved: true, provisional: decision === 'provisional' }, ...(res.firstBaseline ? {} : { candidate: undefined }) }); setTofu([])
         toast(s.approvedToast)
       } else toast(decision === 'rejected' ? s.rejectedToast : s.recordedToast)
     } catch (e) { toast(e instanceof DecisionError ? s.decErr[e.message] ?? e.message : 'Error', 'error') }
@@ -111,7 +114,9 @@ export function IntegrityView() {
     setPkgBusy(true)
     try {
       const p = await openBaseline(await f.text(), pw)
-      setKey(await importHmacKey(keyFromB64(p.hmacKey))); setBaseline({ snap: p.snapshot, approved: true }); setLog(p.decisions); setCandidate(undefined); setPw(''); toast(s.pkgOk)
+      // Payload already validated by openBaseline (same validator and limits as import).
+      const k = await importHmacKey(keyFromB64(p.hmacKey))
+      st.set({ key: k, baseline: { snap: p.snapshot, approved: true, provisional: p.snapshot.capture.completeness === 'partial' }, log: p.decisions, candidate: undefined }); setPw(''); toast(s.pkgOk)
     } catch (e) { toast(e instanceof PackageError ? s.pkgErr[e.code] : s.pkgErr.format, 'error') } finally { setPkgBusy(false); if (pkgRef.current) pkgRef.current.value = '' }
   }
 
@@ -119,6 +124,8 @@ export function IntegrityView() {
   const types = useMemo(() => [...new Set((res?.events ?? []).map(e => e.type))], [res])
   const blocked = res && !res.comparability.comparable
   const tofuMode = res?.firstBaseline
+  const candComplete = !!res && (res.candidate.capture.completeness === 'pagination-complete' || res.candidate.capture.completeness === 'claimed-complete')
+  const partialTofu = !!tofuMode && res?.candidate.capture.completeness === 'partial'
   const inputCls = 'focus-ring w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-[0.8125rem] text-white placeholder:text-slate-400'
 
   return (
@@ -132,10 +139,11 @@ export function IntegrityView() {
         <div className="flex flex-wrap gap-2">
           <button data-testid="int-demo" onClick={() => loadDemo()} className="btn-primary focus-ring text-[0.8125rem]"><FlaskConical size={14} aria-hidden />{s.demo}</button>
           <button data-testid="int-demo-ctx" onClick={() => loadDemo(true)} className="btn-ghost focus-ring text-[0.8125rem]"><FlaskConical size={14} aria-hidden />{s.demoCtx}</button>
-          <button onClick={reset} className="btn-ghost focus-ring text-[0.8125rem]"><Trash2 size={14} aria-hidden />{s.clear}</button>
+          <button data-testid="int-clear" onClick={reset} className="btn-ghost focus-ring text-[0.8125rem]"><Trash2 size={14} aria-hidden />{s.clear}</button>
         </div>
       </header>
       <p className="flex items-start gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.06] px-3 py-2 text-[0.8125rem] text-cyan-100"><Info size={15} className="mt-0.5 shrink-0" aria-hidden />{s.untrusted}</p>
+      <p data-testid="int-no-cli" className="flex items-start gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[0.8125rem] text-slate-300"><Info size={15} className="mt-0.5 shrink-0" aria-hidden />{s.noCli}</p>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0 space-y-5">
@@ -148,7 +156,7 @@ export function IntegrityView() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-[0.875rem] font-semibold text-white">{k === 'baseline' ? s.baselineCol : s.candidateCol}</h3>
                     {snap ? <>
-                      {k === 'baseline' ? <Badge tone={baseline?.approved ? 'success' : 'warning'}>{baseline?.approved ? s.approved : s.pending}</Badge> : <Badge tone="info">{s.importedState}</Badge>}
+                      {k === 'baseline' ? <Badge tone={baseline?.approved && !baseline.provisional ? 'success' : 'warning'}>{baseline?.provisional ? s.provBadge : baseline?.approved ? s.approved : s.pending}</Badge> : <Badge tone="info">{s.importedState}</Badge>}
                       <Badge>{snap.capture.completeness}</Badge>
                       {!snap.provenance.verifiedCollector && <Badge>{s.unverified}</Badge>}
                     </> : <Badge>{k === 'baseline' ? s.noBaseline : s.noCandidate}</Badge>}
@@ -173,7 +181,7 @@ export function IntegrityView() {
           </div>}
 
           {blocked && <div role="alert" data-testid="int-mismatch" className="flex items-start gap-2 rounded-xl border border-red-400/30 bg-red-400/[0.07] px-3 py-2.5 text-[0.8125rem] text-red-100"><ShieldAlert size={16} className="mt-0.5 shrink-0" aria-hidden /><div><strong className="font-semibold">{s.mismatch}</strong> {s.mismatchBody(res.comparability.blockers.join(', '))}</div></div>}
-          {res && res.comparability.warnings.length > 0 && <ul className="space-y-1">{res.comparability.warnings.map(w => <li key={w} className="flex items-center gap-2 text-[0.8125rem] text-amber-100"><AlertTriangle size={14} aria-hidden />{s.warn[w] ?? w}</li>)}</ul>}
+          {res && res.comparability.warnings.length > 0 && <ul className="space-y-1">{res.comparability.warnings.map(w => <li key={w} className="flex items-center gap-2 text-[0.8125rem] text-amber-100"><AlertTriangle size={14} aria-hidden />{w === 'provisional-baseline' ? s.warnProv : s.warn[w] ?? w}</li>)}</ul>}
           {res && res.unconfirmedMissing.length > 0 && <p className="text-[0.8125rem] text-slate-300">{s.missing(res.unconfirmedMissing.map(n => txt(n, 60)).join(', '))}</p>}
 
           {/* Events */}
@@ -211,7 +219,7 @@ export function IntegrityView() {
             </details>
             <label className="mt-2 block text-[0.75rem] text-slate-400">{s.paste}<textarea value={text} onChange={e => setText(e.target.value)} rows={4} spellCheck={false} autoComplete="off" className={`${inputCls} font-mono`} /></label>
             <div className="mt-2 flex flex-wrap gap-2">
-              <button disabled={busy || !text.trim()} onClick={() => void doImport(text)} className="btn-ghost focus-ring text-[0.8125rem]"><FileJson size={14} aria-hidden />{busy ? s.parsing : s.doImport}</button>
+              <button data-testid="int-import" disabled={busy || !text.trim()} onClick={() => void doImport(text)} className="btn-ghost focus-ring text-[0.8125rem]"><FileJson size={14} aria-hidden />{busy ? s.parsing : s.doImport}</button>
               <button onClick={() => fileRef.current?.click()} className="btn-ghost focus-ring text-[0.8125rem]"><Upload size={14} aria-hidden />{s.fromFile}</button>
               <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" aria-hidden tabIndex={-1} onChange={e => { void onFile(e.target.files?.[0]); e.target.value = '' }} />
             </div>
@@ -224,11 +232,13 @@ export function IntegrityView() {
           <section aria-labelledby="int-rev" className="card p-4" data-testid="int-review">
             <h2 id="int-rev" className="text-[0.9375rem] font-semibold text-white">{s.review}</h2>
             <p className="mt-1 text-[0.75rem] text-slate-400">{s.neverAuto}</p>
+            {partialTofu && <p data-testid="int-prov-note" className="mt-2 rounded-lg border border-amber-300/30 bg-amber-300/[0.07] px-2.5 py-2 text-[0.75rem] leading-relaxed text-amber-100">{s.provBody}</p>}
             {res && tofuMode && <fieldset className="mt-3"><legend className="text-[0.8125rem] font-medium text-amber-100">{s.tofuTitle}</legend>
               <ul className="mt-2 space-y-1.5">{TOFU_CHECKLIST.map(i => <li key={i}><label className="flex items-start gap-2 text-[0.8125rem] text-slate-200"><input type="checkbox" className="mt-0.5 accent-cyan-400" checked={tofu.includes(i)} onChange={e => setTofu(e.target.checked ? [...tofu, i] : tofu.filter(x => x !== i))} />{s.tofu[i]}</label></li>)}</ul></fieldset>}
             {res && <>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <button data-testid="int-approve" disabled={blocked || (tofuMode && tofu.length < TOFU_CHECKLIST.length)} onClick={() => record('approved')} className="btn-primary focus-ring justify-center text-[0.8125rem] disabled:opacity-40"><Check size={14} aria-hidden />{s.approve}</button>
+                {partialTofu ? <button data-testid="int-provisional" disabled={blocked || tofu.length < TOFU_CHECKLIST.length} onClick={() => record('provisional')} className="btn-secondary focus-ring col-span-2 justify-center text-[0.8125rem] disabled:opacity-60"><Check size={14} aria-hidden />{s.provApprove}</button> :
+                <button data-testid="int-approve" disabled={blocked || (tofuMode && tofu.length < TOFU_CHECKLIST.length) || !candComplete} onClick={() => record('approved')} className="btn-primary focus-ring justify-center text-[0.8125rem] disabled:opacity-40"><Check size={14} aria-hidden />{s.approve}</button>}
                 <button onClick={() => record('rejected')} className="btn-ghost focus-ring justify-center text-[0.8125rem]"><X size={14} aria-hidden />{s.reject}</button>
                 {!tofuMode && <button disabled={blocked} onClick={() => record('accepted-risk')} className="btn-ghost focus-ring justify-center text-[0.8125rem]"><Clock size={14} aria-hidden />{s.accept}</button>}
                 <button onClick={() => record('needs-revalidation')} className="btn-ghost focus-ring justify-center text-[0.8125rem]"><RefreshCcw size={14} aria-hidden />{s.reval}</button>

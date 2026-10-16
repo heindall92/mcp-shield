@@ -27,7 +27,7 @@ for (const w of [320, 360, 390, 430]) for (const theme of ['dark', 'light']) for
   const p = await ctx.newPage()
   p.on('request', r => { if (!r.url().startsWith(U)) ext.push(r.url()) }); p.on('pageerror', e => errs.push(String(e)))
   const tag = v => `${w}-${theme}-${lang}-${v}`
-  const S = async (v, full = false) => { if (shot && w === 390 && lang === 'es') await p.screenshot({ path: `/workspace/shots/mcp-shield-v132-mobile-${theme}-${v}.png`, fullPage: full }) }
+  const S = async (v, full = false) => { if (shot && w === 390 && lang === 'es') await p.screenshot({ path: `/workspace/shots/mcp-shield-v133-mobile-${theme}-${v}.png`, fullPage: full }) }
   const bar = async v => {
     const r = await p.evaluate(v => {
       const n = document.querySelector('[data-testid=bottom-bar]'); if (!n) return { err: 'missing' }
@@ -49,10 +49,34 @@ for (const w of [320, 360, 390, 430]) for (const theme of ['dark', 'light']) for
   await p.goto(U); await p.waitForSelector('[data-testid=onboarding]'); await check(p, tag('home')); await S('home-top'); await a11y('home')
   const brandH = await p.evaluate(() => [...document.querySelectorAll('header a span')].find(s => s.textContent === 'MCP-Shield').getBoundingClientRect().height)
   if (brandH > 26) errs.push(tag('brand wraps'))
-  await bar('auditor'); await S('bottom-bar')
+  await bar('auditor'); await S('auditor-top')
+  const top = await p.evaluate(() => {
+    const out = [], cta = document.querySelector('[data-testid=attack-cta]'), ob = document.querySelector('[data-testid=onboarding]')
+    if (!cta) out.push('no attack CTA'); else { const r = cta.getBoundingClientRect(); if (r.bottom > innerHeight * 0.6 || r.width === 0) out.push('attack CTA not near top') }
+    if (ob && ob.getBoundingClientRect().height > 72) out.push(`onboarding too tall ${Math.round(ob.getBoundingClientRect().height)}`)
+    const acts = [...document.querySelectorAll('[data-testid=aud-actions] > button, [data-testid=aud-actions] > label')].map(e => e.getBoundingClientRect())
+    if (acts.length !== 4) out.push('expected 4 actions')
+    if (new Set(acts.map(r => Math.round(r.width))).size !== 1 || new Set(acts.map(r => Math.round(r.left))).size !== 1) out.push('actions not equal width / aligned')
+    for (let i = 1; i < acts.length; i++) if (acts[i].top < acts[i - 1].bottom) out.push('actions not stacked')
+    if (acts.some(r => r.height < 44)) out.push('action < 44px')
+    const gaps = acts.slice(1).map((r, i) => Math.round(r.top - acts[i].bottom)); if (new Set(gaps).size > 1) out.push('uneven action spacing ' + gaps)
+    const seal = document.querySelector('header [data-testid=seal-mobile]')
+    if (!seal || !/0 egress/.test(seal.textContent) || seal.scrollWidth > seal.clientWidth + 0.5 || !seal.getAttribute('aria-label') || !seal.title) out.push('seal text/label')
+    return out
+  })
+  top.forEach(x => errs.push(tag(x)))
+  await p.locator('[data-testid=aud-actions]').scrollIntoViewIfNeeded(); await p.waitForTimeout(150); await S('auditor-actions')
+  await p.evaluate(() => scrollTo(0, 0))
+  await p.click('[data-testid=ob-toggle]'); if (!(await p.locator('#ob-steps').isVisible())) errs.push(tag('onboarding does not expand')); await p.click('[data-testid=ob-toggle]')
   const seal = await p.evaluate(() => { const e = document.querySelector('header [data-testid=seal-mobile]'); if (!e) return null; const r = e.getBoundingClientRect(); return r.width > 0 && r.right <= innerWidth && r.top >= 0 })
   if (!seal) errs.push(tag('seal not visible in header'))
-  if (shot && w === 390 && lang === 'es') await p.locator('header.sticky').screenshot({ path: `/workspace/shots/mcp-shield-v132-mobile-${theme}-header-seal.png` })
+  if (shot && w === 390 && lang === 'es') await p.locator('header.sticky').screenshot({ path: `/workspace/shots/mcp-shield-v133-mobile-${theme}-header-seal.png` })
+  await p.evaluate(() => scrollTo(0, 0)); await p.click('[data-testid=attack-cta]'); await p.waitForSelector('[data-testid=demo-badge]')
+  if (!(await p.evaluate(() => location.hash === '#simulador'))) errs.push(tag('CTA did not open simulator'))
+  try { await p.waitForSelector('main [role=status].animate-fadein', { timeout: 5500 }) } catch { errs.push(tag('attack did not reach impact within 5 s')) }
+  await p.waitForTimeout(400)
+  await S('simulador')
+  await p.goto(U); await p.waitForTimeout(300)
   await p.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await p.waitForTimeout(250); await check(p, tag('footer')); await S('footer-end')
   const end = await p.evaluate(() => { const f = [...document.querySelectorAll('footer *')].reduce((m, e) => Math.max(m, e.getBoundingClientRect().bottom), 0); return { f, bar: document.querySelector('[data-testid=bottom-bar]').getBoundingClientRect().top } })
   if (end.f > end.bar + 0.5) errs.push(tag(`footer covered by bar ${Math.round(end.f)} > ${Math.round(end.bar)}`))
@@ -72,7 +96,16 @@ for (const w of [320, 360, 390, 430]) for (const theme of ['dark', 'light']) for
       await S('integridad'); await S('integridad-full', true)
     }
     await bar(v)
-    if (v === 'simulador') { await p.click('[data-testid=run]'); await p.waitForTimeout(600) }
+    if (v === 'simulador') {
+      await p.click('[data-testid=run]'); await p.waitForSelector('main [role=status].animate-fadein', { timeout: 8000 }); await p.waitForTimeout(500)
+      // Host terminal: last line fully visible inside the log, no clipping, no blank gap.
+      const host = p.locator('[role=log]').nth(2); await host.scrollIntoViewIfNeeded()
+      const t = await host.evaluate(el => { const r = el.getBoundingClientRect(), kids = [...el.children].filter(c => c.getBoundingClientRect().height > 0), last = kids.at(-1).getBoundingClientRect(), lines = kids.filter(k => k.tagName === 'PRE')
+        const lastLine = lines.at(-1).getBoundingClientRect()
+        return { clipped: last.bottom > r.bottom + 1 || el.scrollHeight > el.clientHeight + 1 || lastLine.bottom > innerHeight || lastLine.top < 0, gap: Math.round(r.bottom - last.bottom), scrollTop: el.scrollTop, opaque: lines.every(l => getComputedStyle(l).opacity === '1') } })
+      if (t.clipped || t.gap > 24 || t.scrollTop !== 0 || !t.opaque) errs.push(tag(`host terminal clipped/blank ${JSON.stringify(t)}`))
+      if (w === 390) { const sec = p.locator('section:has([role=log])').nth(2); if (shot && lang === 'es') await sec.screenshot({ path: `/workspace/shots/mcp-shield-v133-mobile-${theme}-host-terminal-after.png` }) }
+    }
     await check(p, tag(v)); await a11y(v)
   }
   await p.goto(U + '#ayuda'); await p.reload(); await p.waitForTimeout(200)

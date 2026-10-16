@@ -84,12 +84,12 @@ describe('demo pair + rules + risks', () => {
 describe('approval', () => {
   const root = 'a'.repeat(64)
   it('first approval requires the full TOFU checklist; never auto', () => {
-    expect(() => decide([], { decision: 'approved', candidateRoot: root, candidateSnapshotId: 'x', comparable: true, tofu: ['source'] })).toThrow('tofu')
-    const log = decide([], { decision: 'approved', candidateRoot: root, candidateSnapshotId: 'x', comparable: true, tofu: TOFU_CHECKLIST })
+    expect(() => decide([], { decision: 'approved', candidateRoot: root, candidateSnapshotId: 'x', comparable: true, tofu: ['source'], completeness: 'pagination-complete' })).toThrow('tofu')
+    const log = decide([], { decision: 'approved', candidateRoot: root, candidateSnapshotId: 'x', comparable: true, tofu: TOFU_CHECKLIST, completeness: 'pagination-complete' })
     expect(stateOf(log, root)).toBe('approved'); expect(stateOf(log, 'b'.repeat(64))).toBe('unreviewed'); expect(log[0].firstBaseline).toBe(true)
   })
   it('cannot approve across a context mismatch; accept-risk needs a review date', () => {
-    expect(() => decide([], { decision: 'approved', candidateRoot: root, baselineRoot: root, candidateSnapshotId: 'x', comparable: false })).toThrow('context')
+    expect(() => decide([], { decision: 'approved', candidateRoot: root, baselineRoot: root, candidateSnapshotId: 'x', comparable: false, completeness: 'pagination-complete' })).toThrow('context')
     expect(() => decide([], { decision: 'accepted-risk', candidateRoot: root, baselineRoot: root, candidateSnapshotId: 'x', comparable: true })).toThrow('reviewBy')
     expect(decide([], { decision: 'rejected', candidateRoot: root, baselineRoot: root, candidateSnapshotId: 'x', comparable: false })[0].decision).toBe('rejected')
   })

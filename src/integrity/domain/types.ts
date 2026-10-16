@@ -56,7 +56,8 @@ export interface IntegrityEvent {
   notes: string[]
 }
 
-export type ReviewState = 'unreviewed' | 'approved' | 'rejected' | 'accepted-risk' | 'needs-revalidation'
+/** 'provisional': a partial first capture accepted without any coverage guarantee (never a full baseline). */
+export type ReviewState = 'unreviewed' | 'approved' | 'provisional' | 'rejected' | 'accepted-risk' | 'needs-revalidation'
 export interface DecisionRecord {
   at: string
   decision: Exclude<ReviewState, 'unreviewed'>
@@ -65,6 +66,7 @@ export interface DecisionRecord {
   baselineRoot?: string
   candidateSnapshotId: string
   firstBaseline: boolean
+  provisional?: boolean
   tofuChecklist?: string[]
   reviewBy?: string
   note?: string

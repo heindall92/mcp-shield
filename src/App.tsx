@@ -4,6 +4,7 @@ import { Simulator } from './components/simulator/Simulator'
 import { Auditor } from './components/auditor/Auditor'
 import { Governance } from './components/governance/Governance'
 import { Help } from './components/help/Help'
+import { IntegrityProvider } from './components/integrity/IntegrityContext'
 const IntegrityView = lazy(() => import('./components/integrity/IntegrityView').then(m => ({ default: m.IntegrityView })))
 import { ZeroTelemetryModal } from './components/ui/ZeroTelemetry'
 import { Segmented } from './components/ui/Segmented'
@@ -36,11 +37,12 @@ export default function App() {
   // User input lives only in memory: never persisted to storage, never logged.
   const [text, setText] = useState('')
   const [epoch, setEpoch] = useState(0)
+  const [autoRun, setAutoRun] = useState(false)
   const resetAll = useCallback(() => { setText(''); clearAppStorage(); setEpoch(e => e + 1); toast(t.toastReset) }, [toast, t])
 
   useEffect(() => { const h = () => setRoute(parseHash()); addEventListener('hashchange', h); return () => removeEventListener('hashchange', h) }, [])
   const go = useCallback((x: Tab, section?: string) => {
-    history.replaceState(null, '', `#${x}${section ? '/' + section : ''}`); setRoute({ tab: x, section })
+    history.replaceState(null, '', `#${x}${section ? '/' + section : ''}`); setRoute({ tab: x, section }); setAutoRun(false)
     if (section) requestAnimationFrame(() => document.getElementById(`h-${section}`)?.scrollIntoView({ block: 'start' })); else scrollTo({ top: 0 })
   }, [])
   useEffect(() => { if (route.section) requestAnimationFrame(() => document.getElementById(`h-${route.section}`)?.scrollIntoView({ block: 'start' })) }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -93,16 +95,16 @@ export default function App() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-elevated focus:px-3 focus:py-2 focus:text-white">{lang === 'es' ? 'Saltar al contenido' : 'Skip to content'}</a>
       <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 h-[26rem] bg-[radial-gradient(60%_60%_at_50%_0%,rgb(var(--slate-400)/0.07),transparent)] print:hidden" />
       <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-canvas/75 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[87.5rem] items-center gap-3 px-4 py-2.5 sm:px-6">
-          <a href="#auditor" onClick={e => { e.preventDefault(); go('auditor') }} className="focus-ring flex shrink-0 items-center gap-2.5 rounded-lg">
+        <div className="mx-auto flex max-w-[87.5rem] items-center gap-2 px-3 py-2.5 min-[360px]:px-4 sm:gap-3 sm:px-6">
+          <a href="#auditor" onClick={e => { e.preventDefault(); go('auditor') }} className="focus-ring flex shrink-0 items-center gap-2 rounded-lg sm:gap-2.5">
             <div className="grid h-8 w-8 place-items-center rounded-[10px] border border-white/[0.1] bg-white/[0.06] text-white shadow-[inset_0_1px_0_rgb(var(--white)/0.08)]"><Shield size={16} strokeWidth={2} aria-hidden /></div>
             <span className="whitespace-nowrap text-[0.9375rem] font-semibold tracking-[-0.01em] text-white">MCP-Shield</span>
           </a>
           <nav aria-label={t.navLabel} className="ml-3 hidden md:block"><Segmented label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
-          <div className="ml-auto flex min-w-0 items-center gap-2">
+          <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2">
             <button data-testid="seal-mobile" onClick={() => setModal(true)} aria-label={t.badgeLong} title={t.badgeLong}
-              className="press focus-ring inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-2 text-[0.6875rem] font-semibold text-emerald-200 sm:hidden">
-              <ShieldCheck size={14} aria-hidden /><span aria-hidden>0</span>
+              className="press focus-ring inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-2 text-[0.6875rem] font-semibold text-emerald-200 sm:hidden">
+              <ShieldCheck size={14} aria-hidden /><span>0 egress</span>
             </button>
             <button data-testid="search-pill" onClick={() => setPalette(true)} aria-label={t.search} aria-keyshortcuts="Control+K Meta+K"
               className="press focus-ring inline-flex h-8 w-8 shrink-0 items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] text-[0.75rem] sm:w-auto sm:px-2.5 text-slate-400 hover:bg-white/[0.06] hover:text-white">
@@ -124,13 +126,15 @@ export default function App() {
         <nav aria-label={t.navLabel} className="hidden border-t border-white/[0.05] sm:block md:hidden"><MobileTabs label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
       </header>
       <main id="main" tabIndex={-1} className="relative mx-auto max-w-[87.5rem] px-4 py-5 outline-none sm:px-6 sm:py-7">
+        <IntegrityProvider key={epoch}>
         <ErrorBoundary lang={lang} resetKey={`${tab}-${epoch}`} onReset={resetAll}>
-          {tab === 'auditor' && <Auditor key={epoch} text={text} setText={setText} onReset={resetAll} onLoadDemo={loadDemo} />}
+          {tab === 'auditor' && <Auditor key={epoch} text={text} setText={setText} onReset={resetAll} onLoadDemo={loadDemo} onAttack={() => { go('simulador'); setAutoRun(true) }} />}
           {tab === 'integridad' && <Suspense fallback={<p role="status" className="text-[0.8125rem] text-slate-400">…</p>}><IntegrityView key={epoch} /></Suspense>}
-          {tab === 'simulador' && <Simulator onAudit={j => { setText(j); go('auditor') }} />}
+          {tab === 'simulador' && <Simulator autoRun={autoRun} onAudit={j => { setText(j); go('auditor') }} />}
           {tab === 'gobernanza' && <Governance />}
           {tab === 'ayuda' && <Help initial={route.section} />}
         </ErrorBoundary>
+        </IntegrityProvider>
       </main>
       <footer className="mx-auto flex max-w-[87.5rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 pb-8 sm:px-6 text-[0.75rem] text-slate-400">
         <p className="w-full min-w-0 leading-relaxed sm:w-auto sm:flex-1">{t.footer}</p>

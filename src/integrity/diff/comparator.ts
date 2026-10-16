@@ -21,6 +21,7 @@ export function comparability(a: MCPShieldSnapshot, b: MCPShieldSnapshot): Compa
   if (b.capture.completeness === 'partial') warnings.push('partial')
   if (b.capture.completeness === 'claimed-complete' || a.capture.completeness === 'claimed-complete') warnings.push('claimed-complete')
   if (a.target.serverLabel !== b.target.serverLabel) warnings.push('serverLabel')
+  if (a.capture.completeness === 'partial') warnings.push('provisional-baseline')
   return { comparable: blockers.length === 0, blockers, warnings }
 }
 
@@ -52,11 +53,12 @@ export function diffTool(a: MCPToolDefinition, b: MCPToolDefinition, protocolCha
     changes: [{ path: 'invisible', before: String(ia.count), after: String(ib.count) }, ...(ib.hidden ? [{ path: 'decoded', after: show(ib.hidden) }] : [])], notes: ib.kinds })
   if (!same(a.inputSchema, b.inputSchema)) {
     const d = schemaDiff(a.inputSchema, b.inputSchema)
-    if (d.expanded.length) ev.push({ type: 'INPUT_EXPANDED', tool: b.name, confidence: conf, changes: d.expanded.slice(0, 20).map(p => ch(p, undefined, getPath(b.inputSchema, p))), notes: d.breaking.length ? ['breaking', ...d.breaking.slice(0, 10)] : [] })
-    const other = [...d.changed, ...(d.expanded.length ? [] : d.breaking)]
-    if (other.length || d.headers.length) ev.push({ type: 'SCHEMA_CHANGED', tool: b.name, confidence: conf, changes: [...other, ...d.headers.map(h => `${h}.x-mcp-header`)].slice(0, 20).map(p => ch(p, getPath(a.inputSchema, p), getPath(b.inputSchema, p))),
-      notes: [...(d.breaking.length ? ['breaking'] : ['compatible']), ...(d.headers.length ? ['x-mcp-header'] : [])] })
-    if (!d.expanded.length && !other.length && !d.headers.length) ev.push({ type: 'SCHEMA_CHANGED', tool: b.name, confidence: 'medium', changes: [ch('inputSchema', a.inputSchema, b.inputSchema)], notes: ['unclassified'] })
+    const pick = (p: string) => ch(p, getPath(a.inputSchema, p), getPath(b.inputSchema, p))
+    if (d.expanded.length) ev.push({ type: 'INPUT_EXPANDED', tool: b.name, confidence: conf, changes: d.expanded.slice(0, 20).map(pick), notes: d.restricted.length ? ['also-restricted'] : [] })
+    const other = [...d.restricted, ...d.unknown, ...d.headers.map(h => `${h}.x-mcp-header`)]
+    if (other.length) ev.push({ type: 'SCHEMA_CHANGED', tool: b.name, confidence: d.unknown.length ? 'low' : conf, changes: other.slice(0, 20).map(pick),
+      notes: [...(d.restricted.length ? ['breaking'] : []), ...(d.unknown.length ? ['unknown'] : []), ...(d.headers.length ? ['x-mcp-header'] : [])] })
+    if (!d.expanded.length && !other.length) ev.push({ type: 'SCHEMA_CHANGED', tool: b.name, confidence: conf, changes: [ch('inputSchema', a.inputSchema, b.inputSchema)], notes: ['compatible'] })
   }
   if (!same(a.outputSchema, b.outputSchema)) ev.push({ type: 'SCHEMA_CHANGED', tool: b.name, confidence: conf, changes: [ch('outputSchema', a.outputSchema, b.outputSchema)], notes: ['outputSchema'] })
   const ann: FieldChange[] = []
@@ -94,7 +96,9 @@ export function compare(baseline: MCPShieldSnapshot, candidate: MCPShieldSnapsho
     const a = A.get(t.name)
     if (!a) {
       const iv = invisibles(t)
-      events.push({ type: 'TOOL_ADDED', tool: t.name, confidence: 'high', changes: [ch('description', undefined, t.description ?? '')], notes: [] })
+      // With a provisional (partial) baseline the tool may simply not have been captured before.
+      const prov = baseline.capture.completeness === 'partial'
+      events.push({ type: 'TOOL_ADDED', tool: t.name, confidence: prov ? 'low' : 'high', changes: [ch('description', undefined, t.description ?? '')], notes: prov ? ['provisional-baseline'] : [] })
       if (iv.count) events.push({ type: 'INVISIBLE_PAYLOAD', tool: t.name, confidence: iv.hidden.length >= 3 || iv.kinds.includes('tags') ? 'high' : 'medium', changes: [{ path: 'invisible', before: '0', after: String(iv.count) }, ...(iv.hidden ? [{ path: 'decoded', after: show(iv.hidden) }] : [])], notes: iv.kinds })
     } else events.push(...diffTool(a, t, pv))
   }

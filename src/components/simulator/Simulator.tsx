@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Play, RotateCcw, StepForward, MessageSquare, Network, TerminalSquare, ShieldAlert, ShieldCheck, ExternalLink, Siren, ArrowRight } from 'lucide-react'
 import { getScenarios } from '../../data/attackScenarios'
 import { stepsFor, nodesFor, type SimMode, type GraphNode } from '../../engine/simulation'
@@ -11,7 +11,7 @@ import { Segmented } from '../ui/Segmented'
 import { Badge } from '../ui/Badge'
 import type { SimStep } from '../../types/mcp.types'
 
-export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
+export function Simulator({ onAudit, autoRun = false }: { onAudit: (json: string) => void; autoRun?: boolean }) {
   const { t, lang } = usePrefs()
   const scenarios = useMemo(() => getScenarios(lang), [lang])
   const [sid, setSid] = useState(scenarios[0].id)
@@ -19,6 +19,9 @@ export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
   const scenario = scenarios.find(s => s.id === sid)!
   const steps = useMemo(() => stepsFor(scenario, mode, lang), [scenario, mode, lang])
   const { shown, status, run, reset, stepOnce, current } = useKillChain(steps)
+  // "See an attack in 5 s": start the default kill-chain once, on explicit user request from the Auditor.
+  const started = useRef(false)
+  useEffect(() => { if (autoRun && !started.current) { started.current = true; run() } }, [autoRun, run])
   const visible = steps.slice(0, shown).map((s, i) => ({ ...s, i }))
   const reached = useMemo(() => new Set<GraphNode>(steps.slice(0, shown).flatMap(nodesFor)), [steps, shown])
   const impact = visible.find(s => s.impact)
@@ -42,7 +45,7 @@ export function Simulator({ onAudit }: { onAudit: (json: string) => void }) {
           <button onClick={stepOnce} disabled={shown >= steps.length} className="btn-ghost focus-ring" aria-label={t.step}><StepForward size={15} strokeWidth={1.8} /><span className="hidden sm:inline">{t.step}</span></button>
           <button onClick={reset} className="btn-ghost focus-ring" aria-label={t.reset} title={t.reset}><RotateCcw size={15} strokeWidth={1.8} /></button>
           <button onClick={run} data-testid="run" className="btn-primary focus-ring">
-            <Play size={14} fill="currentColor" className="text-red-600" aria-hidden />{status === 'running' ? t.running : shown ? t.rerun : t.run}
+            <Play size={14} strokeWidth={2} className="text-red-600" aria-hidden />{status === 'running' ? t.running : shown ? t.rerun : t.run}
           </button>
         </div>
       </div>
