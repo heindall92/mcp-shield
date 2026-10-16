@@ -1,17 +1,19 @@
 name: Deploy to GitHub Pages
+# Deploys only when every gate passes: lint, types, unit tests, build, zero-egress, npm audit,
+# e2e (Playwright + axe + runtime network-negative check) and CodeQL. Dependency review runs on PRs.
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,21 +22,74 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
-      - run: npm run build
-      - name: Zero-egress check
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Build (includes tsc -b)
+        run: npm run build
+      - name: Zero-egress check (no network APIs in the bundle)
         run: |
           ! grep -E "XMLHttpRequest|sendBeacon|fetch\(" dist/assets/*.js
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - name: npm audit (production dependencies)
+        run: npm audit --omit=dev --audit-level=moderate
+      - name: Install Chromium for e2e
+        run: npx playwright install --with-deps chromium
+      - name: e2e (Playwright + axe, zero external requests)
+        run: |
+          npx vite preview --port 4173 --strictPort &
+          npx --yes wait-on@8 -t 60000 http://localhost:4173/mcp-shield/
+          SHOTS=0 node scripts/e2e.mjs | tee e2e.log
+          grep -q "^external \[\] errors \[\] axe \[\]$" e2e.log
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
         with:
+          name: dist
           path: dist
-  deploy:
-    needs: build
+          retention-days: 1
+
+  codeql:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript, actions
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [verify, codeql]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
       - id: deployment
         uses: actions/deploy-pages@v4

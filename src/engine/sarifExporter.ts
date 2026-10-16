@@ -4,6 +4,7 @@ import { pick } from '../i18n/lang'
 import { ALL_RULES } from './scanner'
 import { controlMap } from './governance'
 import { redactString } from './redact'
+import { VERSION } from '../meta'
 
 export const SARIF_SCHEMA = 'https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json'
 
@@ -35,7 +36,7 @@ export function toSarif(res: ScanResult, fileName = 'mcp.json', lang: Lang = 'es
     version: '2.1.0',
     runs: [{
       tool: { driver: {
-        name: 'MCP-Shield', version: '1.0.0', informationUri: 'https://github.com/heindall92/mcp-shield',
+        name: 'MCP-Shield', version: VERSION, semanticVersion: VERSION, informationUri: 'https://github.com/heindall92/mcp-shield',
         rules: ruleIds.map(id => {
           const f = res.findings.find(x => x.ruleId === id)!
           const r = ALL_RULES.find(x => x.id === id) ?? ALL_RULES.find(x => x.category === f.category)
@@ -43,13 +44,24 @@ export function toSarif(res: ScanResult, fileName = 'mcp.json', lang: Lang = 'es
             help: { text: f.remediation }, properties: { tags: ['security', 'mcp', f.category, ...(f.cwe ? [f.cwe] : [])], 'security-severity': SCORE[f.severity] } }
         }),
       } },
+      invocations: [{
+        executionSuccessful: res.complete,
+        toolExecutionNotifications: res.coverage.filter(c => c.status === 'ERROR' || c.status === 'NOT_EVALUATED').map(c => ({
+          level: c.status === 'ERROR' ? 'error' : 'note',
+          descriptor: { id: c.ruleId },
+          message: { text: `${c.ruleId} ${c.status}${c.diagnostic ? `: ${c.diagnostic}` : ''}` },
+          properties: { status: c.status },
+        })),
+        ...(res.parseError ? { toolConfigurationNotifications: [{ level: 'error', message: { text: redactString(res.parseError) } }] } : {}),
+      }],
       results: res.findings.map(f => ({
         ruleId: f.ruleId, ruleIndex: ruleIds.indexOf(f.ruleId), level: LEVEL[f.severity],
         message: { text: redactString(`[${f.server}] ${f.title} — ${f.remediation}`) },
         locations: [{ physicalLocation: { artifactLocation: { uri }, region: { startLine: lineFor(sourceText, f.location) } }, logicalLocations: [{ fullyQualifiedName: f.location }] }],
         properties: { severity: f.severity, evidence: redactString(f.evidence) },
       })),
-      properties: { riskScore: res.riskScore, grade: res.grade, language: lang },
+      properties: { riskScore: res.riskScore, grade: res.grade, complete: res.complete, language: lang, surfaces: res.surfaces,
+        ruleCoverage: res.coverage.map(c => ({ ruleId: c.ruleId, status: c.status, surface: c.surface, ...(c.diagnostic ? { diagnostic: c.diagnostic } : {}) })) },
     }],
   }
 }
@@ -61,9 +73,13 @@ export function toMarkdown(res: ScanResult, lang: Lang = 'es'): string {
     `- **Risk Score:** ${res.riskScore}/100 (${L('nota', 'grade')} ${res.grade})`,
     `- **${L('Servidores analizados', 'Servers scanned')}:** ${res.serversScanned}`,
     `- **${L('Hallazgos', 'Findings')}:** ${res.findings.length} (crit ${res.counts.critical} · high ${res.counts.high} · med ${res.counts.medium} · low ${res.counts.low})`,
-    `- ${L('Generado 100% en el navegador: ningún dato salió del equipo.', 'Generated 100% in the browser: no data left the device.')}`, '',
+    `- **${L('Superficies analizadas', 'Surfaces analysed')}:** ${L('configuración', 'configuration')}${res.surfaces.tools ? ` + ${L('inventario de herramientas', 'tool inventory')} (${res.surfaces.tools} tools, ${res.surfaces.toolServers} ${L('servidores', 'servers')})` : ` · ${L('sin inventario de herramientas (las reglas de Tool Poisoning no se evaluaron)', 'no tool inventory (Tool Poisoning rules not evaluated)')}`}`,
+    ...(res.complete ? [] : [`- **${L('Análisis incompleto', 'Incomplete analysis')}:** ${L('una o más reglas no pudieron ejecutarse; el resultado no es una garantía de limpieza.', 'one or more rules could not run; the result is not a clean bill of health.')}`]),
+    `- ${L('Generado en el navegador, sin conexiones de red.', 'Generated in the browser, with no network connections.')}`, '',
     `| Sev | ${L('Servidor', 'Server')} | ${L('Regla', 'Rule')} | ${L('Hallazgo', 'Finding')} | CWE |`, '|---|---|---|---|---|',
     ...res.findings.map(f => `| ${f.severity.toUpperCase()} | ${mdEscape(f.server)} | ${f.ruleId} | ${mdEscape(redactString(f.title))} | ${f.cwe ?? ''} |`), '']
+  lines.push(`## ${L('Cobertura de reglas', 'Rule coverage')}`, '', `| ${L('Regla', 'Rule')} | ${L('Estado', 'Status')} | ${L('Superficie', 'Surface')} | ${L('Diagnóstico', 'Diagnostic')} |`, '|---|---|---|---|',
+    ...res.coverage.map(c => `| ${c.ruleId} | ${c.status} | ${c.surface} | ${mdEscape(c.diagnostic ?? '')} |`), '')
   res.findings.forEach(f => lines.push(`## ${f.ruleId} · ${mdEscape(redactString(f.title))}`, '', mdEscape(redactString(f.detail)), '',
     `- ${L('Ubicación', 'Location')}: ${mdCode(f.location)}`, `- ${L('Evidencia', 'Evidence')}: ${mdCode(redactString(f.evidence))}`,
     `- **${L('Remediación', 'Remediation')}:** ${mdEscape(redactString(f.remediation))}`,

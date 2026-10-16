@@ -24,3 +24,11 @@ export function launcher(s: McpServerConfig): { cmd: string; args: string[]; off
   }
   return { cmd, args, offset }
 }
+
+/** Host side of a `-v` spec, Windows-aware: `C:\\Users\\me:/data:ro` -> `C:\\Users\\me`, `/etc:/x` -> `/etc`. */
+export function volumeSource(spec: string): string {
+  const v = spec.trim()
+  const drive = /^[A-Za-z]:[\\/]/.test(v) ? 2 : 0
+  const i = v.indexOf(':', drive)
+  return i < 0 ? v : v.slice(0, i)
+}

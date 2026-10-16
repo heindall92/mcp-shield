@@ -16,7 +16,7 @@ function pkgFromArgs(args: string[]): { pkg: string; idx: number } | null {
 }
 
 export const unpinnedNpx: Rule = {
-  id: 'MCPS-SC-001', category: 'supply-chain', name: { es: 'Paquete remoto sin versión fijada', en: 'Remote package without pinned version' },
+  id: 'MCPS-SC-001', category: 'supply-chain', emits: [{ id: 'MCPS-SC-002', name: { es: 'Publisher npm sin scope verificable', en: 'npm publisher without a verifiable scope' } }], name: { es: 'Paquete remoto sin versión fijada', en: 'Remote package without pinned version' },
   check: ({ serverName, server, lang }) => {
     const L = (es: string, en: string) => pick(lang, es, en)
     const out: Finding[] = []
