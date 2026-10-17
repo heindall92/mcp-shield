@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
-import { Shield, Swords, ScanSearch, Landmark, Sun, Moon, Languages, Search, CircleHelp, Upload, Printer, RotateCcw, Keyboard, ShieldCheck, Info, FlaskConical, FolderGit2, Fingerprint } from 'lucide-react'
+import { Shield, Swords, ScanSearch, Landmark, Sun, Moon, Languages, Search, CircleHelp, Upload, Printer, RotateCcw, Keyboard, ShieldCheck, Info, FlaskConical, FolderGit2, Fingerprint, Workflow } from 'lucide-react'
 import { Simulator } from './components/simulator/Simulator'
 import { Auditor } from './components/auditor/Auditor'
 import { Governance } from './components/governance/Governance'
@@ -12,6 +12,7 @@ import { MobileTabs, MobileMenu, BottomTabs } from './components/ui/MobileBar'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { CommandPalette, type Command } from './components/ui/CommandPalette'
 import { ConfirmDialog } from './components/ui/ConfirmDialog'
+import { AccentPicker } from './components/ui/AccentPicker'
 import { useToast } from './components/ui/toast'
 import { clearAppStorage } from './i18n/storage'
 import { usePrefs } from './i18n/prefs'
@@ -27,7 +28,7 @@ const parseHash = (): { tab: Tab; section?: string } => {
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
 
 export default function App() {
-  const { t, lang, setLang, theme, setTheme } = usePrefs()
+  const { t, lang, setLang, theme, setTheme, accent, setAccent } = usePrefs()
   const toast = useToast()
   const [route, setRoute] = useState(parseHash)
   const tab = route.tab
@@ -74,6 +75,7 @@ export default function App() {
     { id: 'zero', group: t.grpHelp, label: t.cmdZero, Icon: ShieldCheck, run: () => setModal(true) },
     { id: 'legal', group: t.grpHelp, label: t.hLegal, Icon: ShieldCheck, run: () => go('ayuda', 'legal'), keywords: 'legal privacy privacidad licencia license warranty garantía' },
     { id: 'credits', group: t.grpHelp, label: t.hCredits, Icon: Info, run: () => go('ayuda', 'creditos'), keywords: 'credits créditos lucide license' },
+    { id: 'eco', group: t.grpHelp, label: t.hEco, Icon: Workflow, run: () => go('ayuda', 'ecosistema'), keywords: 'rosetta ctem-nexus grc ecosistema ecosystem sarif' },
     { id: 'about', group: t.grpHelp, label: t.cmdAbout, Icon: Info, run: () => go('ayuda', 'acerca') },
   ], [t, lang, theme, go, loadDemo, toggleTheme, toggleLang]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -97,33 +99,34 @@ export default function App() {
       <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-canvas/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[87.5rem] items-center gap-2 px-3 py-2.5 min-[360px]:px-4 sm:gap-3 sm:px-6">
           <a href="#auditor" onClick={e => { e.preventDefault(); go('auditor') }} className="focus-ring flex shrink-0 items-center gap-2 rounded-lg sm:gap-2.5">
-            <div className="grid h-8 w-8 place-items-center rounded-[10px] border border-white/[0.1] bg-white/[0.06] text-white shadow-[inset_0_1px_0_rgb(var(--white)/0.08)]"><Shield size={16} strokeWidth={2} aria-hidden /></div>
+            <div className="grid h-8 w-8 place-items-center rounded-[10px] bg-accent text-accent-ink shadow-[inset_0_1px_0_rgb(var(--white)/0.18)]"><Shield size={16} strokeWidth={2.2} aria-hidden /></div>
             <span className="whitespace-nowrap text-[0.9375rem] font-semibold tracking-[-0.01em] text-white">MCP-Shield</span>
           </a>
-          <nav aria-label={t.navLabel} className="ml-3 hidden md:block"><Segmented label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
+          <nav aria-label={t.navLabel} className="ml-3 hidden xl:block"><Segmented accent label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
           <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2">
             <button data-testid="seal-mobile" onClick={() => setModal(true)} aria-label={t.badgeLong} title={t.badgeLong}
-              className="press focus-ring inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-2 text-[0.6875rem] font-semibold text-emerald-200 sm:hidden">
+              className="press focus-ring inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-2 text-[0.6875rem] font-semibold text-emerald-200 xl:hidden">
               <ShieldCheck size={14} aria-hidden /><span>0 egress</span>
             </button>
             <button data-testid="search-pill" onClick={() => setPalette(true)} aria-label={t.search} aria-keyshortcuts="Control+K Meta+K"
               className="press focus-ring inline-flex h-8 w-8 shrink-0 items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] text-[0.75rem] sm:w-auto sm:px-2.5 text-slate-400 hover:bg-white/[0.06] hover:text-white">
               <Search size={14} aria-hidden /><span className="hidden xl:inline">{t.searchShort}</span><span className="hidden sm:inline-flex"><kbd className="kbd whitespace-nowrap">{modKey()} K</kbd></span>
             </button>
-            <button onClick={() => setModal(true)} className="press focus-ring hidden h-8 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 text-[0.75rem] font-medium text-slate-300 hover:bg-white/[0.06] sm:inline-flex">
+            <button onClick={() => setModal(true)} className="press focus-ring hidden h-8 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 text-[0.75rem] font-medium text-slate-300 hover:bg-white/[0.06] xl:inline-flex">
               <span aria-hidden className="relative flex h-1.5 w-1.5"><span className="absolute inset-0 rounded-full bg-emerald-400" /></span>
-              <span className="hidden lg:inline">{t.badgeLong}</span><span className="lg:hidden">{t.badgeShort}</span>
+              <span className="hidden whitespace-nowrap 2xl:inline">{t.badgeLong}</span><span className="whitespace-nowrap 2xl:hidden">{t.badgeShort}</span>
             </button>
-            <div className="hidden items-center gap-1.5 sm:flex"><Languages size={15} strokeWidth={1.8} className="hidden text-slate-400 sm:block" aria-hidden />
+            <div className="hidden items-center gap-1.5 sm:flex"><Languages size={15} strokeWidth={1.8} className="hidden text-slate-400 xl:block" aria-hidden />
               <Segmented size="sm" label={t.langLabel} value={lang} onChange={setLang} options={[{ value: 'es', label: 'ES' }, { value: 'en', label: 'EN' }]} /></div>
             <div className="hidden sm:block"><Segmented size="sm" iconOnly label={t.themeLabel} value={theme} onChange={setTheme}
               options={[{ value: 'light', label: t.themeLight, Icon: Sun }, { value: 'dark', label: t.themeDark, Icon: Moon }]} /></div>
+            <AccentPicker value={accent} onChange={setAccent} names={t.accentNames} theme={theme} label={t.accentLabel} />
             <button data-testid="help-btn" onClick={() => go('ayuda')} aria-label={t.tabHelp} aria-current={tab === 'ayuda' ? 'page' : undefined} title={`${t.tabHelp} (?)`}
               className={`press focus-ring hidden h-8 w-8 place-items-center rounded-full sm:grid border border-white/[0.08] hover:bg-white/[0.06] hover:text-white ${tab === 'ayuda' ? 'bg-white/[0.08] text-white' : 'bg-white/[0.03] text-slate-400'}`}><CircleHelp size={16} aria-hidden /></button>
-            <MobileMenu label={lang === 'es' ? 'Más opciones' : 'More options'} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onHelp={() => go('ayuda')} onZero={() => setModal(true)} t={t} />
+            <MobileMenu label={lang === 'es' ? 'Más opciones' : 'More options'} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} accent={accent} setAccent={setAccent} onHelp={() => go('ayuda')} onZero={() => setModal(true)} t={t} />
           </div>
         </div>
-        <nav aria-label={t.navLabel} className="hidden border-t border-white/[0.05] sm:block md:hidden"><MobileTabs label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
+        <nav aria-label={t.navLabel} className="hidden border-t border-white/[0.05] sm:block xl:hidden"><MobileTabs label={t.navLabel} options={tabs} value={tab === 'ayuda' ? null : tab} onChange={x => go(x)} /></nav>
       </header>
       <main id="main" tabIndex={-1} className="relative mx-auto max-w-[87.5rem] px-4 py-5 outline-none sm:px-6 sm:py-7">
         <IntegrityProvider key={epoch}>

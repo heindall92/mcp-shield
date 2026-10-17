@@ -62,3 +62,26 @@ describe.each(['dark', 'light'] as Theme[])('WCAG AA contrast — %s theme', the
     expect(ratio(hex(fg, theme), bg)).toBeGreaterThanOrEqual(min)
   })
 })
+
+/* v1.4.0: the seven ecosystem accents. Brand only (primary button, active navigation, focus, kickers, links),
+ * so they sit outside the 5-hue semantic palette above, but every use must still reach WCAG AA. */
+describe.each(['dark', 'light'] as Theme[])('accents — %s theme', theme => {
+  it('there are seven, electric blue first (default)', async () => {
+    // @ts-expect-error plain JS module
+    const { ACCENTS, DEFAULT_ACCENT } = await import('../palette.js')
+    expect(Object.keys(ACCENTS)).toEqual(['azul', 'rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'rojo']); expect(DEFAULT_ACCENT).toBe('azul')
+  })
+  it.each(['azul', 'rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'rojo'])('%s', async id => {
+    // @ts-expect-error plain JS module
+    const { ACCENTS } = await import('../palette.js')
+    const [acc, strong, ink] = ACCENTS[id][theme] as [string, string, string]
+    for (const base of ['canvas', 'surface', 'elevated']) {
+      const b = hex(base, theme)
+      expect(ratio(acc, b), `kicker / link on ${base}`).toBeGreaterThanOrEqual(TEXT)
+      expect(ratio(acc, mix(acc, 0.15, b)), `active tab on ${base}`).toBeGreaterThanOrEqual(TEXT)
+      expect(ratio(acc, b), `focus ring on ${base}`).toBeGreaterThanOrEqual(UI)
+    }
+    expect(ratio(ink, acc), 'primary button').toBeGreaterThanOrEqual(TEXT)
+    expect(ratio(ink, strong), 'primary button hover').toBeGreaterThanOrEqual(TEXT)
+  })
+})

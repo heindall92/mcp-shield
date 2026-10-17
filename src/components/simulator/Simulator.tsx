@@ -33,7 +33,7 @@ export function Simulator({ onAudit, autoRun = false }: { onAudit: (json: string
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-slate-400">{t.simKicker}<span data-testid="demo-badge" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[0.625rem] tracking-[0.08em] text-amber-200">{t.demoBadge}</span></p>
+          <p className="kicker flex flex-wrap items-center gap-x-2 gap-y-1">{t.simKicker}<span data-testid="demo-badge" className="whitespace-nowrap rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 font-sans text-[0.6875rem] tracking-[0.08em] text-amber-200">{t.demoBadge}</span></p>
           <h1 className="display mt-1.5 text-white">{scenario.title}</h1>
           <p className="mt-1 text-[0.875rem] text-slate-400">{scenario.subtitle}</p>
           <p className="mt-2 max-w-2xl text-[0.75rem] leading-relaxed text-slate-400">{t.simDemoNote}</p>
@@ -113,13 +113,13 @@ export function Simulator({ onAudit, autoRun = false }: { onAudit: (json: string
           </div>
           <p className="leading-relaxed text-slate-300">{scenario.sourceNote}</p>
           <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-            {scenario.references.map(r => <li key={r.url}><a href={r.url} target="_blank" rel="noreferrer noopener" className="focus-ring inline-flex items-center gap-1 rounded text-[0.75rem] text-cyan-300 hover:underline">{r.label}<ExternalLink size={11} aria-hidden /></a></li>)}
+            {scenario.references.map(r => <li key={r.url}><a href={r.url} target="_blank" rel="noreferrer noopener" className="focus-ring inline-flex items-center gap-1 rounded text-[0.75rem] text-accent hover:underline">{r.label}<ExternalLink size={11} aria-hidden /></a></li>)}
           </ul>
         </div>
         <div className="card p-4 text-[0.875rem]">
           <div className="mb-2.5 flex items-center justify-between gap-2">
             <h3 className="flex items-center gap-2 text-[0.8125rem] font-semibold text-slate-100"><ShieldCheck size={15} strokeWidth={1.8} className="text-emerald-300" aria-hidden />{t.howCut}</h3>
-            <button onClick={() => onAudit(JSON.stringify(scenario.vulnerableConfig, null, 2))} className="press focus-ring inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[0.75rem] font-medium text-cyan-300 hover:bg-white/[0.05]">{t.auditThis}<ArrowRight size={13} aria-hidden /></button>
+            <button onClick={() => onAudit(JSON.stringify(scenario.vulnerableConfig, null, 2))} className="press focus-ring inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[0.75rem] font-medium text-accent hover:bg-white/[0.05]">{t.auditThis}<ArrowRight size={13} aria-hidden /></button>
           </div>
           <ul className="space-y-1.5 text-slate-300">{scenario.mitigations.map(m => <li key={m} className="flex gap-2.5"><span aria-hidden className="mt-[0.55rem] h-1 w-1 shrink-0 rounded-full bg-emerald-400" />{m}</li>)}</ul>
         </div>

@@ -9,7 +9,7 @@ const TEXT = { neutral: 'text-white', danger: 'text-red-200', safe: 'text-emeral
  * Segmented control with a sliding selection pill (pattern inspired by 21st.dev "Segmented Tabs",
  * re-implemented in CSS without framer-motion). Arrow keys move the selection, per WAI-ARIA radiogroup.
  */
-export function Segmented<T extends string>({ options, value, onChange, label, size = 'md', iconOnly = false, full = false }: { options: SegOption<T>[]; value: T | null; onChange: (v: T) => void; label: string; size?: 'sm' | 'md'; iconOnly?: boolean; full?: boolean }) {
+export function Segmented<T extends string>({ options, value, onChange, label, size = 'md', iconOnly = false, full = false, accent = false }: { options: SegOption<T>[]; value: T | null; onChange: (v: T) => void; label: string; size?: 'sm' | 'md'; iconOnly?: boolean; full?: boolean; accent?: boolean }) {
   const wrap = useRef<HTMLDivElement>(null)
   const [pill, setPill] = useState<{ x: number; w: number } | null>(null)
   const current0 = options.find(o => o.value === value)
@@ -23,12 +23,12 @@ export function Segmented<T extends string>({ options, value, onChange, label, s
   return (
     <div ref={wrap} role="radiogroup" aria-label={label} onKeyDown={e => { if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); move(1) } if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); move(-1) } }}
       className={`relative isolate inline-flex rounded-[11px] border border-white/[0.07] bg-white/[0.035] p-[3px] ${full ? 'w-full' : ''}`}>
-      {pill && <span aria-hidden className={`absolute bottom-[3px] top-[3px] -z-10 rounded-lg transition-[transform,width,background-color] duration-200 ease-out ${TONE[current.tone ?? 'neutral']}`} style={{ width: pill.w, transform: `translateX(${pill.x - 3}px)`, left: 3 }} />}
+      {pill && <span aria-hidden className={`absolute bottom-[3px] top-[3px] -z-10 rounded-lg transition-[transform,width,background-color] duration-200 ease-out ${accent ? 'bg-accent/[0.15] shadow-[inset_0_0_0_1px_rgb(var(--accent)/0.22)]' : TONE[current.tone ?? 'neutral']}`} style={{ width: pill.w, transform: `translateX(${pill.x - 3}px)`, left: 3 }} />}
       {options.map(({ value: v, label: l, Icon, tone }) => {
         const on = v === value
         return (
           <button key={v} type="button" role="radio" aria-checked={on} aria-label={iconOnly ? l : undefined} title={iconOnly ? l : undefined} tabIndex={on || (!current0 && v === options[0].value) ? 0 : -1} onClick={() => onChange(v)}
-            className={`press focus-ring inline-flex items-center justify-center gap-1.5 rounded-lg font-medium ${full ? 'flex-1' : ''} ${size === 'sm' ? 'h-7 px-2 text-[0.75rem]' : 'h-8 px-3 text-[0.8125rem]'} ${on ? TEXT[tone ?? 'neutral'] : 'text-slate-400 hover:text-slate-200'}`}>
+            className={`press focus-ring inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg font-medium ${full ? 'flex-1' : ''} ${size === 'sm' ? 'h-7 px-2 text-[0.75rem]' : 'h-8 px-3 text-[0.8125rem]'} ${on ? (accent ? 'text-accent' : TEXT[tone ?? 'neutral']) : 'text-slate-400 hover:text-slate-200'}`}>
             {Icon && <Icon size={size === 'sm' ? 14 : 15} strokeWidth={1.8} aria-hidden />}{!iconOnly && l}
           </button>)
       })}

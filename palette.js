@@ -47,5 +47,29 @@ export function tailwindColors() {
   const c = { transparent: 'transparent', current: 'currentColor' }
   for (const f of FAMILIES) c[f] = Object.fromEntries(SHADES.map(s => [s, `rgb(var(--${f}-${s}) / <alpha-value>)`]))
   for (const k of Object.keys(SURFACES.dark)) c[k] = `rgb(var(--${k}) / <alpha-value>)`
+  c.accent = { DEFAULT: 'rgb(var(--accent) / <alpha-value>)', strong: 'rgb(var(--accent-strong) / <alpha-value>)', ink: 'rgb(var(--accent-ink) / <alpha-value>)' }
   return c
+}
+
+/* Accents shared by the ecosystem (Rosetta's seven, electric blue by default). Brand only: primary
+ * button, active navigation, focus, kickers and logo. Meaning (danger, safe, warning) never uses them. */
+export const ACCENTS = {
+  azul: { dark: ['#6b9bff', '#9dbdff', '#041226'], light: ['#1a4fe0', '#123db8', '#ffffff'] },
+  rosa: { dark: ['#ff7ab8', '#ffc0de', '#3b0620'], light: ['#b8155a', '#9a0f4a', '#ffffff'] },
+  solar: { dark: ['#ffb020', '#ffd27a', '#2a1600'], light: ['#8a4a00', '#703c00', '#ffffff'] },
+  glaciar: { dark: ['#5ee7f5', '#b6f6ff', '#042028'], light: ['#0a6a7d', '#085968', '#ffffff'] },
+  orquidea: { dark: ['#b79bff', '#ddd0ff', '#1a0838'], light: ['#5b35f0', '#4a22d6', '#ffffff'] },
+  verde: { dark: ['#5aa86a', '#8fd4a0', '#06210f'], light: ['#1a6b36', '#12552a', '#ffffff'] },
+  rojo: { dark: ['#ff6b6b', '#ffb0b0', '#2a0808'], light: ['#b3141a', '#930f14', '#ffffff'] },
+}
+export const DEFAULT_ACCENT = 'azul'
+export function accentVars(id, theme) {
+  const [a, s, ink] = ACCENTS[id][theme]
+  return { '--accent': rgb(a), '--accent-strong': rgb(s), '--accent-ink': rgb(ink) }
+}
+/** Base CSS for every accent × theme; no data-accent means electric blue. */
+export function accentRules() {
+  const r = { ':root': accentVars(DEFAULT_ACCENT, 'dark'), ':root.light': accentVars(DEFAULT_ACCENT, 'light') }
+  for (const id of Object.keys(ACCENTS)) { r[`:root[data-accent="${id}"]`] = accentVars(id, 'dark'); r[`:root.light[data-accent="${id}"]`] = accentVars(id, 'light') }
+  return r
 }

@@ -2,6 +2,8 @@
 try {
   var t = localStorage.getItem('mcps-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
   if (t === 'light') document.documentElement.classList.add('light')
+  var a = localStorage.getItem('mcps-accent')
+  if (a && /^(azul|rosa|solar|glaciar|orquidea|verde|rojo)$/.test(a)) document.documentElement.dataset.accent = a
   var l = localStorage.getItem('mcps-lang') || 'es'
   document.documentElement.lang = l
 } catch {

@@ -11,10 +11,10 @@ export function FindingCard({ f }: { f: Finding }) {
   return (
     <article className="rounded-xl border border-white/[0.07] bg-white/[0.02] transition-colors hover:border-white/[0.14]">
       <button onClick={() => setOpen(o => !o)} aria-expanded={open} className="press-soft focus-ring flex w-full items-start gap-2.5 p-3 text-left">
-        <span className={`sev-${f.severity} mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-[0.625rem] font-bold uppercase`}>{f.severity}</span>
+        <span className={`sev-${f.severity} mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-bold uppercase`}>{t.sevNames[f.severity]}</span>
         <span className="min-w-0 flex-1">
           <span className="block text-[0.8125rem] font-medium text-slate-100">{f.title}</span>
-          <span className="mt-0.5 block font-mono text-[0.65625rem] text-slate-400">{f.ruleId} · {f.server}{f.cwe ? ` · ${f.cwe}` : ''}</span>
+          <span className="mt-0.5 block font-mono text-[0.6875rem] text-slate-400">{f.ruleId} · {f.server}{f.cwe ? ` · ${f.cwe}` : ''}</span>
         </span>
         <ChevronRight size={15} className={`mt-1 shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
       </button>
