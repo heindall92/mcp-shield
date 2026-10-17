@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest'
 import { scanConfig, ALL_RULES } from '../src/engine/scanner'
 import { remediate, hardeningVerdict } from '../src/engine/remediator'
-import { containerImage } from '../src/engine/rules/util'
+import { containerImage, imageName, imageTag } from '../src/engine/rules/util'
 import { RULES } from '../src/components/iso/zeroTelemetry'
 
 const D = 'sha256:' + 'a'.repeat(64)
@@ -57,4 +57,33 @@ describe('hardening with an unpinned image', () => {
 
 describe('the zero-telemetry figure draws one cartridge per configuration rule', () => {
   it('RULES equals the number of rule ids', () => { expect(RULES).toBe(new Set(ALL_RULES.flatMap(r => [r.id, ...(r.emits ?? []).map(e => e.id)])).size) })
+})
+
+describe('Bugbot review: the remediation names the image once', () => {
+  const rem = (image: string, lang: 'es' | 'en' = 'en') => scanConfig({ mcpServers: { s: { command: 'docker', args: ['run', '-i', '--rm', image] } } }, lang).findings.find(f => f.ruleId === 'MCPS-SC-004')!.remediation
+  it('imageName drops the tag and the digest, keeps a registry port', () => {
+    expect(imageName('ghcr.io/acme/srv:1.2.0')).toBe('ghcr.io/acme/srv')
+    expect(imageName('localhost:5000/srv:1.0@sha256:abc')).toBe('localhost:5000/srv')
+    expect(imageName('localhost:5000/srv')).toBe('localhost:5000/srv')
+    expect(imageName('srv')).toBe('srv')
+    expect(imageTag('localhost:5000/srv')).toBe('')
+  })
+  for (const lang of ['es', 'en'] as const) {
+    it(`a tagged image is not tagged twice (${lang})`, () => {
+      const r = rem('ghcr.io/acme/srv:1.2.0', lang)
+      expect(r).not.toContain('1.2.0:1.2.0')
+      expect(r).toContain('imagetools inspect ghcr.io/acme/srv:1.2.0"')
+      expect(r).toContain('"ghcr.io/acme/srv:1.2.0@sha256:…"')
+    })
+    it(`latest is inspected but not kept in the pinned reference (${lang})`, () => {
+      const r = rem('acme/srv:latest', lang)
+      expect(r).toContain('imagetools inspect acme/srv:latest"')
+      expect(r).toContain('"acme/srv@sha256:…"')
+    })
+    it(`a registry port is not taken for a tag (${lang})`, () => {
+      const r = rem('localhost:5000/srv', lang)
+      expect(r).toContain('imagetools inspect localhost:5000/srv"')
+      expect(r).toContain('"localhost:5000/srv@sha256:…"')
+    })
+  }
 })

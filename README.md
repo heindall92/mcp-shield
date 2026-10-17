@@ -91,7 +91,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
         <img src="docs/assets/stack/navegador.svg" height="48" alt="Playwright">
         <img src="docs/assets/stack/accesibilidad.svg" height="48" alt="axe-core">
         <img src="docs/assets/stack/codeql.svg" height="48" alt="CodeQL"><br>
-        <sub><code>vitest 405 · Playwright escritorio y móvil · axe-core 0 violaciones · CodeQL</code></sub>
+        <sub><code>vitest 412 · Playwright escritorio y móvil · axe-core 0 violaciones · CodeQL</code></sub>
       </td>
       <td valign="top"><code>╰─ ⌁ seguridad:</code><br><br>
         <img src="docs/assets/stack/csp.svg" height="48" alt="CSP">
@@ -103,7 +103,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 1.5.0&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 405 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 1.5.0&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 412 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -236,7 +236,7 @@ npm run dev            # http://localhost:5173/mcp-shield/
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Servidor de desarrollo con recarga. |
-| `npm test` | Las 405 pruebas de vitest (motor, reglas, integridad, exportes, contraste, i18n). |
+| `npm test` | Las 412 pruebas de vitest (motor, reglas, integridad, exportes, contraste, i18n). |
 | `npm run lint` | oxlint sin avisos. |
 | `npm run build` | Comprueba los tipos (`tsc -b`) y genera `dist/` con base `/mcp-shield/`. |
 | `npm run e2e` | Playwright + axe sobre `vite preview` (también `node scripts/e2e-mobile.mjs`). |
@@ -358,7 +358,7 @@ El detalle de cada versión está en [CHANGELOG.md](CHANGELOG.md).
 | Reglas y producción (`rules`, `production`, `smuggling`) | 94 | Cada regla se dispara sobre los ejemplos vulnerables; falsos positivos con configuraciones de la documentación oficial (GitHub, VS Code, uvx); parser (BOM, JSONC, formatos, tamaño, entradas no objeto); ASCII smuggling sin falsos positivos con emoji normales. |
 | Endurecimiento y auditoría externa (`hardening-v122`, `audit-v122`) | 42 | Contenedores por lista blanca con re-escaneo, ocultación contextual y control de salida en cada exporte, cobertura de reglas, importación `tools/list`, versión única. Cada hallazgo de la auditoría externa tiene su prueba de regresión. |
 | Claves y SARIF (`keys-v134`, `sarif-v140`) | 40 | Servidores, `env` y cabeceras con nombres de `Object.prototype` (`__proto__`, `constructor`…), `npm exec`/`bun x`/`--package`, metadatos SARIF por regla y bandas de nota compartidas. |
-| Imágenes (`images-v150`) | 20 | MCPS-SC-004: lectura de la imagen como Docker (opciones globales, `container run`, `--`), registros con puerto, digest, severidades, `${VAR}` y `mcp-sandbox/*`, endurecimiento y figura con un cartucho por regla. |
+| Imágenes (`images-v150`) | 27 | MCPS-SC-004: lectura de la imagen como Docker (opciones globales, `container run`, `--`), registros con puerto, digest, severidades, `${VAR}` y `mcp-sandbox/*`, endurecimiento, corrección que nombra la imagen una sola vez y figura con un cartucho por regla. |
 | Exportes (`exporters`) | 15 | SARIF validado con el esquema OASIS 2.1.0, Markdown sin inyección, remediador y Dockerfile. |
 | Integridad (`integrity/*`) | 94 | Vectores de RFC 8785, importador y límites, huellas, cifrado (ida y vuelta, contraseña errónea, cabecera alterada), comparador (RFC-001 §13.1), TOFU y revisión v1.3.3. |
 | Contraste, i18n y estilo (`contrast`, `i18n`, `no-grid`) | 100 | WCAG AA de cada par de colores y de los 7 acentos en los dos temas, paridad ES/EN y sin fondos de cuadrícula. |
