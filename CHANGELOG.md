@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.2 — 2026-10-17 · Cabecera del README con identidad propia
+- **Cabecera y pie nuevos en azul eléctrico**, sustituyen a los degradados de capsule-render, que compartía con otras herramientas. Es un escudo vivo, con la forma de `shield-check` de Lucide:
+  - El contorno se dibuja solo, se rellena y aparece el check.
+  - Respira con ecos con forma de escudo; no son anillos, que son la firma de Rosetta.
+  - Un haz lo escanea por dentro.
+  - Los paquetes rojos y ámbar que llegan por la derecha se vuelven azules y se apagan con un destello al tocarlo.
+- Movimiento con las curvas de Emil Kowalski: `ease-out` para entrar, `ease-in-out` para lo que se mueve en pantalla y nada desde `scale(0)`. Los textos suben 6 px escalonados cada 40 ms. Con `prefers-reduced-motion` todo queda quieto en su estado final.
+- Son SVG del propio repositorio, sin servicios externos. Los textos van convertidos a trazos con Inter y JetBrains Mono (las fuentes de la app), porque un SVG dentro de `<img>` no puede cargar fuentes y cada sistema usaría la suya. Pesan 55 KiB la cabecera y 7 KiB el pie, con descripción accesible (`<title>` y `<desc>`).
+- `npm run readme-banner` (`scripts/readme-banner.py`) los regenera.
+
 ## 1.5.1 — 2026-10-17 · Diagramas del README
 - **El mapa mental y la arquitectura no se dibujaban en GitHub.** Mermaid lee las llaves de `${VAR}` como sintaxis de forma (hexágono en el mapa mental, rombo en el diagrama de flujo) y mostraba un error en lugar del diagrama. El mapa mental dice ahora «variables de entorno» y la etiqueta de `remediator.ts` va entre comillas, que conservan `${VAR}` como texto.
 - **Nueva comprobación `npm run readme-check`** (`scripts/readme-mermaid.mjs`): renderiza en Chromium cada bloque Mermaid del README con Mermaid 11 y falla si alguno no se puede dibujar, indicando archivo, línea y error. Corre en la CI antes de publicar; con el README de la 1.5.0 da «0/2 diagramas Mermaid renderizan».
