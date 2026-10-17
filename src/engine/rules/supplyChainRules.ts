@@ -1,6 +1,6 @@
 import type { Rule, Finding } from '../../types/mcp.types'
 import { pick } from '../../i18n/lang'
-import { mk, launcher, runnerSubcommand, runnerPackage, containerImage, imagePinned, imageTag } from './util'
+import { mk, launcher, runnerSubcommand, runnerPackage, containerImage, imagePinned, imageTag, imageName } from './util'
 
 /** Detects remote package execution without a pinned version (rug-pull class, e.g. postmark-mcp). */
 const PINNED = /^(@[^/]+\/)?[^@]+@\d+\.\d+\.\d+(-[\w.]+)?$/
@@ -79,7 +79,7 @@ export const unpinnedImage: Rule = {
     const pullAlways = args.some((a, i) => a === '--pull=always' || (a === '--pull' && args[i + 1] === 'always'))
     // Docker keeps the image cached until it pulls again; --pull always turns a movable reference into a new image on every start
     const severity = pullAlways ? (floating ? 'high' : 'medium') : 'low'
-    const base = image.replace(/@.*$/, '')
+    const base = imageName(image)
     return [mk({
       ruleId: 'MCPS-SC-004', category: 'supply-chain', severity, server: serverName,
       title: floating ? L(`Imagen "${image}" sin versión: se descarga la que esté publicada${pullAlways ? ' en cada arranque (--pull always)' : ''}`, `Image "${image}" without a version: whatever is published gets pulled${pullAlways ? ' on every start (--pull always)' : ''}`)

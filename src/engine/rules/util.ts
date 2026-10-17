@@ -81,3 +81,5 @@ export function containerImage(args: string[]): { image: string; idx: number } |
 export const imagePinned = (image: string) => /@sha256:[0-9a-f]{64}$/i.test(image)
 /** Tag of an image reference; a registry port (`localhost:5000/img`) is not a tag. Empty when there is none. */
 export const imageTag = (image: string) => { const ref = image.replace(/@.*$/, ''); const c = ref.indexOf(':', ref.lastIndexOf('/') + 1); return c < 0 ? '' : ref.slice(c + 1) }
+/** Repository of an image reference, without tag or digest (`localhost:5000/img:1.0@sha256:…` → `localhost:5000/img`). */
+export const imageName = (image: string) => { const ref = image.replace(/@.*$/, ''); const c = ref.indexOf(':', ref.lastIndexOf('/') + 1); return c < 0 ? ref : ref.slice(0, c) }

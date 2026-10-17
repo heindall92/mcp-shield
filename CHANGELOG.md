@@ -10,7 +10,8 @@
 - La figura «Cero telemetría» calcula el ancho de los cartuchos según el número de reglas; una prueba exige un cartucho por regla.
 - **README con el formato del ecosistema** (el de Rosetta): cabecera, distintivos, tabla `mcp-shield.yaml` con fichas, índice, secciones con iconos Lucide, mapa mental, vistas, capturas, arquitectura en Mermaid, novedades, tabla de calidad con el recuento real por suite, estructura y tarjeta de autor. Iconos y fichas generados desde Lucide con `npm run readme-assets`; capturas regeneradas con `npm run capturas` (escritorio y móvil).
 - Móvil: el aviso de ecosistema bajo los exportes ya no deja el icono solo en una línea.
-- Pruebas: 405 de vitest (20 nuevas en `tests/images-v150.test.ts`).
+- La corrección escribe bien la referencia de una imagen con etiqueta (`ghcr.io/acme/srv:1.2.0@sha256:…`, sin repetir la etiqueta) y quita `latest` de la referencia fijada.
+- Pruebas: 412 de vitest (27 nuevas en `tests/images-v150.test.ts`).
 
 ## 1.4.0 — 2026-10-17 · Identidad del ecosistema y SARIF útil fuera de la app
 Se mantiene la estructura (cinco vistas, ES/EN, móvil, 0 infracciones de axe) y se alinea con el resto de herramientas del autor.
