@@ -1,6 +1,6 @@
 name: Deploy to GitHub Pages
 # Deploys only when every gate passes: lint, types, unit tests, build, zero-egress, npm audit,
-# e2e (Playwright + axe + runtime network-negative check) README Mermaid diagrams and CodeQL. Dependency review runs on PRs.
+# e2e (Playwright + axe + runtime network-negative check), README Mermaid diagrams and CodeQL. Dependency review runs on PRs.
 on:
   push:
     branches: [main]
