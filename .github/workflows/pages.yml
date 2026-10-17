@@ -1,6 +1,6 @@
 name: Deploy to GitHub Pages
 # Deploys only when every gate passes: lint, types, unit tests, build, zero-egress, npm audit,
-# e2e (Playwright + axe + runtime network-negative check) and CodeQL. Dependency review runs on PRs.
+# e2e (Playwright + axe + runtime network-negative check), README Mermaid diagrams and CodeQL. Dependency review runs on PRs.
 on:
   push:
     branches: [main]
@@ -43,6 +43,8 @@ jobs:
           grep -q "^external \[\] errors \[\] axe \[\]$" e2e.log
           SHOTS=0 node scripts/e2e-mobile.mjs | tee e2e-mobile.log
           grep -q "^external \[\] errors 0 \[\] axe \[\]$" e2e-mobile.log
+      - name: README diagrams (Mermaid renders in Chromium)
+        run: npm run readme-check
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'push'
         with:
