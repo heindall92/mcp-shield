@@ -4,6 +4,7 @@ import { scanText, scanConfig, parseConfig } from '../../engine/scanner'
 import { hardeningVerdict, removedServers, dockerSnippet } from '../../engine/remediator'
 import { gate } from '../../engine/exportGate'
 import { mergeTools } from '../../engine/toolsImport'
+import { hasOwn } from '../../engine/ownKeys'
 import type { McpToolDefinition } from '../../types/mcp.types'
 import { CoveragePanel } from './CoveragePanel'
 import { ToolsImport } from './ToolsImport'
@@ -173,7 +174,7 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
               {res.findings.map(f => <FindingCard key={f.id} f={f} />)}
             </div>
             <CoveragePanel res={res} />
-            {cfg && <ToolsImport servers={Object.keys(cfg.mcpServers)} imported={Object.fromEntries(Object.entries(inv).filter(([k]) => k in cfg.mcpServers))}
+            {cfg && <ToolsImport servers={Object.keys(cfg.mcpServers)} imported={Object.fromEntries(Object.entries(inv).filter(([k]) => hasOwn(cfg.mcpServers, k)))}
               onImport={(sv, tools) => setInv(p => ({ ...p, [sv]: tools }))} onRemove={sv => setInv(p => { const n = { ...p }; delete n[sv]; return n })} />}
           </>}
         </section>
