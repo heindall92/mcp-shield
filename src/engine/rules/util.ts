@@ -56,3 +56,28 @@ export function volumeSource(spec: string): string {
   const i = v.indexOf(':', drive)
   return i < 0 ? v : v.slice(0, i)
 }
+
+/** `docker run` / `podman run` options that take a separate value. Shared by MCPS-SC-004 and the container hardening to find where the image starts. */
+export const VALUE_FLAGS = new Set(['-v', '--volume', '--mount', '-e', '--env', '--env-file', '--network', '--net', '--network-alias', '--pid', '--ipc', '--uts', '--userns', '--cgroupns', '--user', '-u', '--name', '-w', '--workdir', '--memory', '-m', '--memory-swap', '--pids-limit', '--cpus', '--cpu-shares', '-c', '--cap-drop', '--cap-add', '--security-opt', '--tmpfs', '--entrypoint', '-p', '--publish', '--expose', '--device', '--device-cgroup-rule', '--add-host', '--dns', '--dns-search', '--dns-option', '--group-add', '--label', '-l', '--label-file', '--hostname', '-h', '--volumes-from', '--runtime', '--platform', '--restart', '--ulimit', '--log-driver', '--log-opt', '--gpus', '--cidfile', '--sysctl', '--shm-size', '--stop-signal', '--stop-timeout', '--mac-address', '--ip', '--ip6', '--link', '--pull', '--storage-opt', '--health-cmd', '--health-interval', '--health-retries', '--health-timeout', '--health-start-period', '--isolation', '--kernel-memory', '--blkio-weight', '--cgroup-parent', '--detach-keys', '--domainname', '--oom-score-adj', '--attach', '-a', '--annotation'])
+/** Global docker/podman options (before the subcommand) that take a value, such as `-H tcp://host`. */
+const GLOBAL_VALUE_FLAGS = new Set(['-H', '--host', '-c', '--context', '--config', '-l', '--log-level', '--tlscacert', '--tlscert', '--tlskey', '--url', '--connection', '--root', '--runroot'])
+
+/** Image of a `docker|podman [global options] [container] run [options] IMAGE [args]` argv, with its index; null for other subcommands. */
+export function containerImage(args: string[]): { image: string; idx: number } | null {
+  let i = 0
+  for (; i < args.length && args[i].startsWith('-'); i++) if (GLOBAL_VALUE_FLAGS.has(args[i])) i++
+  if (args[i] === 'container') i++
+  if (args[i] !== 'run') return null
+  for (i++; i < args.length; i++) {
+    const a = args[i]
+    if (a === '--') { i++; break }
+    if (!a.startsWith('-')) break
+    if (!a.includes('=') && VALUE_FLAGS.has(a)) i++
+  }
+  return i < args.length ? { image: args[i], idx: i } : null
+}
+
+/** Pinned by content: `name@sha256:<64 hex>` (with or without a tag). */
+export const imagePinned = (image: string) => /@sha256:[0-9a-f]{64}$/i.test(image)
+/** Tag of an image reference; a registry port (`localhost:5000/img`) is not a tag. Empty when there is none. */
+export const imageTag = (image: string) => { const ref = image.replace(/@.*$/, ''); const c = ref.indexOf(':', ref.lastIndexOf('/') + 1); return c < 0 ? '' : ref.slice(c + 1) }

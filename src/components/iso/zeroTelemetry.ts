@@ -1,6 +1,6 @@
 /**
  * Fig. "Zero telemetry": a sealed bench instrument.
- * A tray carries mcp.json into the housing, eleven rule cartridges on top read it one by one,
+ * A tray carries mcp.json into the housing, one rule cartridge per configuration rule on top read it one by one,
  * a findings card comes out of the right-hand slot, and the network port on the side is capped
  * and sealed with a wire: nothing can leave. The readout window shows the real number of
  * third-party requests the page has made (measured with the Resource Timing API).
@@ -10,7 +10,8 @@ import * as k from './iso-kit'
 
 export const WIDTH = 640
 export const HEIGHT = 400
-export const RULES = 11
+/** One cartridge per configuration rule (a test keeps it equal to ALL_RULES.length). */
+export const RULES = 12
 
 const PLATE: k.Plan = { x: -126, y: -80, w: 252, d: 160, r: 8 }
 const PLATE_H = 10, FOOT_H = 5
@@ -18,7 +19,9 @@ const BOX: k.Plan = { x: -74, y: -50, w: 148, d: 96, r: 5 }
 const BOX_H = 56
 const TOP = BOX_H
 const BAY: k.Plan = { x: -66, y: -30, w: 132, d: 34, r: 2 }
-const CART_W = 9.2, CART_GAP = 2.6, CART_H = 9
+// Cartridges share the bay width whatever the number of rules (4 units of margin on each side)
+const CART_GAP = 2.2, CART_H = 9
+const CART_W = (BAY.w - 8 - (RULES - 1) * CART_GAP) / RULES
 export const TRAY_OUT = 34 // how far the tray sticks out of the front face
 export const CARD_OUT = 30 // how far the findings card comes out of the right slot
 

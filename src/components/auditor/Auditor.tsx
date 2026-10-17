@@ -167,8 +167,8 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
                   <button disabled={!cfg || !gates?.fixed.ok} onClick={() => save('mcp.hardened.json', hardened, 'application/json')} className="btn-ghost focus-ring text-[0.75rem]"><FileJson size={14} aria-hidden />{t.hardenedJson}</button>
                   <button disabled={!cfg || !gates?.docker.ok} onClick={() => save('Dockerfile.mcp-sandbox', docker, 'text/plain')} className="btn-ghost focus-ring text-[0.75rem]"><Container size={14} aria-hidden />Docker</button>
                 </div>
-                <p data-testid="eco-hint" className="mt-2.5 flex flex-wrap items-center gap-x-1.5 text-[0.75rem] text-slate-400"><Workflow size={13} className="text-accent" aria-hidden />{t.ecoHint}
-                  <a href="#ayuda/ecosistema" onClick={e => { e.preventDefault(); location.hash = 'ayuda/ecosistema' }} className="focus-ring rounded font-medium text-accent hover:underline">{t.ecoHow}</a></p>
+                <p data-testid="eco-hint" className="mt-2.5 flex items-start gap-1.5 text-[0.75rem] text-slate-400"><Workflow size={13} className="mt-[0.2rem] shrink-0 text-accent" aria-hidden />
+                  <span>{t.ecoHint} <a href="#ayuda/ecosistema" onClick={e => { e.preventDefault(); location.hash = 'ayuda/ecosistema' }} className="focus-ring rounded font-medium text-accent hover:underline">{t.ecoHow}</a></span></p>
               </div>
             </div>
  {blocked.length > 0 && <p role="alert" data-testid="gate-blocked" className="rounded-lg border border-red-400/25 bg-red-400/[0.07] px-3 py-2 text-[0.75rem] text-red-200"><b>{t.gateTitle}:</b> {t.gateBlocked(blocked.join(', '))}</p>}
@@ -191,6 +191,7 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
           <p className="flex items-center gap-1.5 font-medium">{verdict.status === 'hardened' ? <ShieldCheck size={14} aria-hidden /> : <ShieldAlert size={14} aria-hidden />}{verdict.status === 'hardened' ? t.hvHardened : t.hvPartial(verdict.remaining.length)}</p>
           {verdict.remaining.length > 0 && <ul className="mt-1.5 space-y-0.5 pl-5">{verdict.remaining.slice(0, 8).map(f => <li key={f.id} className="flex gap-1.5"><ShieldX size={12} className="mt-0.5 shrink-0" aria-hidden /><span><code>{f.ruleId}</code> · {f.server}: {f.title}</span></li>)}</ul>}
           {verdict.notes.some(n => n.kind === 'network') && <p className="mt-1.5 pl-5">{t.hvNetwork}</p>}
+          {verdict.notes.some(n => n.kind === 'image') && <p data-testid="hv-image" className="mt-1.5 pl-5">{t.hvImage}: <code className="break-all">{[...new Set(verdict.notes.filter(n => n.kind === 'image').map(n => n.flag))].join(' · ')}</code></p>}
           {verdict.notes.some(n => n.kind === 'dropped') && <p className="mt-1.5 pl-5">{t.hvDropped}: <code className="break-all">{[...new Set(verdict.notes.filter(n => n.kind === 'dropped').map(n => n.flag))].join(' · ')}</code></p>}
         </div>}
         {removed.length > 0 && <p className="border-b border-red-400/20 bg-red-400/[0.06] px-4 py-2 text-[0.75rem] text-red-200">{t.removed}: <b>{removed.join(', ')}</b></p>}

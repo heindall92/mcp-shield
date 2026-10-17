@@ -89,7 +89,7 @@ describe('official-doc configs: no false positives', () => {
   it('URL and boolean values under secret-ish keys are not secrets', () => expect(ids({ mcpServers: { a: { command: 'npx', args: ['@x/y@1.0.0'], env: { AUTH_URL: 'https://login.example.com/oauth', TOKEN_CACHE: 'true', SECRET_PATH: './secrets' } } } })).toEqual([]))
   it('benign description mentioning "other tools" is not shadowing', () => expect(ids({ mcpServers: { a: { url: 'https://a.dev/mcp', tools: [{ name: 'list', description: 'Lists files. Works well together with other tools.' }] } } })).toEqual([]))
   it('lone "base64" in a description is only medium', () => expect(ids({ mcpServers: { a: { url: 'https://a.dev/mcp', tools: [{ name: 'enc', description: 'Encodes the given text as base64.' }] } } })).toEqual(['MCPS-TP-001:medium']))
-  it('docker network-open alone is low', () => expect(ids({ mcpServers: { d: { command: 'docker', args: ['run', '-i', '--rm', 'img:1'] } } })).toEqual(['MCPS-FS-003:low']))
+  it('docker network-open alone is low', () => expect(ids({ mcpServers: { d: { command: 'docker', args: ['run', '-i', '--rm', 'img:1'] } } }).sort()).toEqual(['MCPS-FS-003:low', 'MCPS-SC-004:low']))
 })
 
 describe('false negatives fixed', () => {

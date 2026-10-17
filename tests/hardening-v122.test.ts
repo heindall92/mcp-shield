@@ -105,7 +105,7 @@ describe('output safety gate', () => {
 describe('rule coverage', () => {
   it('every rule ID has a status', () => {
     const r = scanConfig(sampleConfigs[0].config)
-    expect(r.coverage.map(c => c.ruleId).sort()).toEqual(['MCPS-FS-001', 'MCPS-FS-002', 'MCPS-FS-003', 'MCPS-SC-001', 'MCPS-SC-002', 'MCPS-SC-003', 'MCPS-SEC-001', 'MCPS-SEC-002', 'MCPS-TP-001', 'MCPS-TP-002', 'MCPS-TP-003'])
+    expect(r.coverage.map(c => c.ruleId).sort()).toEqual(['MCPS-FS-001', 'MCPS-FS-002', 'MCPS-FS-003', 'MCPS-SC-001', 'MCPS-SC-002', 'MCPS-SC-003', 'MCPS-SC-004', 'MCPS-SEC-001', 'MCPS-SEC-002', 'MCPS-TP-001', 'MCPS-TP-002', 'MCPS-TP-003'])
     expect(r.coverage.every(c => ['PASS', 'FAIL', 'NOT_EVALUATED', 'ERROR'].includes(c.status))).toBe(true)
   })
   it('FAIL matches findings, PASS means no findings', () => {
@@ -124,7 +124,7 @@ describe('rule coverage', () => {
     const run = toSarif(r).runs[0]
     expect(run.invocations[0].executionSuccessful).toBe(true)
     expect(run.invocations[0].toolExecutionNotifications.map((n: { descriptor: { id: string } }) => n.descriptor.id)).toEqual(['MCPS-TP-001', 'MCPS-TP-002'])
-    expect(run.properties.ruleCoverage).toHaveLength(11)
+    expect(run.properties.ruleCoverage).toHaveLength(12)
     const md = toMarkdown(r, 'en')
     expect(md).toContain('## Rule coverage'); expect(md).toContain('| MCPS-TP-001 | NOT_EVALUATED |'); expect(md).toContain('no tool inventory')
   })

@@ -1,7 +1,7 @@
 {
   "name": "mcp-shield",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "license": "MIT",
   "author": "Yoandy Ramírez Delgado <yoandyramirezdelgado@gmail.com>",
   "type": "module",
@@ -11,7 +11,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "e2e": "node scripts/e2e.mjs"
+    "e2e": "node scripts/e2e.mjs",
+    "capturas": "node scripts/capturas.mjs",
+    "readme-assets": "node scripts/readme-assets.mjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

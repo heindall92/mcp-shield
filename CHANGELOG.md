@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.0 — 2026-10-17 · Imágenes de contenedor sin fijar por digest
+- **Nueva regla MCPS-SC-004.** Detecta servidores `docker run` / `podman run` (también con `cmd /c`, `wsl` y `docker container run`) cuya imagen no va fijada por digest (`@sha256:…`). Una etiqueta es un puntero movible: quien controle el registro o la cuenta puede publicar otra imagen con el mismo nombre. Es el equivalente en contenedores de `npx -y` sin versión.
+  - Severidad: **alta** sin versión o con `latest` y `--pull always` (se descarga una imagen nueva en cada arranque); **media** con etiqueta y `--pull always`; **baja** en el resto, porque Docker guarda la imagen en caché hasta la siguiente descarga. Así la configuración oficial de GitHub queda en baja, sin ruido.
+  - No marca imágenes `${VAR}` ni las `mcp-sandbox/*` que se construyen con el Dockerfile generado, cuya imagen base ya va por digest.
+  - La corrección explica cómo obtener el digest (`docker buildx imagetools inspect`) y cómo escribir la referencia.
+- **Endurecimiento:** `--pull always` ya se eliminaba (lista blanca); ahora el veredicto avisa además de las imágenes que quedan sin digest, porque MCP-Shield no puede conocer el digest y no lo inventa.
+- La lectura de la imagen (`containerImage`) se comparte entre la regla y el endurecimiento: opciones globales (`-H tcp://…`), `container run`, opciones con valor, `--opt=valor` y `--`. Un registro con puerto (`localhost:5000/img`) no se confunde con una etiqueta.
+- La figura «Cero telemetría» calcula el ancho de los cartuchos según el número de reglas; una prueba exige un cartucho por regla.
+- **README con el formato del ecosistema** (el de Rosetta): cabecera, distintivos, tabla `mcp-shield.yaml` con fichas, índice, secciones con iconos Lucide, mapa mental, vistas, capturas, arquitectura en Mermaid, novedades, tabla de calidad con el recuento real por suite, estructura y tarjeta de autor. Iconos y fichas generados desde Lucide con `npm run readme-assets`; capturas regeneradas con `npm run capturas` (escritorio y móvil).
+- Móvil: el aviso de ecosistema bajo los exportes ya no deja el icono solo en una línea.
+- Pruebas: 405 de vitest (20 nuevas en `tests/images-v150.test.ts`).
+
 ## 1.4.0 — 2026-10-17 · Identidad del ecosistema y SARIF útil fuera de la app
 Se mantiene la estructura (cinco vistas, ES/EN, móvil, 0 infracciones de axe) y se alinea con el resto de herramientas del autor.
 - **Siete colores de acento** del ecosistema (azul eléctrico por defecto, rosa, solar, glaciar, orquídea, verde bosque y rojo), con selector en la cabecera (icono Lucide `Palette`) y en el menú móvil. Se guarda en `mcps-accent` y se aplica antes del primer pintado, sin parpadeo. El acento solo marca la marca: botón principal, pestaña activa, foco, antetítulos, enlaces y logotipo. Peligro, seguro y aviso siguen con sus colores. Una prueba comprueba los 7 acentos en los dos temas: texto ≥ 4,5:1 sobre el fondo y sobre su propio tinte, botón ≥ 4,5:1 también al pasar el ratón y anillo de foco ≥ 3:1.
