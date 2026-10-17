@@ -1,9 +1,10 @@
 import type { McpConfig, McpServerConfig } from '../types/mcp.types'
-import { launcher, volumeSource } from './rules/util'
+import { launcher, volumeSource, runnerSubcommand } from './rules/util'
 import { poisoningRules } from './rules/poisoningRules'
 import { smugglingRules } from './rules/smugglingRules'
 import { isRef, isPlaceholder, findSecret, SECRET_KEY, redactString, isSafeLiteral, isSensitiveName, isFlag } from './redact'
 import { scanConfig } from './scanner'
+import { setOwn } from './ownKeys'
 import type { Finding } from '../types/mcp.types'
 
 const PIN_HINT = '1.0.0' // placeholder — user must replace with audited version
@@ -36,7 +37,7 @@ const urlRefs = (name: string, u: string) =>
 
 /** Replace sensitive args with env references, collecting the new env names. */
 function argRefs(name: string, args: string[], env: Record<string, string>): string[] {
-  const ref = (suffix: string) => { const v = envName(name, suffix); env[v] = `\${${v}}`; return `\${${v}}` }
+  const ref = (suffix: string) => { const v = envName(name, suffix); setOwn(env, v, `\${${v}}`); return `\${${v}}` }
   return args.map((a, i) => {
     if (isRef(a)) return a
     const prev = args[i - 1] ?? ''
@@ -44,7 +45,7 @@ function argRefs(name: string, args: string[], env: Record<string, string>): str
       const body = a.replace(/^--env=/, ''); const eq = body.indexOf('=')
       if (eq > 0) {
         const key = body.slice(0, eq), val = body.slice(eq + 1)
-        if (!isSafeLiteral(val)) { env[key] = `\${${key}}`; return `${a.startsWith('--env=') ? '--env=' : ''}${key}` }
+        if (!isSafeLiteral(val)) { setOwn(env, key, `\${${key}}`); return `${a.startsWith('--env=') ? '--env=' : ''}${key}` }
       }
       return a
     }
@@ -94,7 +95,7 @@ function hardenContainer(cmd: string, args: string[], env: Record<string, string
     if (flag === '-e' || flag === '--env') {
       const k = val.split('=')[0]
       if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(k)) { notes.push({ kind: 'dropped', flag }); continue }
-      if (val.includes('=')) { const v = val.slice(k.length + 1); env[k] = isRef(v) ? v : `\${${k}}` }
+      if (val.includes('=')) { const v = val.slice(k.length + 1); setOwn(env, k, isRef(v) ? v : `\${${k}}`) }
       keep.push('-e', k); continue
     }
     if (flag === '-v' || flag === '--volume') {
@@ -121,12 +122,16 @@ export function hardenServer(name: string, s: McpServerConfig, notes: ContainerN
     const headers = headerRefs(name, s.headers)
     return { ...(s.type ? { type: s.type } : {}), url: u, ...(headers ? { headers } : {}), ...(Object.keys(env).length ? { env } : {}) }
   }
-  const { cmd, args: rawArgs } = launcher(s)
-  const args = argRefs(name, rawArgs, env)
+  const launched = launcher(s)
+  // npm exec / npm x / bun x / pnpm dlx / yarn dlx behave like npx: drop the subcommand so "exec" is not taken for the package
+  const sub = runnerSubcommand(launched.cmd, launched.args[0])
+  const cmd = sub ? 'npx' : launched.cmd
+  const args = argRefs(name, sub ? launched.args.slice(1) : launched.args, env)
   if (cmd === 'docker' || cmd === 'podman') return hardenContainer(cmd, args, env, notes)
-  const filtered = args.filter(a => a !== '-y' && a !== '--yes')
-  const pkgIdx = filtered.findIndex((a, i) => !a.startsWith('-') && !(i > 0 && /^(--from|--with|-p|--package|--python)$/.test(filtered[i - 1])))
-  let pkg = pkgIdx >= 0 ? filtered[pkgIdx] : name
+  const filtered = args.filter(a => a !== '-y' && a !== '--yes' && a !== '--')
+  const pkgOpt = filtered.findIndex(a => /^--package=./.test(a))
+  const pkgIdx = pkgOpt >= 0 ? pkgOpt : filtered.findIndex((a, i) => !a.startsWith('-') && !(i > 0 && /^(--from|--with|-p|--package|--python)$/.test(filtered[i - 1])))
+  let pkg = pkgOpt >= 0 ? filtered[pkgOpt].slice('--package='.length) : pkgIdx >= 0 ? filtered[pkgIdx] : name
   if (['npx', 'bunx', 'pnpx'].includes(cmd) && pkgIdx >= 0 && !/@\d/.test(pkg.replace(/^@/, ''))) pkg = `${pkg.replace(/@latest$/, '')}@${PIN_HINT}`
   if (cmd === 'uvx' && pkgIdx >= 0 && !/(==|@)\d/.test(pkg)) pkg = pkg === 'mcp-server-git' ? PATCHED_GIT : `${pkg.replace(/@latest$/, '')}==${PIN_HINT}`
   if (cmd === 'uvx' && /^mcp-server-git(==|@)/.test(pkg) && !/(==|@)(2025\.12\.(1[89]|[23]\d)|202[6-9])/.test(pkg)) pkg = PATCHED_GIT
@@ -147,7 +152,7 @@ export function remediate(cfg: McpConfig, notes: (ContainerNote & { server: stri
   for (const [n, s] of Object.entries(cfg.mcpServers)) {
     if (isPoisoned(n, s)) continue
     const local: ContainerNote[] = []
-    out.mcpServers[n] = hardenServer(n, s, local)
+    setOwn(out.mcpServers, n, hardenServer(n, s, local))
     notes.push(...local.map(x => ({ ...x, server: n })))
   }
   return out

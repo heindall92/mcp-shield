@@ -1,5 +1,6 @@
 import type { McpConfig, McpToolDefinition } from '../types/mcp.types'
 import { MAX_INPUT_BYTES, stripJsonc } from './parse'
+import { getOwn, setOwn } from './ownKeys'
 
 export const MAX_TOOLS = 2000
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
@@ -29,11 +30,11 @@ export function parseToolsList(text: string): { tools?: McpToolDefinition[]; err
 export function mergeTools(cfg: McpConfig, imported: Record<string, McpToolDefinition[]>): McpConfig {
   const out: McpConfig = { mcpServers: {} }
   for (const [n, s] of Object.entries(cfg.mcpServers)) {
-    const extra = imported[n]
-    if (!extra?.length) { out.mcpServers[n] = s; continue }
+    const extra = getOwn(imported, n)
+    if (!Array.isArray(extra) || !extra.length) { setOwn(out.mcpServers, n, s); continue }
     const byName = new Map((s.tools ?? []).map(t => [t.name, t]))
     for (const t of extra) byName.set(t.name, t)
-    out.mcpServers[n] = { ...s, tools: [...byName.values()] }
+    setOwn(out.mcpServers, n, { ...s, tools: [...byName.values()] })
   }
   return out
 }

@@ -59,6 +59,11 @@ for (const theme of ['dark', 'light']) for (const lang of ['es', 'en']) {
   await p.locator('[data-testid=tools-import]').scrollIntoViewIfNeeded(); await p.waitForTimeout(200)
   if (shot) await p.screenshot({ path: n('tools-import') }); await a11y('tools-import')
   const store2 = await p.evaluate(() => JSON.stringify(localStorage) + JSON.stringify(sessionStorage)); if (/id_rsa/.test(store2)) errs.push('imported tools persisted')
+  // v1.3.4: servers named after Object.prototype members are audited, not hidden, and do not crash the Auditor
+  for (const nm of ['constructor', '__proto__']) {
+    await p.fill('[data-testid=editor]', JSON.stringify({ mcpServers: { [nm]: { command: 'npx', args: ['-y', 'evil-pkg', '/'] } } }))
+    try { await p.waitForSelector(`[data-testid=findings] article:has-text("${nm}")`, { timeout: 4000 }) } catch { errs.push('server hidden or Auditor crashed: ' + nm) }
+  }
   // v1.3.0: integrity monitor (TOFU, diff, context mismatch)
   await p.goto(U + '#integridad'); await p.waitForSelector('[data-testid=int-demo]'); await a11y('integrity-empty')
   await p.click('[data-testid=int-demo]'); await p.waitForSelector('[data-testid=int-review] input[type=checkbox]')

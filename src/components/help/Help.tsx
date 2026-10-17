@@ -9,7 +9,7 @@ import { intHelp } from '../../i18n/integrity'
 
 
 const RULES: [string, string, string][] = [
-  ['MCPS-SC-001', 'Paquete sin versión fijada (npx -y / uvx)', 'Unpinned package (npx -y / uvx)'],
+  ['MCPS-SC-001', 'Paquete sin versión fijada (npx -y / uvx / npm exec / dlx)', 'Unpinned package (npx -y / uvx / npm exec / dlx)'],
   ['MCPS-SC-002', 'Publisher npm sin scope verificable', 'npm publisher without a verifiable scope'],
   ['MCPS-SC-003', 'Servidor remoto sin TLS', 'Remote server without TLS'],
   ['MCPS-FS-001', 'Exposición excesiva del sistema de ficheros', 'Excessive filesystem exposure'],

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.4 — 2026-10-17 · Nombres que chocan con `Object.prototype`
+Cada corrección tiene una prueba que reproducía el fallo antes del arreglo (`tests/keys-v134.test.ts` y un paso nuevo en `scripts/e2e.mjs`).
+- **Evasión del auditor con un servidor llamado `__proto__`.** `JSON.parse` conserva la clave como propia, así que Claude Desktop, Cursor o VS Code lanzan ese servidor. En el parser, `mcpServers[name] = s` cambiaba el prototipo en lugar de crear la entrada: el servidor desaparecía del análisis sin aviso. Una configuración con `npx -y evil-pkg /` y un token de GitHub sacaba **A, 0 hallazgos**. Lo mismo ocurría con claves `__proto__` en `env` y `headers` (el secreto no se analizaba), en la vista ocultada y en la config endurecida.
+- **Caída del Auditor con un servidor llamado `constructor`, `hasOwnProperty`, `isPrototypeOf`…** `mergeTools` leía `imported[n]` sin comprobar que fuera propia, recibía la función heredada y fallaba con `extra is not iterable`: la vista se caía y no se veía ningún hallazgo.
+- Arreglo: `src/engine/ownKeys.ts` (`setOwn`, `getOwn`, `hasOwn`) en el parser, la importación de `tools/list`, la ocultación, el remediador y el Auditor. Solo escribe y lee propiedades propias; no hay contaminación global del prototipo. El monitor de integridad ya era inmune (indexa con `Map`) y tiene prueba.
+- **MCPS-SC-001 cubre `npm exec`, `npm x` y `bun x`**, que descargan y ejecutan un paquete igual que `npx` y antes no se analizaban, y lee el paquete de `--package=`. La config endurecida nombra la imagen por el paquete (antes, con `pnpm dlx`, usaba `dlx`) y su re-escaneo ya no marca SC-001.
+- README: el bloque de resumen decía `version: 1.1.0`, `vitest 160` y 11 reglas; ahora refleja la 1.3.4, 359 pruebas y las 8 reglas de integridad. La estructura incluye `src/integrity/` y los scripts e2e.
+
 ## 1.3.3 — 2026-10-16 · Guía de diseño móvil
 - **Paleta de 4 tonos**: pizarra (neutro), rojo (único acento saturado: inyección y peligro), esmeralda (seguro) y ámbar (aviso), más cian atenuado solo para foco e información. Naranja, amarillo y violeta se integran en ámbar o pizarra; esmeralda, ámbar y cian se desaturan mezclándolos con pizarra.
 - **Contraste**: el texto de cuerpo y el atenuado alcanzan al menos 7:1 en ambos temas (pizarra-400 ajustada); todo el texto, al menos 4.5:1. La prueba de contraste exige 7:1 en los pares de cuerpo y comprueba que no haya más de 5 tonos.
