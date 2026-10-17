@@ -1,5 +1,5 @@
 import type { McpConfig, McpServerConfig } from '../types/mcp.types'
-import { launcher, volumeSource, runnerSubcommand, runnerPackage } from './rules/util'
+import { launcher, volumeSource, runnerSubcommand, runnerPackage, VALUE_FLAGS, imagePinned } from './rules/util'
 import { poisoningRules } from './rules/poisoningRules'
 import { smugglingRules } from './rules/smugglingRules'
 import { isRef, isPlaceholder, findSecret, SECRET_KEY, redactString, isSafeLiteral, isSensitiveName, isFlag } from './redact'
@@ -64,13 +64,12 @@ function argRefs(name: string, args: string[], env: Record<string, string>): str
  * survive; everything else (--user, --network, --privileged, --cap-add, --security-opt, --pid/--ipc/--uts/--userns,
  * --device, -p, --env-file, --volumes-from, --entrypoint, unknown flags…) is dropped. */
 const BASELINE = ['--rm', '-i', '--network', 'none', '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--user', '1000:1000']
-/** Flags that take a separate value. Needed to find where the image starts. */
-const VALUE_FLAGS = new Set(['-v', '--volume', '--mount', '-e', '--env', '--env-file', '--network', '--net', '--network-alias', '--pid', '--ipc', '--uts', '--userns', '--cgroupns', '--user', '-u', '--name', '-w', '--workdir', '--memory', '-m', '--memory-swap', '--pids-limit', '--cpus', '--cpu-shares', '-c', '--cap-drop', '--cap-add', '--security-opt', '--tmpfs', '--entrypoint', '-p', '--publish', '--expose', '--device', '--device-cgroup-rule', '--add-host', '--dns', '--dns-search', '--dns-option', '--group-add', '--label', '-l', '--label-file', '--hostname', '-h', '--volumes-from', '--runtime', '--platform', '--restart', '--ulimit', '--log-driver', '--log-opt', '--gpus', '--cidfile', '--sysctl', '--shm-size', '--stop-signal', '--stop-timeout', '--mac-address', '--ip', '--ip6', '--link', '--pull', '--storage-opt', '--health-cmd', '--health-interval', '--health-retries', '--health-timeout', '--health-start-period', '--isolation', '--kernel-memory', '--blkio-weight', '--cgroup-parent', '--detach-keys', '--domainname', '--oom-score-adj', '--attach', '-a', '--annotation'])
 /** Allowlisted options and how to keep them. */
 const KEEP_VALUE = new Set(['--name', '-w', '--workdir', '--memory', '-m', '--pids-limit', '--cpus', '--tmpfs', '-e', '--env', '-v', '--volume', '--mount', '--label', '-l', '--stop-timeout'])
 const DANGEROUS_PATH = /^(\/|[A-Za-z]:[\\/]?|~|\$HOME|\$\{?HOME\}?|%USERPROFILE%|\/home\/[^/]+|\/Users\/[^/]+|[A-Za-z]:[\\/]Users[\\/][^\\/]+|\\\\.*)[\\/]?$|(^|[\\/])\.(ssh|aws|gnupg|kube|docker|config[\\/]gcloud|azure)([\\/]|$)|^\/(etc|root|boot|proc|sys|dev|run|var\/run|var\/lib\/docker)([\\/]|$)|(docker|podman|containerd)\.sock/i
 
-export interface ContainerNote { kind: 'dropped' | 'network'; flag: string }
+/** `image`: the image is not pinned by digest; MCP-Shield cannot know the digest, so the UI says how to get it. */
+export interface ContainerNote { kind: 'dropped' | 'network' | 'image'; flag: string }
 function hardenContainer(cmd: string, args: string[], env: Record<string, string>, notes: ContainerNote[]): McpServerConfig {
   const runIdx = args.indexOf('run')
   const run = runIdx >= 0 ? args.slice(runIdx + 1) : args
@@ -112,6 +111,7 @@ function hardenContainer(cmd: string, args: string[], env: Record<string, string
     keep.push(flag, val)
   }
   const rest = run.slice(i)
+  if (rest[0] && !imagePinned(rest[0])) notes.push({ kind: 'image', flag: rest[0] })
   return { command: cmd, args: ['run', ...BASELINE, '--pids-limit', pids, '--memory', memory, ...keep, ...rest], ...(Object.keys(env).length ? { env } : {}) }
 }
 
