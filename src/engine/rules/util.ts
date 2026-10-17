@@ -29,6 +29,26 @@ export function launcher(s: McpServerConfig): { cmd: string; args: string[]; off
 export const runnerSubcommand = (cmd: string, first: string | undefined): boolean =>
   ((cmd === 'pnpm' || cmd === 'yarn') && first === 'dlx') || (cmd === 'npm' && (first === 'exec' || first === 'x')) || (cmd === 'bun' && first === 'x')
 
+/**
+ * Package a runner fetches and runs (npx, bunx, pnpx, uvx, npm exec, bun x, pnpm/yarn dlx), with its index in args.
+ * `--package=pkg`, `--package pkg` and `-p pkg` name it explicitly; otherwise it is the first positional argument.
+ * The values of --from/--with/--python/--registry/--cache are skipped, and so is the `--` separator.
+ */
+export function runnerPackage(args: string[]): { pkg: string; idx: number } | null {
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]
+    if (/^--package=./.test(a)) return { pkg: a.slice('--package='.length), idx: i }
+    if (a === '-p' || a === '--package') {
+      const v = args[i + 1]
+      if (v !== undefined && !v.startsWith('-')) return { pkg: v, idx: i + 1 }
+      continue
+    }
+    if (['--from', '--with', '--python', '--registry', '--cache'].includes(a)) { i++; continue }
+    if (!a.startsWith('-')) return { pkg: a, idx: i }
+  }
+  return null
+}
+
 /** Host side of a `-v` spec, Windows-aware: `C:\\Users\\me:/data:ro` -> `C:\\Users\\me`, `/etc:/x` -> `/etc`. */
 export function volumeSource(spec: string): string {
   const v = spec.trim()

@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { FileJson, Upload, FileDown, FileCode2, Container, Lock, Copy, Check, RotateCcw, FlaskConical, Info, ClipboardPaste, Printer, X, Sparkles, ShieldCheck, ShieldAlert, ShieldX, Swords, ArrowRight, ChevronDown } from 'lucide-react'
+import { Workflow, FileJson, Upload, FileDown, FileCode2, Container, Lock, Copy, Check, RotateCcw, FlaskConical, Info, ClipboardPaste, Printer, X, Sparkles, ShieldCheck, ShieldAlert, ShieldX, Swords, ArrowRight, ChevronDown } from 'lucide-react'
 import { scanText, scanConfig, parseConfig } from '../../engine/scanner'
 import { hardeningVerdict, removedServers, dockerSnippet } from '../../engine/remediator'
 import { gate } from '../../engine/exportGate'
@@ -15,7 +15,7 @@ import { MAX_INPUT_BYTES } from '../../engine/parse'
 import { sampleConfigs } from '../../data/sampleConfigs'
 import { FindingCard } from './FindingCard'
 import { DiffView } from './DiffView'
-import { ScoreRing } from './ScoreRing'
+import { RiskMeter } from './RiskMeter'
 import { usePrefs } from '../../i18n/prefs'
 import { Segmented } from '../ui/Segmented'
 import { ConfirmDialog } from '../ui/ConfirmDialog'
@@ -93,7 +93,7 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-slate-400">{t.audKicker}</p>
+        <p className="kicker">{t.audKicker}</p>
         <h1 className="display mt-1.5 text-white">{t.audTitle}</h1>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400"><Lock size={13} className="text-emerald-400" aria-hidden />{t.audPrivacy}</p>
         {empty && onAttack && <button data-testid="attack-cta" onClick={onAttack} className="btn-tertiary focus-ring no-print mt-3 text-[0.8125rem]"><Swords size={14} strokeWidth={1.8} className="text-red-400" aria-hidden />{t.attackCta}<ArrowRight size={14} strokeWidth={1.8} aria-hidden /></button>}
@@ -121,7 +121,7 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
       <div data-testid="aud-actions" className="no-print flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <button onClick={() => fileRef.current?.click()} className="btn-primary focus-ring w-full justify-start text-[0.8125rem] sm:w-auto"><Upload size={14} strokeWidth={1.8} aria-hidden />{t.openFile}</button>
         <input ref={fileRef} type="file" accept=".json,.jsonc,application/json" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
-        <label className="btn-secondary w-full justify-start focus-within:ring-2 focus-within:ring-cyan-400 sm:w-auto">
+        <label className="btn-secondary w-full justify-start focus-within:ring-2 focus-within:ring-accent sm:w-auto">
           <FlaskConical size={14} strokeWidth={1.8} aria-hidden />
           <span className="sr-only">{t.loadDemo}</span>
           <select data-testid="demo-select" value="" onChange={e => loadDemo(e.target.value)} className="min-w-0 flex-1 cursor-pointer bg-transparent text-[0.8125rem] outline-none">
@@ -154,12 +154,12 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
               <p className="max-w-md text-sm leading-relaxed text-slate-400">{t.emptyBody}</p>
             </div>
           ) : <>
-            <div className="flex items-center gap-4 card p-4">
-              <ScoreRing score={res.riskScore} grade={res.grade} label={t.score(res.riskScore, res.grade)} gradeWord={t.grade} />
-              <div className="min-w-0 flex-1">
+            <div className="card space-y-3 p-4">
+              <RiskMeter score={res.riskScore} grade={res.grade} label={t.score(res.riskScore, res.grade)} gradeWord={t.grade} riskWord={t.riskWord} />
+              <div className="min-w-0">
                 <div className="text-sm font-semibold text-white" aria-live="polite">{res.findings.length ? t.findingsIn(res.findings.length, res.serversScanned) : res.parseError ? t.waiting : !res.complete ? t.notClean : t.clean}</div>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[0.6875rem] font-medium">
-                  {(['critical', 'high', 'medium', 'low'] as const).map(k => <span key={k} className={`sev-${k} rounded-md px-1.5 py-0.5`}>{k} {res.counts[k]}</span>)}
+                  {(['critical', 'high', 'medium', 'low'] as const).map(k => <span key={k} className={`sev-${k} rounded-md px-1.5 py-0.5`}>{t.sevNames[k]} {res.counts[k]}</span>)}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button disabled={disabled || !gates?.sarif.ok} onClick={() => outputs && save('mcp-shield.sarif', outputs.sarif, 'application/sarif+json')} className="btn-ghost focus-ring text-[0.75rem]"><FileCode2 size={14} aria-hidden />SARIF</button>
@@ -167,6 +167,8 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
                   <button disabled={!cfg || !gates?.fixed.ok} onClick={() => save('mcp.hardened.json', hardened, 'application/json')} className="btn-ghost focus-ring text-[0.75rem]"><FileJson size={14} aria-hidden />{t.hardenedJson}</button>
                   <button disabled={!cfg || !gates?.docker.ok} onClick={() => save('Dockerfile.mcp-sandbox', docker, 'text/plain')} className="btn-ghost focus-ring text-[0.75rem]"><Container size={14} aria-hidden />Docker</button>
                 </div>
+                <p data-testid="eco-hint" className="mt-2.5 flex flex-wrap items-center gap-x-1.5 text-[0.75rem] text-slate-400"><Workflow size={13} className="text-accent" aria-hidden />{t.ecoHint}
+                  <a href="#ayuda/ecosistema" onClick={e => { e.preventDefault(); location.hash = 'ayuda/ecosistema' }} className="focus-ring rounded font-medium text-accent hover:underline">{t.ecoHow}</a></p>
               </div>
             </div>
  {blocked.length > 0 && <p role="alert" data-testid="gate-blocked" className="rounded-lg border border-red-400/25 bg-red-400/[0.07] px-3 py-2 text-[0.75rem] text-red-200"><b>{t.gateTitle}:</b> {t.gateBlocked(blocked.join(', '))}</p>}

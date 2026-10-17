@@ -27,6 +27,10 @@ const mdCode = (s: string) => '`' + s.replace(/`/g, "'").replace(/</g, '‹').re
 
 const LEVEL: Record<Severity, 'error' | 'warning' | 'note'> = { critical: 'error', high: 'error', medium: 'warning', low: 'note' }
 const SCORE: Record<Severity, string> = { critical: '9.5', high: '7.5', medium: '5.0', low: '2.0' }
+const RULES_URI = 'https://github.com/heindall92/mcp-shield#reglas'
+const RANK: Record<Severity, number> = { critical: 3, high: 2, medium: 1, low: 0 }
+/** Names of every rule id a scan can emit, including the ids a rule emits on behalf of another (MCPS-SC-002). */
+const RULE_NAMES = new Map(ALL_RULES.flatMap(r => [[r.id, r.name] as const, ...(r.emits ?? []).map(e => [e.id, e.name] as const)]))
 
 export function toSarif(res: ScanResult, fileName = 'mcp.json', lang: Lang = 'es', sourceText?: string) {
   const ruleIds = Array.from(new Set(res.findings.map(f => f.ruleId)))
@@ -37,11 +41,14 @@ export function toSarif(res: ScanResult, fileName = 'mcp.json', lang: Lang = 'es
     runs: [{
       tool: { driver: {
         name: 'MCP-Shield', version: VERSION, semanticVersion: VERSION, informationUri: 'https://github.com/heindall92/mcp-shield',
+        // Rule metadata describes the rule (GitHub code scanning and CTEM-Nexus read it as such); the specific
+        // server, package and fix live in each result's message. Severity is the worst one seen for the rule.
         rules: ruleIds.map(id => {
-          const f = res.findings.find(x => x.ruleId === id)!
-          const r = ALL_RULES.find(x => x.id === id) ?? ALL_RULES.find(x => x.category === f.category)
-          return { id, name: r ? r.name[lang] : f.category, shortDescription: { text: f.title }, fullDescription: { text: f.detail },
-            help: { text: f.remediation }, properties: { tags: ['security', 'mcp', f.category, ...(f.cwe ? [f.cwe] : [])], 'security-severity': SCORE[f.severity] } }
+          const all = res.findings.filter(x => x.ruleId === id)
+          const f = all.reduce((w, x) => (RANK[x.severity] > RANK[w.severity] ? x : w))
+          const name = RULE_NAMES.get(id)?.[lang] ?? f.category
+          return { id, name, shortDescription: { text: name }, fullDescription: { text: redactString(f.detail) },
+            helpUri: RULES_URI, help: { text: pick(lang, `${name}. La corrección concreta de cada caso está en el mensaje del resultado. Reglas: ${RULES_URI}`, `${name}. The specific fix for each case is in the result message. Rules: ${RULES_URI}`) }, properties: { tags: ['security', 'mcp', f.category, ...(f.cwe ? [f.cwe] : [])], 'security-severity': SCORE[f.severity] } }
         }),
       } },
       invocations: [{
