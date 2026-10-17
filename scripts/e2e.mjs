@@ -48,6 +48,7 @@ for (const theme of ['dark', 'light']) for (const lang of ['es', 'en']) {
   // v1.2.2: partially hardened verdict, coverage panel, tools/list import, output gate
   await p.selectOption('[data-testid=demo-select]', 'docker-escape'); await p.waitForSelector('[data-testid=hardening-status][data-status=partial]')
   if (await p.locator('[data-testid=gate-blocked]').count()) errs.push('gate blocked a demo export')
+  if (!(await p.locator('[data-testid=hv-image]').count())) errs.push('v1.5.0: unpinned image note missing in the hardening verdict')
   await p.locator('[data-testid=hardening-status]').scrollIntoViewIfNeeded(); await p.waitForTimeout(200)
   if (shot) await p.screenshot({ path: n('partially-hardened') }); await a11y('partial')
   await p.selectOption('[data-testid=demo-select]', 'dev-laptop'); await p.waitForSelector('[data-testid=coverage]')

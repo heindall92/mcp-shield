@@ -12,6 +12,7 @@ const RULES: [string, string, string][] = [
   ['MCPS-SC-001', 'Paquete sin versión fijada (npx -y / uvx / npm exec / dlx)', 'Unpinned package (npx -y / uvx / npm exec / dlx)'],
   ['MCPS-SC-002', 'Publisher npm sin scope verificable', 'npm publisher without a verifiable scope'],
   ['MCPS-SC-003', 'Servidor remoto sin TLS', 'Remote server without TLS'],
+  ['MCPS-SC-004', 'Imagen de contenedor sin fijar por digest', 'Container image not pinned by digest'],
   ['MCPS-FS-001', 'Exposición excesiva del sistema de ficheros', 'Excessive filesystem exposure'],
   ['MCPS-FS-002', 'mcp-server-git < 2025.12.18 (CVE-2025-68144)', 'mcp-server-git < 2025.12.18 (CVE-2025-68144)'],
   ['MCPS-FS-003', 'Contenedor sin aislamiento', 'Container without isolation'],

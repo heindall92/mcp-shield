@@ -5,7 +5,7 @@ import { figureSvg, faceTextSvg } from './iso-kit'
 import { WIDTH, HEIGHT, RULES, backArt, cartridge, tray, card, trayAt, cardAt, readoutMatrix, externalRequests } from './zeroTelemetry'
 import { usePrefs } from '../../i18n/prefs'
 
-const CYCLE = 7000 // ms: tray in, eleven cartridges read, card out, tray back
+const CYCLE = 7000 // ms: tray in, one cartridge per rule reads, card out, tray back
 const ease = (x: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3)
 
 export function ZeroTelemetryFigure() {
