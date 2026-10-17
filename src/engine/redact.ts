@@ -1,4 +1,5 @@
 import type { Finding } from '../types/mcp.types'
+import { setOwn } from './ownKeys'
 
 /** Known credential formats. Shared by the secret rules and the redactor. */
 export const SECRET_PATTERNS: { name: string; re: RegExp }[] = [
@@ -113,11 +114,11 @@ export function redactValue<T>(v: T): T {
   if (Array.isArray(v)) return v.map(redactValue) as T
   if (v && typeof v === 'object') {
     const o: Record<string, unknown> = {}
-    for (const [k, x] of Object.entries(v)) o[k] =
+    for (const [k, x] of Object.entries(v)) setOwn(o, k,
       (k === 'env' || k === 'headers') && x && typeof x === 'object' && !Array.isArray(x) ? redactBag(x as Record<string, unknown>)
       : k === 'args' && Array.isArray(x) ? redactArgs(x.map(String))
       : (k === 'url' || k === 'serverUrl') && typeof x === 'string' ? redactUrl(x)
-      : typeof x === 'string' && SECRET_KEY.test(k) && !isRef(x) && !isPlaceholder(x) && x.length >= 4 ? REDACTED : redactValue(x)
+      : typeof x === 'string' && SECRET_KEY.test(k) && !isRef(x) && !isPlaceholder(x) && x.length >= 4 ? REDACTED : redactValue(x))
     return o as T
   }
   return v

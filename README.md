@@ -6,7 +6,7 @@
   <a href="https://heindall92.github.io/mcp-shield/"><img alt="Abrir MCP-Shield" src="https://img.shields.io/badge/ABRIR-heindall92.github.io%2Fmcp--shield-10B981?style=for-the-badge"/></a>
 </p>
 <p align="center">
-  <img alt="Versión 1.3.3" src="https://img.shields.io/badge/versi%C3%B3n-1.3.3-555?style=flat"/>
+  <img alt="Versión 1.3.4" src="https://img.shields.io/badge/versi%C3%B3n-1.3.4-555?style=flat"/>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/LICENCIA-MIT-4169A1?style=flat"/></a>
   <a href="https://github.com/heindall92/mcp-shield/actions/workflows/pages.yml"><img alt="Deploy" src="https://github.com/heindall92/mcp-shield/actions/workflows/pages.yml/badge.svg"/></a>
   <img alt="SARIF 2.1.0" src="https://img.shields.io/badge/SARIF-2.1.0%20validado-3B6FD4?style=flat"/>
@@ -25,13 +25,13 @@ MCP-Shield revisa el `mcp.json` de Claude Desktop, Cursor o VS Code y te dice qu
 ```text
 mcp-shield:~$ cat mcp-shield.yaml
 ├─ entrada:     mcpServers · servers (.vscode) · mcp.servers · JSONC · BOM · límite 1 MiB / 500 servidores
-├─ reglas:      11 (supply chain 3 · filesystem 3 · secretos 2 · tool poisoning 3)
+├─ reglas:      11 de configuración (supply chain 3 · filesystem 3 · secretos 2 · tool poisoning 3) + 8 de integridad (MCPS-INT)
 ├─ salidas:     SARIF 2.1.0 · Markdown · mcp.json endurecido (${VAR}) · Dockerfile + compose · impresión/PDF
 ├─ gobernanza:  OWASP Agentic Top 10 2026 · NSA MCP CSI · ISO/IEC 42001 · CSA (mapeo orientativo)
 ├─ aplicación:  React 19 · TypeScript · Vite · Tailwind CSS 3 · Lucide
-├─ pruebas:     vitest 160 · Playwright + axe-core (4 vistas × 2 temas × 2 idiomas) · esquema SARIF oficial
+├─ pruebas:     vitest 359 · Playwright + axe-core (6 vistas × 2 temas × 2 idiomas, más móvil 320–430 px) · esquema SARIF oficial
 ╰─ seguridad:   CSP connect-src 'none' · referrer no-referrer · cero terceros · lo pegado no se persiste
-version: 1.1.0 · licencia: MIT
+version: 1.3.4 · licencia: MIT
 ```
 
 ---
@@ -131,7 +131,7 @@ Desviaciones respecto al RFC: PBKDF2 en lugar de Argon2id (WebCrypto no ofrece A
 
 | ID | Qué detecta |
 |---|---|
-| MCPS-SC-001 | `npx -y` / `uvx` / `bunx` / `pnpm dlx` sin versión exacta (incluye `cmd /c npx` y `npx.cmd`) |
+| MCPS-SC-001 | `npx -y` / `uvx` / `bunx` / `pnpm dlx` / `yarn dlx` / `npm exec` / `npm x` / `bun x` sin versión exacta (incluye `cmd /c npx`, `npx.cmd` y `--package=`) |
 | MCPS-SC-002 | Paquete npm sin scope de publisher verificable |
 | MCPS-SC-003 | Servidor remoto por `http://` o `ws://` (excepto localhost) |
 | MCPS-FS-001 | Acceso a `/`, `C:\`, home completo, `~/.ssh`, `~/.aws`, directorios de sistema (args, `-v`, `--mount`) |
@@ -155,7 +155,7 @@ Las cifras, CVE e incidentes están contrastados con fuentes primarias en [docs/
 
 ## Calidad
 
-- **Más de 300 pruebas vitest**: vectores de RFC 8785, importador y límites, huellas, cifrado (ida y vuelta, contraseña errónea, cabecera alterada), comparador (RFC-001 §13.1), aprobación TOFU, exportes sin secretos; reglas, falsos positivos con configuraciones de la documentación oficial, parser (BOM, JSONC, formatos, tamaño, entradas no objeto), ocultación contextual de secretos y control de salida en cada exporte, endurecimiento de contenedores por lista blanca con re-escaneo, cobertura de reglas, importación `tools/list`, SARIF validado con el esquema OASIS, inyección Markdown, pruebas adversariales (JSONC roto, Unicode enorme, caracteres invisibles, rutas Windows, argumentos Docker contradictorios), versión única, paridad ES/EN y contraste WCAG AA en ambos temas. Las pruebas de regresión de la auditoría externa están en `tests/audit-v122.test.ts`.
+- **Más de 300 pruebas vitest**: vectores de RFC 8785, importador y límites, huellas, cifrado (ida y vuelta, contraseña errónea, cabecera alterada), comparador (RFC-001 §13.1), aprobación TOFU, exportes sin secretos; reglas, falsos positivos con configuraciones de la documentación oficial, parser (BOM, JSONC, formatos, tamaño, entradas no objeto), ocultación contextual de secretos y control de salida en cada exporte, endurecimiento de contenedores por lista blanca con re-escaneo, cobertura de reglas, importación `tools/list`, SARIF validado con el esquema OASIS, inyección Markdown, pruebas adversariales (JSONC roto, Unicode enorme, caracteres invisibles, rutas Windows, argumentos Docker contradictorios), versión única, paridad ES/EN y contraste WCAG AA en ambos temas. Las pruebas de regresión de la auditoría externa están en `tests/audit-v122.test.ts`, y las de nombres que chocan con `Object.prototype`, en `tests/keys-v134.test.ts`.
 - **CI**: el despliegue en Pages solo ocurre si pasan lint, tipos, pruebas, build, comprobación de cero egress, `npm audit --omit=dev`, e2e (Playwright + axe + prueba negativa de red) y CodeQL; dependency review en pull requests.
 - **Playwright + axe-core**: 0 violaciones WCAG 2 A/AA en Auditor, Integridad, paleta, Ayuda, Gobernanza y Simulador, en claro/oscuro y ES/EN; cero peticiones externas; ningún secreto en `localStorage`.
 - `oxlint` sin avisos. `npm audit --omit=dev`: 0 vulnerabilidades (los avisos restantes son de herramientas de desarrollo ligadas a Tailwind 3).
@@ -181,11 +181,13 @@ Las cifras, CVE e incidentes están contrastados con fuentes primarias en [docs/
 
 ```text
 src/
-  engine/        parse · scanner · rules/ · redact · remediator · sarifExporter · governance · simulation
+  engine/        parse · scanner · rules/ · redact · remediator · sarifExporter · governance · simulation · ownKeys
+  integrity/     monitor de integridad: captura, huellas, cifrado, comparador, reglas MCPS-INT, exportes
   components/    auditor/ · simulator/ · governance/ · help/ · ui/ (paleta, toasts, diálogos, segmented)
   i18n/          ui.ts (ES/EN) · prefs · storage
   data/          escenarios, ejemplos de demo, incidentes
 tests/           vitest + esquema SARIF oficial
+scripts/         e2e.mjs y e2e-mobile.mjs (Playwright + axe) · sync-version.mjs
 docs/            SOURCES.md · DESIGN-REFERENCES.md · img/
 ```
 

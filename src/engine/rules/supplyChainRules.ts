@@ -1,6 +1,6 @@
 import type { Rule, Finding } from '../../types/mcp.types'
 import { pick } from '../../i18n/lang'
-import { mk, launcher } from './util'
+import { mk, launcher, runnerSubcommand } from './util'
 
 /** Detects remote package execution without a pinned version (rug-pull class, e.g. postmark-mcp). */
 const PINNED = /^(@[^/]+\/)?[^@]+@\d+\.\d+\.\d+(-[\w.]+)?$/
@@ -8,6 +8,9 @@ const KNOWN_PUBLISHERS = ['@modelcontextprotocol/', '@anthropic-ai/', '@cloudfla
 
 function pkgFromArgs(args: string[]): { pkg: string; idx: number } | null {
   const WITH_VALUE = new Set(['-p', '--package', '--from', '--with', '--python', '--registry', '--cache'])
+  // npm exec --package=pkg -- bin: the package is the --package value, not the binary after "--"
+  const inline = args.findIndex(a => /^--package=./.test(a))
+  if (inline >= 0) return { pkg: args[inline].slice('--package='.length), idx: inline }
   for (let i = 0; i < args.length; i++) {
     if (WITH_VALUE.has(args[i])) { i++; continue }
     if (!args[i].startsWith('-')) return { pkg: args[i], idx: i }
@@ -21,16 +24,16 @@ export const unpinnedNpx: Rule = {
     const L = (es: string, en: string) => pick(lang, es, en)
     const out: Finding[] = []
     const { cmd, args, offset } = launcher(server)
-    const pnpmDlx = cmd === 'pnpm' && args[0] === 'dlx'
-    if (!['npx', 'bunx', 'uvx', 'pnpx', 'yarn'].includes(cmd) && !pnpmDlx) return out
-    if (cmd === 'yarn' && args[0] !== 'dlx') return out
-    const dlx = cmd === 'yarn' || pnpmDlx ? 1 : 0
+    // Subcommands that download and run a package like npx: pnpm/yarn dlx, npm exec / npm x, bun x
+    const sub = runnerSubcommand(cmd, args[0])
+    if (!['npx', 'bunx', 'uvx', 'pnpx'].includes(cmd) && !sub) return out
+    const dlx = sub ? 1 : 0
     const p0 = pkgFromArgs(args.slice(dlx))
     const p = p0 && { ...p0, idx: p0.idx + dlx }
     if (!p) return out
     const autoYes = args.includes('-y') || args.includes('--yes')
     const pinned = cmd === 'uvx' ? /(==|@)\d/.test(p.pkg) || args.some(a => /^--from=?/.test(a)) && /(==|@)\d/.test(args.join(' ')) : PINNED.test(p.pkg)
-    const label = `${cmd}${autoYes ? ' -y' : ''}`
+    const label = `${cmd}${sub ? ` ${args[0]}` : ''}${autoYes ? ' -y' : ''}`
     if (!pinned) out.push(mk({
       ruleId: 'MCPS-SC-001', category: 'supply-chain', severity: autoYes ? 'high' : 'medium', server: serverName,
       title: L(`${label} ejecuta "${p.pkg}" sin versión anclada`, `${label} runs "${p.pkg}" without a pinned version`),
