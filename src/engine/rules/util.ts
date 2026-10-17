@@ -25,6 +25,10 @@ export function launcher(s: McpServerConfig): { cmd: string; args: string[]; off
   return { cmd, args, offset }
 }
 
+/** `pnpm dlx`, `yarn dlx`, `npm exec`, `npm x` and `bun x` fetch and run a package exactly like npx. */
+export const runnerSubcommand = (cmd: string, first: string | undefined): boolean =>
+  ((cmd === 'pnpm' || cmd === 'yarn') && first === 'dlx') || (cmd === 'npm' && (first === 'exec' || first === 'x')) || (cmd === 'bun' && first === 'x')
+
 /** Host side of a `-v` spec, Windows-aware: `C:\\Users\\me:/data:ro` -> `C:\\Users\\me`, `/etc:/x` -> `/etc`. */
 export function volumeSource(spec: string): string {
   const v = spec.trim()

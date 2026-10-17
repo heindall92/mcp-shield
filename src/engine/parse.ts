@@ -1,6 +1,7 @@
 import type { McpConfig, McpServerConfig, McpToolDefinition } from '../types/mcp.types'
 import type { Lang } from '../i18n/lang'
 import { pick } from '../i18n/lang'
+import { setOwn } from './ownKeys'
 
 /** 1 MiB is ~100× a large real mcp.json; bigger input is refused before parsing. */
 export const MAX_INPUT_BYTES = 1024 * 1024
@@ -43,7 +44,7 @@ const strMap = (v: unknown, where: string, warn: (s: string) => void): Record<st
   if (v === undefined) return undefined
   if (!isObj(v)) { warn(where); return undefined }
   const o: Record<string, string> = {}
-  for (const [k, x] of Object.entries(v)) if (x !== null && x !== undefined) o[k] = typeof x === 'string' ? x : JSON.stringify(x)
+  for (const [k, x] of Object.entries(v)) if (x !== null && x !== undefined) setOwn(o, k, typeof x === 'string' ? x : JSON.stringify(x))
   return o
 }
 
@@ -92,7 +93,7 @@ export function parseMcp(text: string, lang: Lang = 'es'): ParseResult {
       const headers = strMap(v.headers, L(`"${name}.headers" no es un objeto.`, `"${name}.headers" is not an object.`), w => warnings.push(w)); if (headers) s.headers = headers
       if (Array.isArray(v.tools)) s.tools = v.tools.filter(isObj).map(t => ({ name: String(t.name ?? '?'), description: typeof t.description === 'string' ? t.description : undefined, inputSchema: isObj(t.inputSchema) ? t.inputSchema : undefined }) as McpToolDefinition)
       if (!s.command && !s.url) warnings.push(L(`"${name}" no tiene "command" ni "url".`, `"${name}" has neither "command" nor "url".`))
-      mcpServers[name] = s
+      setOwn(mcpServers, name, s)
     }
     // A bare tools/list snapshot pasted at root is also accepted
     return { config: { mcpServers }, warnings, format }
