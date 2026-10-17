@@ -149,9 +149,9 @@ describe('markdown injection', () => {
 })
 
 describe('reset', () => {
-  it('clears app keys but keeps theme/lang', () => {
-    const m = new Map([['mcps-lang', 'en'], ['mcps-theme', 'light'], ['mcps-draft', 'x'], ['other-app', 'y']])
+  it('clears app keys but keeps theme/lang/accent', () => {
+    const m = new Map([['mcps-lang', 'en'], ['mcps-theme', 'light'], ['mcps-accent', 'verde'], ['mcps-draft', 'x'], ['other-app', 'y']])
     clearAppStorage({ get length() { return m.size }, key: (i: number) => [...m.keys()][i] ?? null, removeItem: (k: string) => { m.delete(k) } })
-    expect([...m.keys()].sort()).toEqual(['mcps-lang', 'mcps-theme', 'other-app'])
+    expect([...m.keys()].sort()).toEqual(['mcps-accent', 'mcps-lang', 'mcps-theme', 'other-app'])
   })
 })

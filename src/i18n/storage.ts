@@ -1,5 +1,5 @@
-const KEEP = new Set(['mcps-lang', 'mcps-theme'])
-/** Remove every app-owned key (mcps-*) except the language/theme preferences. */
+const KEEP = new Set(['mcps-lang', 'mcps-theme', 'mcps-accent'])
+/** Remove every app-owned key (mcps-*) except the language, theme and accent preferences. */
 export function clearAppStorage(store: Pick<Storage, 'length' | 'key' | 'removeItem'> | undefined = typeof localStorage === 'undefined' ? undefined : localStorage) {
   if (!store) return
   try {

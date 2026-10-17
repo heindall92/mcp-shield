@@ -13,7 +13,7 @@ export function Governance() {
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-slate-400">{t.govKicker}</p>
+        <p className="kicker">{t.govKicker}</p>
         <h1 className="display mt-1.5 text-white">{t.govTitle}</h1>
         <p className="mt-1.5 max-w-3xl text-[0.875rem] leading-relaxed text-slate-400">{t.govIntro}</p>
       </div>
@@ -40,7 +40,7 @@ export function Governance() {
             <p className="mt-2.5 flex items-center gap-1.5 text-[0.75rem] text-emerald-300"><Scale size={12} aria-hidden />{i.lesson}<ExternalLink size={11} className="ml-auto text-slate-400 group-hover:text-cyan-300" aria-hidden /></p>
           </a>))}
       </div>
-      <ul className="flex flex-wrap gap-x-5 gap-y-1 text-[0.75rem]">{fw.map(f => <li key={f.id}><a className="focus-ring inline-flex items-center gap-1 rounded text-cyan-300 hover:underline" href={f.url} target="_blank" rel="noreferrer noopener">{f.name}<ExternalLink size={11} aria-hidden /></a></li>)}</ul>
+      <ul className="flex flex-wrap gap-x-5 gap-y-1 text-[0.75rem]">{fw.map(f => <li key={f.id}><a className="focus-ring inline-flex items-center gap-1 rounded text-accent hover:underline" href={f.url} target="_blank" rel="noreferrer noopener">{f.name}<ExternalLink size={11} aria-hidden /></a></li>)}</ul>
     </div>
   )
 }

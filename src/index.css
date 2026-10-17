@@ -9,18 +9,20 @@ h2,h3{letter-spacing:-0.01em}
 .press{transition-property:transform,background-color,color,border-color;transition-duration:160ms;transition-timing-function:cubic-bezier(.23,1,.32,1)}
 .press:active{transform:scale(0.97);transition-duration:100ms}
 .press-soft:active{background-color:rgb(var(--white)/0.03)}
-::selection{background:rgb(var(--cyan-400)/0.3)}
+::selection{background:rgb(var(--accent)/0.3)}
 .scroll-thin::-webkit-scrollbar{width:6px;height:6px}
 .scroll-thin::-webkit-scrollbar-thumb{background:rgb(var(--slate-800));border-radius:3px}
 @layer components{
-  .btn-primary{@apply inline-flex h-11 sm:h-9 items-center gap-2 rounded-xl bg-slate-50 px-4 text-[0.875rem] font-semibold text-slate-950 shadow-[0_1px_0_rgb(var(--white)/0.4)_inset,0_6px_20px_-8px_rgb(var(--black)/0.6)] transition-[transform,background-color] duration-150 ease-out hover:bg-white active:scale-[0.97]}
+  .btn-primary{@apply inline-flex h-11 sm:h-9 items-center gap-2 rounded-xl bg-accent px-4 text-[0.875rem] font-semibold text-accent-ink shadow-[0_1px_0_rgb(var(--white)/0.25)_inset,0_6px_20px_-8px_rgb(var(--accent)/0.55)] transition-[transform,background-color] duration-150 ease-out hover:bg-accent-strong active:scale-[0.97]}
+  /* Page kicker (antetítulo): monospace, accent, wide tracking. One per view. */
+  .kicker{@apply font-mono text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-accent}
   .btn-ghost{@apply inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-[0.875rem] text-slate-300 transition-[background-color,transform] duration-150 ease-out hover:bg-white/[0.07] hover:text-white active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40}
   /* Button hierarchy: solid primary · neutral grey secondary · outlined tertiary. Min 44px tall on touch. */
   .btn-secondary{@apply inline-flex h-11 items-center gap-2 rounded-xl bg-slate-800 px-4 text-[0.875rem] font-medium text-slate-100 transition-[background-color,transform] duration-150 ease-out hover:bg-slate-700 active:scale-[0.97] sm:h-9}
   .btn-tertiary{@apply inline-flex h-11 items-center gap-2 rounded-xl border border-slate-500 bg-transparent px-4 text-[0.875rem] font-medium text-slate-200 transition-[background-color,border-color,transform] duration-150 ease-out hover:border-slate-400 hover:bg-white/[0.04] hover:text-white active:scale-[0.97] disabled:cursor-not-allowed disabled:border-dashed disabled:text-slate-400 disabled:hover:bg-transparent sm:h-9}
   .btn-chip{@apply inline-flex items-center gap-1.5 rounded-lg border border-white/[0.07] bg-white/[0.025] px-2.5 py-1.5 text-[0.75rem] text-slate-300 transition-[background-color,transform] duration-150 hover:bg-white/[0.06] hover:text-white active:scale-[0.97]}
   .card{@apply rounded-[18px] border border-white/[0.07] bg-white/[0.02] shadow-[inset_0_1px_0_rgb(var(--white)/0.035)]}
-  .focus-ring{@apply outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas}
+  .focus-ring{@apply outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas}
 }
 .sev-critical{@apply bg-red-400/[0.14] text-red-200}
 .sev-high{@apply bg-orange-400/[0.14] text-orange-200}
@@ -82,3 +84,8 @@ dialog.modal[open]{animation:modal-in .22s cubic-bezier(.23,1,.32,1)}
 .bottom-bar{background:rgb(var(--canvas)/.72);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
 @media (prefers-reduced-transparency:reduce){.bottom-bar{background:rgb(var(--canvas));-webkit-backdrop-filter:none;backdrop-filter:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.bottom-bar{background:rgb(var(--canvas))}}
+/* Risk meter (v1.4.0): band fills reuse the semantic hues; the needle eases to the new score. */
+.meter-emerald{background:rgb(var(--emerald-400))}.meter-slate{background:rgb(var(--slate-500))}.meter-amber{background:rgb(var(--amber-300))}.meter-orange{background:rgb(var(--orange-400))}.meter-red{background:rgb(var(--red-400))}
+.meter-chip-emerald{@apply bg-emerald-400/[0.14] text-emerald-200}.meter-chip-slate{@apply bg-slate-400/[0.14] text-slate-300}.meter-chip-amber{@apply bg-amber-400/[0.12] text-amber-200}.meter-chip-orange{@apply bg-orange-400/[0.14] text-orange-200}.meter-chip-red{@apply bg-red-400/[0.14] text-red-200}
+.meter-needle{transition:left .5s cubic-bezier(.23,1,.32,1)}
+@media (prefers-reduced-motion:reduce){.meter-needle{transition:none}}
