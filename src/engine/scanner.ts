@@ -7,6 +7,7 @@ import { poisoningRules } from './rules/poisoningRules'
 import { smugglingRules } from './rules/smugglingRules'
 import { parseMcp } from './parse'
 import { redactFinding } from './redact'
+import { bandOf } from './grades'
 
 export const ALL_RULES: Rule[] = [...supplyChainRules, ...filesystemRules, ...secretRules, ...poisoningRules, ...smugglingRules]
 const WEIGHT: Record<Severity, number> = { critical: 25, high: 12, medium: 6, low: 2 }
@@ -43,7 +44,7 @@ export function scanConfig(config: McpConfig, lang: Lang = 'es', rules: Rule[] =
   const raw = findings.reduce((s, f) => s + WEIGHT[f.severity], 0)
   const riskScore = Math.min(100, Math.round(100 * (1 - Math.exp(-raw / 60))))
   const complete = servers.length > 0 && !coverage.some(c => c.status === 'ERROR')
-  const letter = riskScore >= 80 ? 'F' : riskScore >= 60 ? 'D' : riskScore >= 35 ? 'C' : riskScore >= 10 ? 'B' : 'A'
+  const letter = bandOf(riskScore).g
   const grade: ScanResult['grade'] = !complete && letter === 'A' ? 'N/A' : letter
   return { findings, riskScore, grade, complete, coverage, serversScanned: servers.length, counts,
     surfaces: { config: true, servers: servers.length, toolServers: toolServers.length, tools: toolServers.reduce((n, [, s]) => n + (s.tools?.length ?? 0), 0) } }

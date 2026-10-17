@@ -64,6 +64,22 @@ for (const theme of ['dark', 'light']) for (const lang of ['es', 'en']) {
     await p.fill('[data-testid=editor]', JSON.stringify({ mcpServers: { [nm]: { command: 'npx', args: ['-y', 'evil-pkg', '/'] } } }))
     try { await p.waitForSelector(`[data-testid=findings] article:has-text("${nm}")`, { timeout: 4000 }) } catch { errs.push('server hidden or Auditor crashed: ' + nm) }
   }
+  // v1.4.0: accent picker (seven ecosystem accents), risk meter, ecosystem section
+  if (!(await p.locator('[data-testid=risk-meter]').count())) errs.push('risk meter missing')
+  await p.click('[data-testid=accent-btn]'); await p.waitForSelector('[data-testid=accent-swatches]')
+  if ((await p.locator('[data-testid=accent-swatches] button').count()) !== 7) errs.push('expected 7 accents')
+  if ((await p.locator('[data-testid=accent-swatches] [aria-pressed=true]').getAttribute('data-accent-id')) !== 'azul') errs.push('default accent is not azul')
+  await a11y('accent-picker')
+  await p.click('[data-accent-id=verde]')
+  if ((await p.evaluate(() => document.documentElement.dataset.accent)) !== 'verde') errs.push('accent not applied')
+  await p.keyboard.press('Escape'); if (await p.locator('[data-testid=accent-swatches]').count()) errs.push('accent popover did not close on Escape')
+  await p.reload(); await p.waitForSelector('[data-testid=editor]')
+  if ((await p.evaluate(() => [document.documentElement.dataset.accent, localStorage.getItem('mcps-accent')].join())) !== 'verde,verde') errs.push('accent not persisted')
+  await a11y('accent-verde')
+  await p.goto(U + '#ayuda/ecosistema'); await p.waitForSelector('[data-testid=eco] li')
+  if ((await p.locator('[data-testid=eco] ol li').count()) !== 4 || (await p.locator('[data-testid=eco] ul li').count()) !== 8) errs.push('ecosystem section incomplete')
+  await a11y('ecosystem')
+  await p.goto(U + '#auditor'); await p.evaluate(() => localStorage.setItem('mcps-accent', 'azul')); await p.reload(); await p.waitForSelector('[data-testid=editor]')
   // v1.3.0: integrity monitor (TOFU, diff, context mismatch)
   await p.goto(U + '#integridad'); await p.waitForSelector('[data-testid=int-demo]'); await a11y('integrity-empty')
   await p.click('[data-testid=int-demo]'); await p.waitForSelector('[data-testid=int-review] input[type=checkbox]')
@@ -105,6 +121,15 @@ for (const theme of ['dark', 'light']) for (const lang of ['es', 'en']) {
   if (before === after) errs.push('theme toggle key failed')
   const store = await p.evaluate(() => JSON.stringify(localStorage)); if (/FAKE/.test(store)) errs.push('secret in storage')
   console.log(theme, lang, 'ok', JSON.stringify(Object.keys(JSON.parse(store))))
+  await ctx.close()
+}
+// v1.4.0: the header (with the accent picker) fits on one line and never causes horizontal scroll on tablets and laptops
+for (const w of [768, 1024, 1280, 1440]) for (const lang of ['es', 'en']) {
+  const ctx = await b.newContext({ viewport: { width: w, height: 700 } })
+  await ctx.addInitScript(l => { localStorage.setItem('mcps-lang', l); localStorage.setItem('mcps-onboarded', '1') }, lang)
+  const p = await ctx.newPage(); await p.goto(U); await p.waitForSelector('[data-testid=editor]')
+  const r = await p.evaluate(() => ({ over: document.documentElement.scrollWidth > innerWidth, h: document.querySelector('header > div').getBoundingClientRect().height }))
+  if (r.over || r.h > 64) errs.push(`header ${w}px ${lang}: overflow=${r.over} height=${r.h}`)
   await ctx.close()
 }
 console.log('external', ext, 'errors', errs, 'axe', axe)

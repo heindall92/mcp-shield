@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { parseMcp } from '../src/engine/parse'
 import { scanText, scanConfig } from '../src/engine/scanner'
 import { mergeTools } from '../src/engine/toolsImport'
-import { remediate } from '../src/engine/remediator'
+import { remediate, dockerSnippet } from '../src/engine/remediator'
 import { redactValue } from '../src/engine/redact'
 import { toSarif } from '../src/engine/sarifExporter'
 
@@ -96,5 +96,27 @@ describe('the hardened config handles npm exec / bun x / pnpm dlx like npx', () 
   it('the re-scan of the hardened config no longer flags MCPS-SC-001', () => {
     const fixed = remediate({ mcpServers: { s: { command: 'npm', args: ['exec', '-y', 'evil-pkg'] } } })
     expect(scanConfig(fixed).findings.filter(f => f.ruleId === 'MCPS-SC-001')).toHaveLength(0)
+  })
+})
+
+describe('Bugbot review: --package with a space and the generated Dockerfile', () => {
+  const sc = (command: string, args: string[]) => scanConfig({ mcpServers: { s: { command, args } } }).findings.filter(f => f.ruleId === 'MCPS-SC-001')
+  const img = (command: string, args: string[]) => remediate({ mcpServers: { s: { command, args } } }).mcpServers.s.args!.find(a => a.startsWith('mcp-sandbox/'))
+  it('npm exec --package pkg / -p pkg are analysed', () => {
+    expect(sc('npm', ['exec', '--package', 'evil-pkg', '--', 'evil'])).toHaveLength(1)
+    expect(sc('npm', ['exec', '-p', 'evil-pkg', '--', 'evil'])).toHaveLength(1)
+    expect(sc('npx', ['-p', 'evil-pkg', 'evil'])).toHaveLength(1)
+    expect(sc('npx', ['-p', 'evil-pkg@1.2.3', 'evil'])).toHaveLength(0)
+  })
+  it('the hardened image is named after the --package value', () => {
+    expect(img('npm', ['exec', '--package', 'evil-pkg', '--', 'evil'])).toBe('mcp-sandbox/evil-pkg:pinned')
+    expect(img('npx', ['-p', 'evil-pkg@1.2.3', 'evil'])).toBe('mcp-sandbox/evil-pkg:1.2.3')
+  })
+  it('the Dockerfile installs the package, never the subcommand', () => {
+    for (const [command, args] of [['npm', ['exec', '-y', 'evil-pkg']], ['npm', ['x', 'evil-pkg']], ['bun', ['x', 'evil-pkg']], ['pnpm', ['dlx', 'evil-pkg']], ['npm', ['exec', '--package', 'evil-pkg', '--', 'evil']]] as [string, string[]][]) {
+      const d = dockerSnippet({ mcpServers: { s: { command, args } } })
+      expect(d, `${command} ${args.join(' ')}`).toContain('RUN npm install --omit=dev --ignore-scripts evil-pkg@1.0.0')
+      expect(d).not.toMatch(/npm install[^\n]* (exec|x|dlx)@/)
+    }
   })
 })

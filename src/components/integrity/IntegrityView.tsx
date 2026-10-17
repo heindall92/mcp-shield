@@ -132,7 +132,7 @@ export function IntegrityView() {
     <div className="space-y-5" data-testid="integrity">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
-          <p className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-slate-400">{s.kicker}</p>
+          <p className="kicker">{s.kicker}</p>
           <h1 className="mt-1 text-[1.75rem] font-semibold tracking-[-0.025em] text-white">{s.title}</h1>
           <p className="mt-1.5 max-w-3xl text-[0.875rem] leading-relaxed text-slate-300">{s.sub}</p>
         </div>

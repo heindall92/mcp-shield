@@ -6,7 +6,7 @@
   <a href="https://heindall92.github.io/mcp-shield/"><img alt="Abrir MCP-Shield" src="https://img.shields.io/badge/ABRIR-heindall92.github.io%2Fmcp--shield-10B981?style=for-the-badge"/></a>
 </p>
 <p align="center">
-  <img alt="Versión 1.3.4" src="https://img.shields.io/badge/versi%C3%B3n-1.3.4-555?style=flat"/>
+  <img alt="Versión 1.4.0" src="https://img.shields.io/badge/versi%C3%B3n-1.4.0-555?style=flat"/>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/LICENCIA-MIT-4169A1?style=flat"/></a>
   <a href="https://github.com/heindall92/mcp-shield/actions/workflows/pages.yml"><img alt="Deploy" src="https://github.com/heindall92/mcp-shield/actions/workflows/pages.yml/badge.svg"/></a>
   <img alt="SARIF 2.1.0" src="https://img.shields.io/badge/SARIF-2.1.0%20validado-3B6FD4?style=flat"/>
@@ -29,9 +29,9 @@ mcp-shield:~$ cat mcp-shield.yaml
 ├─ salidas:     SARIF 2.1.0 · Markdown · mcp.json endurecido (${VAR}) · Dockerfile + compose · impresión/PDF
 ├─ gobernanza:  OWASP Agentic Top 10 2026 · NSA MCP CSI · ISO/IEC 42001 · CSA (mapeo orientativo)
 ├─ aplicación:  React 19 · TypeScript · Vite · Tailwind CSS 3 · Lucide
-├─ pruebas:     vitest 359 · Playwright + axe-core (6 vistas × 2 temas × 2 idiomas, más móvil 320–430 px) · esquema SARIF oficial
+├─ pruebas:     vitest 385 · Playwright + axe-core (6 vistas × 2 temas × 2 idiomas, más móvil 320–430 px) · esquema SARIF oficial
 ╰─ seguridad:   CSP connect-src 'none' · referrer no-referrer · cero terceros · lo pegado no se persiste
-version: 1.3.4 · licencia: MIT
+version: 1.4.0 · licencia: MIT
 ```
 
 ---
@@ -44,6 +44,7 @@ version: 1.3.4 · licencia: MIT
 - [Arranque rápido](#arranque-rápido)
 - [Arquitectura](#arquitectura)
 - [Monitor de integridad](#monitor-de-integridad)
+- [Ecosistema GRC](#ecosistema-grc)
 - [Reglas](#reglas)
 - [Calidad](#calidad)
 - [Seguridad y privacidad](#seguridad-y-privacidad)
@@ -127,6 +128,29 @@ Nuevo en v1.3.0 (RFC-001 «Tool Integrity Monitor», parte web offline). Compara
 
 Desviaciones respecto al RFC: PBKDF2 en lugar de Argon2id (WebCrypto no ofrece Argon2 y no se añaden dependencias criptográficas); `extensions` no es un campo de Tool en MCP 2026-07-28 y se usa solo como contenedor propio de claves desconocidas; los iconos se tratan como metadatos de anotación; MCPS-INT-006 compara nombres nuevos con la baseline (no con todos los perfiles guardados, porque no se guardan).
 
+## Ecosistema GRC
+
+MCP-Shield forma parte de las herramientas GRC de código abierto del autor, que se pasan los datos en ficheros y sin servidor. Los hallazgos de tu `mcp.json` llegan como evidencia técnica a los controles de Rosetta:
+
+1. **MCP-Shield** → exporta el SARIF del Auditor.
+2. **CTEM-Nexus** → Priorización → «Importar escáner»: lo reconoce como SARIF 2.1.0 y crea el activo «Código analizado con MCP-Shield», con un hallazgo por resultado y su severidad.
+3. CTEM-Nexus asocia cada hallazgo a controles unificados (secretos → ACC-01/ACC-03; CVE → OPE-04/OPE-05; el resto → OPE-01/OPE-02) y en *Ecosistema* exporta la evidencia por control.
+4. **Rosetta** → Exportar → CTEM-Nexus: la evidencia cuenta en ENS, ISO/IEC 27001, NIS2, ISO/IEC 42001 y el RIA; la regla CO-23 avisa si un control declarado implantado tiene hallazgos críticos o altos abiertos.
+
+Comprobado en la 1.4.0 con el importador real de CTEM-Nexus y el SARIF de la demo «Portátil de dev típico» (10 hallazgos importados, 0 descartados).
+
+<p align="center"><img src="docs/img/ecosistema-light.png" alt="Sección Ecosistema GRC de la ayuda: los cuatro pasos y las herramientas con Abrir y Código" width="760"/></p>
+
+| Herramienta | Qué hace |
+|---|---|
+| [Rosetta Multinorma](https://heindall92.github.io/rosetta_multinorma/) | 16 normas y leyes sobre 152 controles unificados |
+| [ENS Compliance Studio](https://heindall92.github.io/grc_ens_compliance_studio/) | Categorización ENS, MAGERIT y declaración de aplicabilidad |
+| [CTEM-Nexus](https://heindall92.github.io/ctem-nexus/) | Exposición técnica y rutas de ataque hacia los activos críticos |
+| [KAIROS](https://heindall92.github.io/kairos/) | Continuidad: BIA, BCP, DRP y ruta crítica |
+| [ENS AD Auditor](https://heindall92.github.io/ens_ad-auditor/) | Directorio Activo frente a las medidas del ENS |
+| [ARGOS](https://heindall92.github.io/argos-grc/) | Laboratorio GRC con rutas, máquinas y simulacros |
+| [Norvik](https://github.com/heindall92/Norvik_Gobernanza) | Gobernanza: roles, políticas y el marco que une al resto |
+
 ## Reglas
 
 | ID | Qué detecta |
@@ -164,7 +188,7 @@ Las cifras, CVE e incidentes están contrastados con fuentes primarias en [docs/
 
 - **Sin servidor, analítica, cookies ni terceros.** Fuentes Inter y JetBrains Mono (variables, OFL 1.1) autoalojadas con Fontsource bajo `font-src 'self'`, con fuentes del sistema como respaldo; ninguna petición a otro origen. La figura «Cero telemetría» de la ayuda muestra el recuento real de peticiones externas (Resource Timing API).
 - **CSP** en `<meta>`: `default-src 'self'; script-src 'self'; connect-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'`, más `<meta name="referrer" content="no-referrer">`.
-- **Secretos (mejor esfuerzo)**: los detectados —formatos conocidos y cualquier valor en posiciones sensibles (`env`, `-e KEY=VAL`, `--env`, cabeceras, parámetros de URL, valor tras `--token`/`--key`/`--password`…) salvo literales seguros— se ocultan en pantalla, SARIF, Markdown, impresión y portapapeles; la config corregida usa referencias `${VAR}`. Un control final escanea cada exportación (patrones y cadenas de alta entropía) y la bloquea si queda algo sospechoso. Ninguna detección es perfecta: revisa lo que compartes. El texto pegado nunca se guarda ni se registra. `localStorage` solo contiene `mcps-lang`, `mcps-theme` y `mcps-onboarded`.
+- **Secretos (mejor esfuerzo)**: los detectados —formatos conocidos y cualquier valor en posiciones sensibles (`env`, `-e KEY=VAL`, `--env`, cabeceras, parámetros de URL, valor tras `--token`/`--key`/`--password`…) salvo literales seguros— se ocultan en pantalla, SARIF, Markdown, impresión y portapapeles; la config corregida usa referencias `${VAR}`. Un control final escanea cada exportación (patrones y cadenas de alta entropía) y la bloquea si queda algo sospechoso. Ninguna detección es perfecta: revisa lo que compartes. El texto pegado nunca se guarda ni se registra. `localStorage` solo contiene `mcps-lang`, `mcps-theme`, `mcps-accent` y `mcps-onboarded`.
 - **XSS**: React escapa toda salida; los exportes Markdown escapan HTML, `|` y backticks.
 - **Cabeceras HTTP en GitHub Pages**: Pages no permite configurar cabeceras de respuesta ([github/pages-gem#415](https://github.com/github/pages-gem/issues/415)). GitHub ya envía `Strict-Transport-Security` (comprobado con `curl -I`), pero no es posible añadir `X-Frame-Options` ni `Content-Security-Policy` como cabecera, y `frame-ancestors` se ignora dentro de `<meta>` ([CSP3](https://www.w3.org/TR/CSP3/#meta-element)). La app no tiene acciones con estado que un *clickjacking* pueda aprovechar; si lo necesitas, sírvela tras un proxy (p. ej. Cloudflare) que añada esas cabeceras.
 - Para informar de una vulnerabilidad: [SECURITY.md](SECURITY.md).
@@ -205,13 +229,15 @@ El software se ofrece «tal cual», sin garantía. Úsalo solo con configuracion
 <a href="https://www.linkedin.com/in/yoandyrd92/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a>
 <a href="https://yoandyramirez.com"><img alt="Portafolio" src="https://img.shields.io/badge/Portafolio-10B981?style=flat"/></a>
 
-Otras herramientas: [Rosetta](https://heindall92.github.io/rosetta_multinorma/) · [GRC ENS Compliance Studio](https://heindall92.github.io/grc_ens_compliance_studio/) · [CTEM-Nexus](https://heindall92.github.io/ctem-nexus/) · [Auditor LLM](https://heindall92.github.io/auditor_llm/) · [Kairos](https://heindall92.github.io/kairos/) · [Argos GRC](https://heindall92.github.io/argos-grc/)
+Otras herramientas del autor: ver [Ecosistema GRC](#ecosistema-grc) y [Auditor LLM](https://heindall92.github.io/auditor_llm/).
 
 ---
 
 ## English
 
 **MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 11 rules for supply chain, filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. New in v1.3.0: an offline **integrity monitor** that pins an approved `tools/list` inventory (RFC 8785 canonicalisation, SHA-256 + in-memory HMAC-SHA-256), diffs new captures field by field (rules MCPS-INT-001..008, CONTEXT_MISMATCH blocks cross-identity diffs), requires explicit human approval with a TOFU checklist and can save an AES-256-GCM encrypted baseline package (PBKDF2-SHA256, 600,000 iterations). The local capture CLI is not implemented yet: Integrity works with imported snapshots and demos; the planned next step is an optional local collector for authorized servers. A partial capture can only create a clearly labelled provisional baseline. Detected secrets are masked on screen and in every export, and a final output check blocks a download if anything secret-shaped remains (best effort, not a guarantee). Pasted text is never stored. It also ships an educational kill-chain simulator with fictitious data, a governance matrix (OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001, CSA) and a help centre with a command palette (Ctrl/⌘+K) and keyboard shortcuts.
+
+New in v1.4.0: seven ecosystem accent colours (electric blue by default), a linear risk meter (rings are Rosetta's signature), localised severities, cleaner SARIF rule metadata and a GRC ecosystem guide: the SARIF imports into CTEM-Nexus and reaches Rosetta as control evidence (verified with CTEM-Nexus's own importer).
 
 - Live: **https://heindall92.github.io/mcp-shield/**
 - Security headers: GitHub Pages cannot set response headers. HSTS is sent by GitHub; `X-Frame-Options` and header-based CSP/`frame-ancestors` are not available, so the CSP is delivered via `<meta>` (with `connect-src 'none'`) plus a `no-referrer` policy.

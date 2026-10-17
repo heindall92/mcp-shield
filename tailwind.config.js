@@ -1,4 +1,4 @@
-import { tailwindColors, cssVars } from './palette.js'
+import { tailwindColors, cssVars, accentRules } from './palette.js'
 import plugin from 'tailwindcss/plugin.js'
 
 /** @type {import('tailwindcss').Config} */
@@ -15,5 +15,5 @@ export default {
       animation: { fadein: 'fadein 240ms cubic-bezier(.23,1,.32,1) both' },
     },
   },
-  plugins: [plugin(({ addBase }) => addBase({ ':root': { ...cssVars('dark'), colorScheme: 'dark' }, ':root.light': { ...cssVars('light'), colorScheme: 'light' } }))],
+  plugins: [plugin(({ addBase }) => { addBase({ ':root': { ...cssVars('dark'), colorScheme: 'dark' }, ':root.light': { ...cssVars('light'), colorScheme: 'light' } }); addBase(accentRules()) })],
 }
