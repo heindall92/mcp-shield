@@ -1,4 +1,6 @@
-![header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=2,12,20,30&height=200&section=header&text=MCP-SHIELD&fontSize=64&fontColor=fff&animation=twinkling&fontAlignY=35&desc=Auditor%20de%20configuraciones%20MCP%20%C2%B7%20Kill-chain%20%C2%B7%20Integridad%20%C2%B7%20Gobernanza&descSize=18&descAlignY=56&descAlign=50)
+<p align="center">
+  <img src="docs/assets/banner.svg" width="100%" alt="MCP-Shield: un escudo azul que se dibuja, escanea por dentro y neutraliza los paquetes que llegan. Auditor de configuraciones del Model Context Protocol"/>
+</p>
 
 <p align="center">
   <b>Auditor de seguridad para configuraciones del Model Context Protocol (Claude Desktop, Cursor, VS Code): detecta los servidores MCP que te ponen en riesgo, genera la configuración endurecida y vigila que las herramientas aprobadas no cambien a escondidas.</b>
@@ -9,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión 1.5.1" src="https://img.shields.io/badge/versi%C3%B3n-1.5.1-555?style=flat"/>
+  <img alt="Versión 1.5.2" src="https://img.shields.io/badge/versi%C3%B3n-1.5.2-555?style=flat"/>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/LICENCIA-MIT-4169A1?style=flat"/></a>
   <img alt="MCP 2026-07-28" src="https://img.shields.io/badge/MCP-2026--07--28-3D6BFF?style=flat"/>
   <img alt="OWASP Agentic Top 10" src="https://img.shields.io/badge/OWASP-Agentic%20Top%2010-E0457B?style=flat"/>
@@ -103,7 +105,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 1.5.1&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 412 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 1.5.2&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 412 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -242,6 +244,7 @@ npm run dev            # http://localhost:5173/mcp-shield/
 | `npm run e2e` | Playwright + axe sobre `vite preview` (también `node scripts/e2e-mobile.mjs`). |
 | `npm run capturas` | Regenera las capturas de este README. |
 | `npm run readme-assets` | Regenera los iconos y las fichas del README desde Lucide. |
+| `npm run readme-banner` | Regenera la cabecera y el pie animados (`docs/assets/banner.svg`, `footer.svg`) con las fuentes de la app convertidas a trazos. Necesita `pip install fonttools brotli`. |
 | `npm run readme-check` | Renderiza cada diagrama Mermaid del README con Chromium y falla si alguno no se puede dibujar. |
 
 ## <img src="docs/assets/icons/network.svg" width="20" height="20" valign="middle"/> Arquitectura
@@ -345,6 +348,7 @@ Comprobado con el importador real de CTEM-Nexus y el SARIF de la demo «Portáti
 
 | Versión | Qué cambia |
 |---|---|
+| **1.5.2** | Cabecera propia en azul eléctrico: un escudo que se dibuja, escanea por dentro y neutraliza los paquetes que llegan (SVG del repositorio, sin servicios externos, quieto con movimiento reducido). |
 | **1.5.1** | El mapa mental y la arquitectura vuelven a verse en GitHub (las llaves de `${VAR}` rompían Mermaid) y la CI renderiza cada diagrama del README antes de publicar. |
 | **1.5.0** | Regla **MCPS-SC-004**: imágenes de contenedor sin fijar por digest (alta con `latest` y `--pull always`), aviso en el veredicto de endurecimiento y README con el formato del ecosistema. |
 | **1.4.0** | Siete colores de acento, medidor lineal de riesgo, severidades traducidas, sección Ecosistema GRC, SARIF con metadatos por regla y cabecera sin desbordamiento entre 768 y 1279 px. |
@@ -407,7 +411,7 @@ mcp-shield/
 │
 ├── 🎨 palette.js               Tokens de color y acentos (Tailwind y prueba de contraste)
 ├── 🧪 tests/                   vitest + esquema SARIF oficial
-├── 🛠️ scripts/                 e2e · e2e-mobile · capturas · readme-assets · readme-mermaid · sync-version
+├── 🛠️ scripts/                 e2e · e2e-mobile · capturas · readme-assets · readme-banner · readme-mermaid · sync-version
 ├── 📄 docs/                    SOURCES.md · DESIGN-REFERENCES.md · capturas e iconos del README
 └── ⚙️ .github/workflows/       pages.yml (pruebas, CodeQL, dependency review y despliegue)
 ```
@@ -451,4 +455,6 @@ Errores, falsos positivos o propuestas de reglas: abre una *issue*, informa de v
 - Security headers: GitHub Pages cannot set response headers. HSTS is sent by GitHub; `X-Frame-Options` and header-based CSP/`frame-ancestors` are not available, so the CSP is delivered via `<meta>` (with `connect-src 'none'`) plus a `no-referrer` policy.
 - Not a substitute for a professional audit. Provided “as is” under the MIT licence. Report vulnerabilities via [SECURITY.md](SECURITY.md).
 
-![footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=2,12,20,30&height=120&section=footer&animation=twinkling)
+<p align="center">
+  <img src="docs/assets/footer.svg" width="100%" alt="MCP-Shield · local-first · cero egress · MIT"/>
+</p>
