@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1 — 2026-10-17 · Diagramas del README
+- **El mapa mental y la arquitectura no se dibujaban en GitHub.** Mermaid lee las llaves de `${VAR}` como sintaxis de forma (hexágono en el mapa mental, rombo en el diagrama de flujo) y mostraba un error en lugar del diagrama. El mapa mental dice ahora «variables de entorno» y la etiqueta de `remediator.ts` va entre comillas, que conservan `${VAR}` como texto.
+- **Nueva comprobación `npm run readme-check`** (`scripts/readme-mermaid.mjs`): renderiza en Chromium cada bloque Mermaid del README con Mermaid 11 y falla si alguno no se puede dibujar, indicando archivo, línea y error. Corre en la CI antes de publicar; con el README de la 1.5.0 da «0/2 diagramas Mermaid renderizan».
+
 ## 1.5.0 — 2026-10-17 · Imágenes de contenedor sin fijar por digest
 - **Nueva regla MCPS-SC-004.** Detecta servidores `docker run` / `podman run` (también con `cmd /c`, `wsl` y `docker container run`) cuya imagen no va fijada por digest (`@sha256:…`). Una etiqueta es un puntero movible: quien controle el registro o la cuenta puede publicar otra imagen con el mismo nombre. Es el equivalente en contenedores de `npx -y` sin versión.
   - Severidad: **alta** sin versión o con `latest` y `--pull always` (se descarga una imagen nueva en cada arranque); **media** con etiqueta y `--pull always`; **baja** en el resto, porque Docker guarda la imagen en caché hasta la siguiente descarga. Así la configuración oficial de GitHub queda en baja, sin ruido.
