@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión 1.5.2" src="https://img.shields.io/badge/versi%C3%B3n-1.5.2-555?style=flat"/>
+  <img alt="Versión 1.6.0" src="https://img.shields.io/badge/versi%C3%B3n-1.6.0-555?style=flat"/>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/LICENCIA-MIT-4169A1?style=flat"/></a>
   <img alt="MCP 2026-07-28" src="https://img.shields.io/badge/MCP-2026--07--28-3D6BFF?style=flat"/>
   <img alt="OWASP Agentic Top 10" src="https://img.shields.io/badge/OWASP-Agentic%20Top%2010-E0457B?style=flat"/>
@@ -33,7 +33,7 @@ MCP-Shield revisa el `mcp.json` de **Claude Desktop, Cursor o VS Code** con **12
 - un **riesgo de 0 a 100** con su nota (A–F) y los hallazgos ordenados por severidad, cada uno con su evidencia (con los secretos ocultos), el porqué y la corrección;
 - la **configuración endurecida**: versiones fijadas, referencias `${VAR}` en lugar de secretos, contenedores por lista blanca (`--network none`, `--read-only`, `--cap-drop ALL`…) y un veredicto que vuelve a analizarla;
 - los **cambios silenciosos** (*rug pulls*) entre el inventario de herramientas aprobado y una captura nueva, con huellas SHA-256/HMAC y revisión humana;
-- su encaje con **OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001 y CSA**, y la exportación a **SARIF**, que llega a **CTEM-Nexus y Rosetta** como evidencia de controles.
+- su encaje con **OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001 y CSA**, y la exportación a **SARIF** y al sobre **`yrd-ecosistema`**, que llega a **CTEM-Nexus y Rosetta** como evidencia de controles.
 
 Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guarda ni sale del equipo.
 
@@ -93,7 +93,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
         <img src="docs/assets/stack/navegador.svg" height="48" alt="Playwright">
         <img src="docs/assets/stack/accesibilidad.svg" height="48" alt="axe-core">
         <img src="docs/assets/stack/codeql.svg" height="48" alt="CodeQL"><br>
-        <sub><code>vitest 412 · Playwright escritorio y móvil · axe-core 0 violaciones · CodeQL</code></sub>
+        <sub><code>vitest 421 · Playwright escritorio y móvil · axe-core 0 violaciones · CodeQL</code></sub>
       </td>
       <td valign="top"><code>╰─ ⌁ seguridad:</code><br><br>
         <img src="docs/assets/stack/csp.svg" height="48" alt="CSP">
@@ -105,7 +105,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 1.5.2&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 412 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 1.5.2&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 421 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -142,7 +142,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
 2. **Entrada.** Pega tu configuración, suéltala sobre el editor o pulsa **Abrir archivo local** (`claude_desktop_config.json`, `.cursor/mcp.json`, `.vscode/mcp.json`). ¿Sin archivo a mano? **Cargar ejemplo de demo** o **Ver un ataque en 5 s**.
 3. **Revisión.** Riesgo y nota, hallazgos con evidencia y corrección, panel de cobertura (qué reglas se evaluaron) y, si importas la respuesta `tools/list` de cada servidor, también el *tool poisoning*.
 4. **Corrección.** Diff *Vulnerable vs Hardened*, `mcp.json` endurecido con veredicto tras re-escanearlo y sandbox Docker.
-5. **Entrega.** SARIF (pestaña *Security* de GitHub y CTEM-Nexus), Markdown o informe impreso. **Reiniciar / dejar limpio** borra el texto, los resultados y los datos locales (se conservan idioma, tema y acento).
+5. **Entrega.** SARIF (pestaña *Security* de GitHub y CTEM-Nexus), sobre *Ecosistema* para CTEM-Nexus, Markdown o informe impreso. **Reiniciar / dejar limpio** borra el texto, los resultados y los datos locales (se conservan idioma, tema y acento).
 
 Atajos: <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> paleta de comandos · <kbd>/</kbd> buscar · <kbd>?</kbd> atajos · <kbd>1</kbd>–<kbd>5</kbd> vistas · <kbd>T</kbd> tema · <kbd>L</kbd> idioma · <kbd>Esc</kbd> cerrar.
 
@@ -182,7 +182,7 @@ mindmap
       NSA MCP CSI
       ISO/IEC 42001 y CSA
     Ecosistema GRC
-      SARIF a CTEM-Nexus
+      Sobre yrd-ecosistema a CTEM-Nexus
       Evidencia de controles en Rosetta
 ```
 
@@ -238,7 +238,7 @@ npm run dev            # http://localhost:5173/mcp-shield/
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Servidor de desarrollo con recarga. |
-| `npm test` | Las 412 pruebas de vitest (motor, reglas, integridad, exportes, contraste, i18n). |
+| `npm test` | Las 421 pruebas de vitest (motor, reglas, integridad, exportes, contraste, i18n). |
 | `npm run lint` | oxlint sin avisos. |
 | `npm run build` | Comprueba los tipos (`tsc -b`) y genera `dist/` con base `/mcp-shield/`. |
 | `npm run e2e` | Playwright + axe sobre `vite preview` (también `node scripts/e2e-mobile.mjs`). |
@@ -263,8 +263,8 @@ flowchart LR
     S --> H["remediator.ts<br/>config con ${VAR}, Docker por lista blanca"]
     H --> V[re-escaneo<br/>veredicto]
     R --> G{exportGate.ts<br/>control final de secretos}
-    G --> O[SARIF · Markdown · impresión · portapapeles]
-    O -. SARIF .-> CN[CTEM-Nexus] -. evidencia .-> RO[Rosetta]
+    G --> O[SARIF · sobre yrd-ecosistema · Markdown · impresión · portapapeles]
+    O -. SARIF y sobre yrd-ecosistema .-> CN[CTEM-Nexus] -. evidencia .-> RO[Rosetta]
     subgraph INT[src/integrity]
       C[captura y validación<br/>Web Worker] --> F[JCS + SHA-256 + HMAC] --> D[comparador<br/>MCPS-INT-001..008] --> RV[revisión humana]
     end
@@ -324,12 +324,21 @@ Desviaciones respecto al RFC: PBKDF2 en lugar de Argon2id (WebCrypto no ofrece A
 
 MCP-Shield forma parte de las herramientas GRC de código abierto del autor, que se pasan los datos en ficheros y sin servidor. Los hallazgos de tu `mcp.json` llegan como evidencia técnica a los controles de Rosetta:
 
-1. **MCP-Shield** → exporta el SARIF del Auditor.
-2. **CTEM-Nexus** → Priorización → «Importar escáner»: lo reconoce como SARIF 2.1.0 y crea el activo «Código analizado con MCP-Shield», con un hallazgo por resultado y su severidad.
-3. CTEM-Nexus asocia cada hallazgo a controles unificados (secretos → ACC-01/ACC-03; CVE → OPE-04/OPE-05; el resto → OPE-01/OPE-02) y en *Ecosistema* exporta la evidencia por control.
+1. **MCP-Shield** → Auditor → **Ecosistema**: descarga un sobre `yrd-ecosistema` de tipo `hallazgos`, con los textos ocultos igual que el SARIF ([ejemplo](docs/ecosistema/mcp-shield-hallazgos-ejemplo.json)).
+2. **CTEM-Nexus** → *Ecosistema*: arrastra el sobre. Antes de importar enseña los hallazgos y el activo que los recibe, que es el puesto donde corre el cliente MCP. El SARIF sigue entrando por Priorización → «Importar escáner».
+3. CTEM-Nexus asigna a cada hallazgo su guía de corrección, sus técnicas ATT&CK y sus controles unificados, y en *Ecosistema* exporta la evidencia por control:
+
+   | Categoría de MCP-Shield | Controles | ATT&CK |
+   |---|---|---|
+   | Cadena de suministro (`npx -y`, imágenes sin digest) | DES-09, OPE-05, OPE-02 | T1195 |
+   | Transporte remoto sin TLS (MCPS-SC-003) | RED-03, OPE-14 | T1040, T1557 |
+   | Secretos | ACC-06, OPE-14 | T1552.001 |
+   | Sistema de ficheros | ACC-02, OPE-01 | T1083, T1005 |
+   | *Tool poisoning* | OPE-01, OPE-10 | T1059 |
+
 4. **Rosetta** → Exportar → CTEM-Nexus: la evidencia cuenta en ENS, ISO/IEC 27001, NIS2, ISO/IEC 42001 y el RIA; la regla CO-23 avisa si un control declarado implantado tiene hallazgos críticos o altos abiertos.
 
-Comprobado con el importador real de CTEM-Nexus y el SARIF de la demo «Portátil de dev típico» (10 hallazgos importados, 0 descartados).
+El contrato es el esquema JSON de CTEM-Nexus (`shared/schemas/yrd-ecosistema.schema.json`). Los dos repositorios prueban el mismo fichero de ejemplo: aquí, que el exportador lo genera byte a byte y que cumple el esquema; en CTEM-Nexus, que lo importa sin descartar nada.
 
 <p align="center"><img src="docs/img/ecosistema-light.png" alt="Sección Ecosistema GRC de la ayuda: los cuatro pasos y las herramientas con Abrir y Código" width="760"/></p>
 
@@ -348,6 +357,7 @@ Comprobado con el importador real de CTEM-Nexus y el SARIF de la demo «Portáti
 
 | Versión | Qué cambia |
 |---|---|
+| **1.6.0** | Exportación **Ecosistema**: sobre `yrd-ecosistema` que CTEM-Nexus 1.2.1 importa con guía, ATT&CK y controles por categoría; GitHub Actions fijadas por SHA con Dependabot. |
 | **1.5.2** | Cabecera propia en azul eléctrico: un escudo que se dibuja, escanea por dentro y neutraliza los paquetes que llegan (SVG del repositorio, sin servicios externos, quieto con movimiento reducido). |
 | **1.5.1** | El mapa mental y la arquitectura vuelven a verse en GitHub (las llaves de `${VAR}` rompían Mermaid) y la CI renderiza cada diagrama del README antes de publicar. |
 | **1.5.0** | Regla **MCPS-SC-004**: imágenes de contenedor sin fijar por digest (alta con `latest` y `--pull always`), aviso en el veredicto de endurecimiento y README con el formato del ecosistema. |
@@ -365,6 +375,7 @@ El detalle de cada versión está en [CHANGELOG.md](CHANGELOG.md).
 | Endurecimiento y auditoría externa (`hardening-v122`, `audit-v122`) | 42 | Contenedores por lista blanca con re-escaneo, ocultación contextual y control de salida en cada exporte, cobertura de reglas, importación `tools/list`, versión única. Cada hallazgo de la auditoría externa tiene su prueba de regresión. |
 | Claves y SARIF (`keys-v134`, `sarif-v140`) | 40 | Servidores, `env` y cabeceras con nombres de `Object.prototype` (`__proto__`, `constructor`…), `npm exec`/`bun x`/`--package`, metadatos SARIF por regla y bandas de nota compartidas. |
 | Imágenes (`images-v150`) | 27 | MCPS-SC-004: lectura de la imagen como Docker (opciones globales, `container run`, `--`), registros con puerto, digest, severidades, `${VAR}` y `mcp-sandbox/*`, endurecimiento, corrección que nombra la imagen una sola vez y figura con un cartucho por regla. |
+| Ecosistema (`ecosystem-v160`) | 9 | Sobre `yrd-ecosistema` validado con el esquema de CTEM-Nexus en todas las demos, sin secretos, nombre de fichero saneado, `__proto__` como dato, análisis fallido honesto y ejemplo publicado idéntico. |
 | Exportes (`exporters`) | 15 | SARIF validado con el esquema OASIS 2.1.0, Markdown sin inyección, remediador y Dockerfile. |
 | Integridad (`integrity/*`) | 94 | Vectores de RFC 8785, importador y límites, huellas, cifrado (ida y vuelta, contraseña errónea, cabecera alterada), comparador (RFC-001 §13.1), TOFU y revisión v1.3.3. |
 | Contraste, i18n y estilo (`contrast`, `i18n`, `no-grid`) | 100 | WCAG AA de cada par de colores y de los 7 acentos en los dos temas, paridad ES/EN y sin fondos de cuadrícula. |
@@ -403,6 +414,7 @@ mcp-shield/
 │   │   ├── exportGate.ts       Control final de cada exporte
 │   │   ├── remediator.ts       Config endurecida, Docker por lista blanca y veredicto
 │   │   ├── sarifExporter.ts    SARIF 2.1.0 y Markdown
+│   │   ├── ecosystemExporter.ts Sobre yrd-ecosistema para CTEM-Nexus
 │   │   └── grades.ts · ownKeys.ts · governance.ts · simulation.ts · toolsImport.ts
 │   ├── integrity/              Monitor de integridad: captura, huellas, cifrado, comparador, reglas, exportes
 │   ├── components/             auditor · integrity · simulator · governance · help · iso · ui
@@ -410,10 +422,10 @@ mcp-shield/
 │   └── data/                   Escenarios, ejemplos de demo e incidentes
 │
 ├── 🎨 palette.js               Tokens de color y acentos (Tailwind y prueba de contraste)
-├── 🧪 tests/                   vitest + esquema SARIF oficial
+├── 🧪 tests/                   vitest + esquemas SARIF oficial y yrd-ecosistema de CTEM-Nexus
 ├── 🛠️ scripts/                 e2e · e2e-mobile · capturas · readme-assets · readme-banner · readme-mermaid · sync-version
-├── 📄 docs/                    SOURCES.md · DESIGN-REFERENCES.md · capturas e iconos del README
-└── ⚙️ .github/workflows/       pages.yml (pruebas, CodeQL, dependency review y despliegue)
+├── 📄 docs/                    SOURCES.md · DESIGN-REFERENCES.md · ecosistema/ (sobre de ejemplo) · capturas e iconos del README
+└── ⚙️ .github/                 pages.yml (pruebas, CodeQL, dependency review y despliegue) y Dependabot de las Actions
 ```
 
 ## <img src="docs/assets/icons/scale.svg" width="20" height="20" valign="middle"/> Licencia y créditos
@@ -449,7 +461,7 @@ Errores, falsos positivos o propuestas de reglas: abre una *issue*, informa de v
 
 ## <img src="docs/assets/icons/route.svg" width="20" height="20" valign="middle"/> English
 
-**MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 12 configuration rules for supply chain (including container images not pinned by digest), filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. An offline **integrity monitor** pins an approved `tools/list` inventory (RFC 8785 canonicalisation, SHA-256 + in-memory HMAC-SHA-256), diffs new captures field by field (rules MCPS-INT-001..008) and requires explicit human approval with a TOFU checklist; it can save an AES-256-GCM encrypted baseline package (PBKDF2-SHA256, 600,000 iterations). The SARIF imports into CTEM-Nexus and reaches Rosetta as control evidence. Detected secrets are masked on screen and in every export, and a final output check blocks a download if anything secret-shaped remains (best effort, not a guarantee). Pasted text is never stored. Seven accent colours (electric blue by default), light and dark themes, ES/EN and a mobile layout.
+**MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 12 configuration rules for supply chain (including container images not pinned by digest), filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. An offline **integrity monitor** pins an approved `tools/list` inventory (RFC 8785 canonicalisation, SHA-256 + in-memory HMAC-SHA-256), diffs new captures field by field (rules MCPS-INT-001..008) and requires explicit human approval with a TOFU checklist; it can save an AES-256-GCM encrypted baseline package (PBKDF2-SHA256, 600,000 iterations). The SARIF, or the “Ecosystem” `yrd-ecosistema` envelope, imports into CTEM-Nexus and reaches Rosetta as control evidence (supply chain → DES-09/OPE-05, secrets → ACC-06/OPE-14, file system → ACC-02/OPE-01, tool poisoning → OPE-01/OPE-10). Detected secrets are masked on screen and in every export, and a final output check blocks a download if anything secret-shaped remains (best effort, not a guarantee). Pasted text is never stored. Seven accent colours (electric blue by default), light and dark themes, ES/EN and a mobile layout.
 
 - Live: **https://heindall92.github.io/mcp-shield/**
 - Security headers: GitHub Pages cannot set response headers. HSTS is sent by GitHub; `X-Frame-Options` and header-based CSP/`frame-ancestors` are not available, so the CSP is delivered via `<meta>` (with `connect-src 'none'`) plus a `no-referrer` policy.

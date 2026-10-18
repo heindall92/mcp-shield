@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.0 — 2026-10-18 · MCP-Shield entra en el ecosistema GRC
+- **Exportación «Ecosistema» en el Auditor.** Descarga un sobre `yrd-ecosistema` (versión 1) de tipo `hallazgos`, el formato común de las herramientas GRC del autor.
+  - Cada hallazgo lleva la regla, la categoría, la severidad, el servidor, la ubicación con su línea y la CWE.
+  - El resumen lleva el riesgo de 0 a 100, la nota, si el análisis está completo, los servidores y el recuento por severidad.
+  - Los textos pasan por la misma ocultación que el SARIF y el fichero por el control final de secretos. El nombre del fichero pierde la ruta y los caracteres de control.
+- **CTEM-Nexus 1.2.1 lo importa** en su vista Ecosistema: asigna a cada hallazgo su guía de corrección, sus técnicas ATT&CK y sus controles unificados, y de ahí pasa a Rosetta como evidencia. El SARIF sigue entrando por «Importar escáner».
+- **El contrato es el de CTEM-Nexus:** su esquema JSON añade `mcp-shield` y la forma de sus hallazgos, y aquí se prueba contra una copia de ese esquema (`tests/fixtures/yrd-ecosistema.schema.json`).
+- **Ejemplo publicado:** `docs/ecosistema/mcp-shield-hallazgos-ejemplo.json`. Es el mismo fichero que prueba CTEM-Nexus, y una prueba exige que coincida byte a byte con lo que genera el exportador.
+- **GitHub Actions fijadas por SHA** (con la versión en un comentario) y Dependabot semanal para mantenerlas al día.
+- La ayuda «Ecosistema GRC» explica el recorrido con el sobre y qué controles recibe cada categoría.
+- Pruebas: 9 nuevas de vitest en `tests/ecosystem-v160.test.ts`. El e2e descarga el sobre y comprueba que no lleva el token.
+
 ## 1.5.2 — 2026-10-17 · Cabecera del README con identidad propia
 - **Cabecera y pie nuevos en azul eléctrico**, sustituyen a los degradados de capsule-render, que compartía con otras herramientas. Es un escudo vivo, con la forma de `shield-check` de Lucide:
   - El contorno se dibuja solo, se rellena y aparece el check.
