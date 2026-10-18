@@ -1,0 +1,911 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/heindall92/ctem-nexus/blob/main/shared/schemas/yrd-ecosistema.schema.json",
+  "title": "Sobre de intercambio del ecosistema (yrd-ecosistema, versión 1)",
+  "description": "Formato común de las herramientas de Yoandy Ramírez Delgado: CTEM-Nexus, Rosetta Multinorma, ENS Compliance Studio, KAIROS, ENS AD Auditor, ARGOS, Norvik y MCP-Shield. El usuario mueve el fichero; las herramientas no se hablan por red.",
+  "type": "object",
+  "required": [
+    "format",
+    "version",
+    "origen",
+    "tipo",
+    "datos"
+  ],
+  "properties": {
+    "format": {
+      "const": "yrd-ecosistema"
+    },
+    "version": {
+      "const": 1
+    },
+    "origen": {
+      "type": "object",
+      "required": [
+        "herramienta",
+        "version",
+        "generado"
+      ],
+      "properties": {
+        "herramienta": {
+          "enum": [
+            "ctem-nexus",
+            "rosetta",
+            "compliance-studio",
+            "kairos",
+            "ens-ad-auditor",
+            "argos",
+            "norvik",
+            "mcp-shield"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "generado": {
+          "type": "string",
+          "description": "Fecha y hora ISO 8601 en UTC (AAAA-MM-DDTHH:MM:SSZ)."
+        }
+      }
+    },
+    "tipo": {
+      "enum": [
+        "hallazgos",
+        "activos",
+        "controles",
+        "bia",
+        "soa",
+        "indicadores",
+        "responsables"
+      ]
+    },
+    "proyecto": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "resumen": {
+      "type": "object"
+    },
+    "datos": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "hallazgos"
+          },
+          "origen": {
+            "properties": {
+              "herramienta": {
+                "const": "ctem-nexus"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "datos": {
+            "items": {
+              "$ref": "#/$defs/evidenciaControl"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "controles"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "datos": {
+            "items": {
+              "type": "object",
+              "required": [
+                "control",
+                "estado"
+              ],
+              "properties": {
+                "control": {
+                  "$ref": "#/$defs/controlId"
+                },
+                "titulo": {
+                  "type": "string"
+                },
+                "estado": {
+                  "enum": [
+                    "implantado",
+                    "parcial",
+                    "pendiente",
+                    "no-aplica"
+                  ]
+                },
+                "responsable": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "string"
+                },
+                "ctem": {
+                  "$ref": "#/$defs/evidenciaControl"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "responsables"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "datos": {
+            "items": {
+              "type": "object",
+              "required": [
+                "activo",
+                "responsable"
+              ],
+              "properties": {
+                "activo": {
+                  "type": "string",
+                  "description": "Identificador, nombre o IP del activo."
+                },
+                "responsable": {
+                  "type": "string"
+                },
+                "rol": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "indicadores"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "datos": {
+            "items": {
+              "type": "object",
+              "required": [
+                "indicador",
+                "nombre",
+                "valor",
+                "unidad",
+                "fecha"
+              ],
+              "properties": {
+                "indicador": {
+                  "type": "string"
+                },
+                "nombre": {
+                  "type": "string"
+                },
+                "valor": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "unidad": {
+                  "type": "string"
+                },
+                "sentido": {
+                  "enum": [
+                    "menos",
+                    "mas"
+                  ]
+                },
+                "fecha": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "activos"
+          },
+          "origen": {
+            "properties": {
+              "herramienta": {
+                "const": "ctem-nexus"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "datos": {
+            "items": {
+              "type": "object",
+              "required": [
+                "activo",
+                "nombre",
+                "criticidad",
+                "abiertos",
+                "riesgoInterrupcion"
+              ],
+              "properties": {
+                "activo": {
+                  "type": "string",
+                  "description": "Identificador del activo en KAIROS (A-01…)."
+                },
+                "nombre": {
+                  "type": "string"
+                },
+                "criticidad": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "abiertos": {
+                  "type": "integer"
+                },
+                "criticos": {
+                  "type": "integer"
+                },
+                "altos": {
+                  "type": "integer"
+                },
+                "kev": {
+                  "type": "integer"
+                },
+                "rutasDeAtaque": {
+                  "type": "integer"
+                },
+                "puntuacionMaxima": {
+                  "type": "number"
+                },
+                "peorHallazgo": {
+                  "type": "string"
+                },
+                "riesgoInterrupcion": {
+                  "enum": [
+                    "alto",
+                    "medio",
+                    "bajo"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "bia"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "datos": {
+            "items": {
+              "type": "object",
+              "required": [
+                "activo",
+                "nombre",
+                "funciones"
+              ],
+              "properties": {
+                "activo": {
+                  "type": "string",
+                  "description": "Identificador del activo en KAIROS (A-01…)."
+                },
+                "nombre": {
+                  "type": "string"
+                },
+                "tipo": {
+                  "type": "string"
+                },
+                "responsable": {
+                  "type": "string"
+                },
+                "dependeDe": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "funciones": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "nombre"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "nombre": {
+                        "type": "string"
+                      },
+                      "rto": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "description": "Horas."
+                      },
+                      "rpo": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0
+                      },
+                      "mtpd": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0
+                      },
+                      "costeHora": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Euros por hora de interrupción."
+                      },
+                      "criticidad": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "soa"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "resumen": {
+            "type": "object",
+            "required": [
+              "categoria",
+              "niveles"
+            ],
+            "properties": {
+              "categoria": {
+                "enum": [
+                  "BÁSICA",
+                  "MEDIA",
+                  "ALTA",
+                  null
+                ]
+              },
+              "niveles": {
+                "type": "object",
+                "propertyNames": {
+                  "enum": [
+                    "D",
+                    "I",
+                    "C",
+                    "A",
+                    "T"
+                  ]
+                },
+                "additionalProperties": {
+                  "enum": [
+                    "BAJO",
+                    "MEDIO",
+                    "ALTO"
+                  ]
+                }
+              },
+              "activos": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "nombre": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "datos": {
+            "items": {
+              "type": "object",
+              "required": [
+                "medida",
+                "aplica"
+              ],
+              "properties": {
+                "medida": {
+                  "type": "string",
+                  "pattern": "^(org\\.\\d+|(op|mp)\\.[a-z]+\\.\\d+)$",
+                  "description": "Medida del Anexo II del RD 311/2022."
+                },
+                "nombre": {
+                  "type": "string"
+                },
+                "familia": {
+                  "type": "string"
+                },
+                "nivel": {
+                  "type": "string"
+                },
+                "aplica": {
+                  "type": "boolean"
+                },
+                "estado": {
+                  "type": "string"
+                },
+                "implantacion": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "responsable": {
+                  "type": "string"
+                },
+                "riesgos": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "hallazgosAbiertos": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "resumen"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "hallazgos"
+          },
+          "origen": {
+            "properties": {
+              "herramienta": {
+                "const": "ens-ad-auditor"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "datos": {
+            "items": {
+              "type": "object",
+              "required": [
+                "rule_id",
+                "finding",
+                "risk",
+                "ens_controls"
+              ],
+              "properties": {
+                "rule_id": {
+                  "type": "string"
+                },
+                "finding": {
+                  "type": "object",
+                  "required": [
+                    "finding_type",
+                    "title",
+                    "target"
+                  ],
+                  "properties": {
+                    "finding_type": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "target": {
+                      "type": "string"
+                    },
+                    "is_sample": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "risk": {
+                  "enum": [
+                    "Critico",
+                    "Alto",
+                    "Medio",
+                    "Bajo"
+                  ]
+                },
+                "ens_controls": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "da_path": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo": {
+            "const": "hallazgos"
+          },
+          "origen": {
+            "properties": {
+              "herramienta": {
+                "const": "mcp-shield"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "resumen"
+        ],
+        "properties": {
+          "datos": {
+            "items": {
+              "$ref": "#/$defs/hallazgoMcp"
+            }
+          },
+          "resumen": {
+            "type": "object",
+            "required": [
+              "riesgo",
+              "nota",
+              "completo",
+              "servidores",
+              "recuento"
+            ],
+            "properties": {
+              "archivo": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "idioma": {
+                "enum": [
+                  "es",
+                  "en"
+                ]
+              },
+              "riesgo": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "nota": {
+                "enum": [
+                  "A",
+                  "B",
+                  "C",
+                  "D",
+                  "F",
+                  "N/A"
+                ]
+              },
+              "completo": {
+                "type": "boolean"
+              },
+              "servidores": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "recuento": {
+                "type": "object",
+                "required": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low"
+                ],
+                "properties": {
+                  "critical": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "high": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "medium": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "low": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "controlId": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,3}-\\d{2}$",
+      "description": "Control unificado de Rosetta Multinorma."
+    },
+    "banda": {
+      "enum": [
+        "critica",
+        "alta",
+        "media",
+        "baja"
+      ]
+    },
+    "evidenciaControl": {
+      "type": "object",
+      "required": [
+        "control",
+        "abiertos",
+        "porBanda",
+        "hallazgos"
+      ],
+      "properties": {
+        "control": {
+          "$ref": "#/$defs/controlId"
+        },
+        "titulo": {
+          "type": "string"
+        },
+        "ens": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "iso27001": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^A\\d+\\.\\d+$"
+          },
+          "description": "Solo identificadores del Anexo A, nunca texto."
+        },
+        "nis2": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dora": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "abiertos": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "porBanda": {
+          "type": "object",
+          "properties": {
+            "critica": {
+              "type": "integer"
+            },
+            "alta": {
+              "type": "integer"
+            },
+            "media": {
+              "type": "integer"
+            },
+            "baja": {
+              "type": "integer"
+            }
+          }
+        },
+        "kev": {
+          "type": "integer"
+        },
+        "vencidos": {
+          "type": "integer"
+        },
+        "peor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "hallazgos": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "banda",
+              "puntuacion"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "titulo": {
+                "type": "string"
+              },
+              "cve": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "banda": {
+                "$ref": "#/$defs/banda"
+              },
+              "puntuacion": {
+                "type": "number"
+              },
+              "activo": {
+                "type": "string"
+              },
+              "estado": {
+                "enum": [
+                  "abierto",
+                  "validado",
+                  "no_explotable",
+                  "mitigado",
+                  "aceptado"
+                ]
+              },
+              "vence": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "hallazgoMcp": {
+      "type": "object",
+      "description": "Hallazgo de MCP-Shield sobre un mcp.json. Los textos llegan ocultos (sin secretos) y la ubicación es una ruta JSON.",
+      "required": [
+        "ruleId",
+        "category",
+        "severity",
+        "server",
+        "title"
+      ],
+      "properties": {
+        "ruleId": {
+          "type": "string",
+          "pattern": "^MCPS-[A-Z]{2,4}-\\d{3}$"
+        },
+        "category": {
+          "enum": [
+            "supply-chain",
+            "filesystem",
+            "secrets",
+            "tool-poisoning"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "server": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "remediation": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "evidence": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cwe": {
+          "type": "string",
+          "pattern": "^CWE-\\d{1,5}$"
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { chromium } from 'playwright'
+import { readFileSync } from 'node:fs'
 import AxeBuilder from '@axe-core/playwright'
 const U = process.env.U || 'http://localhost:4173/mcp-shield/'
 const REAL = '{ "mcpServers": { "fs": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/yoandy"] }, "gh": { "command": "npx", "args": ["-y","@modelcontextprotocol/server-github"], "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_FAKEaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" } } } }'
@@ -23,6 +24,11 @@ for (const theme of ['dark', 'light']) for (const lang of ['es', 'en']) {
   await p.fill('[data-testid=editor]', REAL); await p.waitForTimeout(250)
   await p.locator('[data-testid=findings] article button').first().click()
   await a11y('audit')
+  // v1.6.0: «Ecosistema» downloads a yrd-ecosistema envelope for CTEM-Nexus, with the token redacted
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.click('[data-testid=export-eco]')])
+  const eco = JSON.parse(readFileSync(await dl.path(), 'utf8'))
+  if (dl.suggestedFilename() !== 'mcp-shield.ecosistema.json' || eco.format !== 'yrd-ecosistema' || eco.origen?.herramienta !== 'mcp-shield' || eco.tipo !== 'hallazgos' || !eco.datos?.length) errs.push('v1.6.0: bad ecosystem envelope')
+  if (JSON.stringify(eco).includes('ghp_FAKE')) errs.push('v1.6.0: token leaked in the ecosystem envelope')
   if (shot) { await p.emulateMedia({ media: 'print' }); await p.screenshot({ path: n('print'), fullPage: true }); await p.emulateMedia({ media: 'screen' }) }
   const printTxt = await p.evaluate(() => { const ed = document.querySelector('[data-testid=editor-pane]'); return getComputedStyle(ed).display })
   if (printTxt !== 'flex') errs.push('editor hidden on screen?')
