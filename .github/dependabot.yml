@@ -1,0 +1,10 @@
+# Keeps the GitHub Actions pinned by SHA up to date (the comment keeps the readable version).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
