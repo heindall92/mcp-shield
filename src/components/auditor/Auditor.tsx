@@ -9,6 +9,7 @@ import type { McpToolDefinition } from '../../types/mcp.types'
 import { CoveragePanel } from './CoveragePanel'
 import { ToolsImport } from './ToolsImport'
 import { toSarif, toMarkdown, download } from '../../engine/sarifExporter'
+import { toEcosystem } from '../../engine/ecosystemExporter'
 import { redactValue } from '../../engine/redact'
 import { visible } from '../../engine/rules/smugglingRules'
 import { MAX_INPUT_BYTES } from '../../engine/parse'
@@ -60,9 +61,9 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
   const hasRedaction = pretty.includes('[REDACTED]')
   // Final output gate: every export is re-checked for anything secret-shaped before it can leave the page.
   const outputs = useMemo(() => (res && !res.parseError && cfg ? {
-    sarif: JSON.stringify(toSarif(res, fileName, lang, input), null, 2), md: toMarkdown(res, lang), fixed: hardened, docker,
+    sarif: JSON.stringify(toSarif(res, fileName, lang, input), null, 2), eco: JSON.stringify(toEcosystem(res, fileName, lang, input), null, 2), md: toMarkdown(res, lang), fixed: hardened, docker,
   } : undefined), [res, cfg, fileName, lang, input, hardened, docker])
-  const gates = useMemo(() => (outputs ? { sarif: gate(outputs.sarif), md: gate(outputs.md), fixed: gate(outputs.fixed), docker: gate(outputs.docker) } : undefined), [outputs])
+  const gates = useMemo(() => (outputs ? { sarif: gate(outputs.sarif), eco: gate(outputs.eco), md: gate(outputs.md), fixed: gate(outputs.fixed), docker: gate(outputs.docker) } : undefined), [outputs])
   const blocked = gates ? [...new Set(Object.values(gates).flatMap(g => g.hits.map(h => h.kind)))] : []
 
   const onFile = (f?: File | null) => {
@@ -163,6 +164,7 @@ export function Auditor({ text, setText, onReset, onLoadDemo, onAttack }: { text
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button disabled={disabled || !gates?.sarif.ok} onClick={() => outputs && save('mcp-shield.sarif', outputs.sarif, 'application/sarif+json')} className="btn-ghost focus-ring text-[0.75rem]"><FileCode2 size={14} aria-hidden />SARIF</button>
+                  <button data-testid="export-eco" title={t.ecoBtnTitle} disabled={disabled || !gates?.eco.ok} onClick={() => outputs && save('mcp-shield.ecosistema.json', outputs.eco, 'application/json')} className="btn-ghost focus-ring text-[0.75rem]"><Workflow size={14} aria-hidden />{t.ecoBtn}</button>
                   <button disabled={disabled || !gates?.md.ok} onClick={() => outputs && save('mcp-shield-report.md', outputs.md, 'text/markdown')} className="btn-ghost focus-ring text-[0.75rem]"><FileDown size={14} aria-hidden />Markdown</button>
                   <button disabled={!cfg || !gates?.fixed.ok} onClick={() => save('mcp.hardened.json', hardened, 'application/json')} className="btn-ghost focus-ring text-[0.75rem]"><FileJson size={14} aria-hidden />{t.hardenedJson}</button>
                   <button disabled={!cfg || !gates?.docker.ok} onClick={() => save('Dockerfile.mcp-sandbox', docker, 'text/plain')} className="btn-ghost focus-ring text-[0.75rem]"><Container size={14} aria-hidden />Docker</button>
