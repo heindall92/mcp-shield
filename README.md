@@ -24,6 +24,12 @@
   <img alt="Iconos Lucide" src="https://img.shields.io/badge/iconos-Lucide-F56565?style=flat&logo=lucide&logoColor=white"/>
 </p>
 
+> [!WARNING]
+> **Laboratorio de investigación de seguridad. No lo conectes como servidor MCP.**
+> Este repositorio contiene **definiciones de herramientas MCP maliciosas a propósito** (por ejemplo, la tool `add`, con una instrucción oculta para leer `~/.ssh/id_rsa` y pasarlo en el parámetro `notes`) que sirven de fixtures para el simulador de kill-chain del navegador. Son payloads de demostración para detectar *tool poisoning*, no herramientas reales. MCP-Shield funciona 100% en el navegador y sin egress.
+>
+> **Security research lab — do NOT connect as an MCP server.** This repository contains intentionally malicious MCP tool definitions (e.g. the `add` tool with a hidden instruction to read `~/.ssh/id_rsa` and pass it in the `notes` parameter) used as fixtures for the in-browser kill-chain simulator. They are demonstration payloads for detecting tool poisoning, not real tools. mcp-shield runs 100% client-side with zero egress.
+
 <p align="center">
   <img src="docs/img/auditor-dark.png" alt="Auditor con la demo «Portátil de dev típico»: medidor de riesgo 89/100 nota F, hallazgos con los secretos ocultos y diff vulnerable frente a endurecida" width="880"/>
 </p>
@@ -460,6 +466,9 @@ Errores, falsos positivos o propuestas de reglas: abre una *issue*, informa de v
 ---
 
 ## <img src="docs/assets/icons/route.svg" width="20" height="20" valign="middle"/> English
+
+> [!WARNING]
+> **Security research lab — do NOT connect as an MCP server.** This repository contains intentionally malicious MCP tool definitions (e.g. the `add` tool with a hidden instruction to read `~/.ssh/id_rsa` and pass it in the `notes` parameter) used as fixtures for the in-browser kill-chain simulator. They are demonstration payloads for detecting tool poisoning, not real tools. mcp-shield runs 100% client-side with zero egress.
 
 **MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 12 configuration rules for supply chain (including container images not pinned by digest), filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. An offline **integrity monitor** pins an approved `tools/list` inventory (RFC 8785 canonicalisation, SHA-256 + in-memory HMAC-SHA-256), diffs new captures field by field (rules MCPS-INT-001..008) and requires explicit human approval with a TOFU checklist; it can save an AES-256-GCM encrypted baseline package (PBKDF2-SHA256, 600,000 iterations). The SARIF, or the “Ecosystem” `yrd-ecosistema` envelope, imports into CTEM-Nexus and reaches Rosetta as control evidence (supply chain → DES-09/OPE-05, secrets → ACC-06/OPE-14, file system → ACC-02/OPE-01, tool poisoning → OPE-01/OPE-10). Detected secrets are masked on screen and in every export, and a final output check blocks a download if anything secret-shaped remains (best effort, not a guarantee). Pasted text is never stored. Seven accent colours (electric blue by default), light and dark themes, ES/EN and a mobile layout.
 

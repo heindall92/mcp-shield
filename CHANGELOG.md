@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased — patch
+
+- **Aviso de laboratorio en el README.** Alerta GitHub `[!WARNING]` justo después de los distintivos (español + una línea en inglés) y la misma advertencia breve al inicio de la sección English: no conectar el repositorio como servidor MCP. Las definiciones de herramientas (p. ej. `add`, con instrucción oculta para leer `~/.ssh/id_rsa` y pasarlo en `notes`) son fixtures de demostración para detectar *tool poisoning*, no herramientas reales.
+
 ## 1.6.0 — 2026-10-18 · MCP-Shield entra en el ecosistema GRC
 - **Exportación «Ecosistema» en el Auditor.** Descarga un sobre `yrd-ecosistema` (versión 1) de tipo `hallazgos`, el formato común de las herramientas GRC del autor.
   - Cada hallazgo lleva la regla, la categoría, la severidad, el servidor, la ubicación con su línea y la CWE.
