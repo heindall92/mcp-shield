@@ -163,7 +163,7 @@ describe('single version source', () => {
     expect(VERSION).toBe(pkg.version)
     expect(toSarif(scanText('{"mcpServers":{"a":{"command":"node"}}}')).runs[0].tool.driver.version).toBe(pkg.version)
     expect(readFileSync('README.md', 'utf8')).toContain(`alt="Versión ${pkg.version}"`)
-    expect(/^## (\S+)/m.exec(readFileSync('CHANGELOG.md', 'utf8'))![1]).toBe(pkg.version)
+    expect(/^## (?!Unreleased\b)(\S+)/m.exec(readFileSync('CHANGELOG.md', 'utf8'))![1]).toBe(pkg.version)
     expect(readFileSync('src/meta.ts', 'utf8')).not.toMatch(/VERSION[^=]*=\s*'\d/)
   })
 })
