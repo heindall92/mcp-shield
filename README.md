@@ -111,7 +111,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 1.5.2&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 421 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 1.6.0&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 421 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>

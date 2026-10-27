@@ -159,10 +159,13 @@ describe('tools/list import', () => {
 })
 
 describe('single version source', () => {
-  it('package.json = UI = SARIF = README badge = CHANGELOG head', () => {
+  it('package.json = UI = SARIF = README badge = yaml footer = CHANGELOG head', () => {
+    const readme = readFileSync('README.md', 'utf8')
+    const footer = /<tfoot>[\s\S]*?<\/tfoot>/.exec(readme)?.[0] ?? ''
     expect(VERSION).toBe(pkg.version)
     expect(toSarif(scanText('{"mcpServers":{"a":{"command":"node"}}}')).runs[0].tool.driver.version).toBe(pkg.version)
-    expect(readFileSync('README.md', 'utf8')).toContain(`alt="Versión ${pkg.version}"`)
+    expect(readme).toContain(`alt="Versión ${pkg.version}"`)
+    expect(footer).toContain(`version: ${pkg.version}`)
     expect(/^## (?!Unreleased\b)(\S+)/m.exec(readFileSync('CHANGELOG.md', 'utf8'))![1]).toBe(pkg.version)
     expect(readFileSync('src/meta.ts', 'utf8')).not.toMatch(/VERSION[^=]*=\s*'\d/)
   })

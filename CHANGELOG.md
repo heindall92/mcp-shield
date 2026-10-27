@@ -2,6 +2,7 @@
 
 ## Unreleased — patch
 
+- **Pie de la tabla `mcp-shield.yaml` en el README.** `scripts/sync-version.mjs` también actualiza `version:` del `<tfoot>` a la de `package.json` (seguía en 1.5.2 con la 1.6.0). La prueba de fuente única falla si difieren.
 - **Aviso de laboratorio en el README.** Alerta GitHub `[!WARNING]` justo después de los distintivos (español + una línea en inglés) y la misma advertencia breve al inicio de la sección English: no conectar el repositorio como servidor MCP. Las definiciones de herramientas (p. ej. `add`, con instrucción oculta para leer `~/.ssh/id_rsa` y pasarlo en `notes`) son fixtures de demostración para detectar *tool poisoning*, no herramientas reales.
 
 ## 1.6.0 — 2026-10-18 · MCP-Shield entra en el ecosistema GRC
