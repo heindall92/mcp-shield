@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- **Ecosistema GRC.** La ayuda suma **Atlas GRC**, que enseña la ISO/IEC 27001 desde cero con lecciones, prácticas, simulacros CertiProf y la ciudad de Albatrel que crece contigo, con «Abrir» y «Código». También aparece en la tabla del README. La e2e comprueba las nueve herramientas y los dos enlaces de Atlas.
+
 ## 1.7.0 — 2026-10-31 · Harness-Shield
 - **Nueva pestaña Harness-Shield.** Auditor estático de los ficheros que configuran a un agente: `SKILL.md` (con su cabecera YAML), `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.mcp.json` y hooks en Bash, Python o PowerShell. Se sueltan, se abren o se pegan; se leen en memoria y nunca se ejecutan, no se resuelve ninguna URL ni se instala ningún paquete.
 - **Ocho reglas AHS** (OWASP Top 10 for LLM Applications 2025 y control del Anexo A de ISO/IEC 42001, marcados como orientativos):
