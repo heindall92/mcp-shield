@@ -34,7 +34,7 @@ for (const w of [320, 360, 390, 430]) for (const theme of ['dark', 'light']) for
       const cs = getComputedStyle(n), rc = n.getBoundingClientRect(), out = []
       if (cs.position !== 'fixed' || Math.abs(rc.bottom - innerHeight) > 1 || rc.height === 0) out.push(`not fixed at bottom (${cs.position}, ${rc.bottom}/${innerHeight})`)
       const links = [...n.querySelectorAll('a')]
-      if (links.length !== 5) out.push('expected 5 tabs')
+      if (links.length !== 6) out.push('expected 6 tabs')
       for (const a of links) {
         const b = a.getBoundingClientRect(), l = a.querySelector('[data-label]'), lb = l.getBoundingClientRect()
         if (b.width < 44 || b.height < 44) out.push(`small target ${a.textContent} ${Math.round(b.width)}x${Math.round(b.height)}`)
