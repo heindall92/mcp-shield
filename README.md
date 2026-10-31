@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión 1.6.0" src="https://img.shields.io/badge/versi%C3%B3n-1.6.0-555?style=flat"/>
+  <img alt="Versión 1.7.0" src="https://img.shields.io/badge/versi%C3%B3n-1.7.0-555?style=flat"/>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/LICENCIA-MIT-4169A1?style=flat"/></a>
   <img alt="MCP 2026-07-28" src="https://img.shields.io/badge/MCP-2026--07--28-3D6BFF?style=flat"/>
   <img alt="OWASP Agentic Top 10" src="https://img.shields.io/badge/OWASP-Agentic%20Top%2010-E0457B?style=flat"/>
@@ -111,7 +111,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 1.6.0&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 421 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 1.7.0&nbsp;&nbsp;·&nbsp;&nbsp;reglas: 12 + 8&nbsp;&nbsp;·&nbsp;&nbsp;MCP: 2026-07-28&nbsp;&nbsp;·&nbsp;&nbsp;pruebas: 421 ok&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -130,6 +130,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
 - [Arquitectura](#-arquitectura)
 - [Reglas](#-reglas)
 - [Monitor de integridad](#-monitor-de-integridad)
+- [Harness-Shield](#-harness-shield)
 - [Ecosistema GRC](#-ecosistema-grc)
 - [Novedades](#-novedades)
 - [Calidad](#-calidad)
@@ -150,7 +151,7 @@ Funciona en el navegador, sin servidor y sin conexión. Lo que pegas no se guard
 4. **Corrección.** Diff *Vulnerable vs Hardened*, `mcp.json` endurecido con veredicto tras re-escanearlo y sandbox Docker.
 5. **Entrega.** SARIF (pestaña *Security* de GitHub y CTEM-Nexus), sobre *Ecosistema* para CTEM-Nexus, Markdown o informe impreso. **Reiniciar / dejar limpio** borra el texto, los resultados y los datos locales (se conservan idioma, tema y acento).
 
-Atajos: <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> paleta de comandos · <kbd>/</kbd> buscar · <kbd>?</kbd> atajos · <kbd>1</kbd>–<kbd>5</kbd> vistas · <kbd>T</kbd> tema · <kbd>L</kbd> idioma · <kbd>Esc</kbd> cerrar.
+Atajos: <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> paleta de comandos · <kbd>/</kbd> buscar · <kbd>?</kbd> atajos · <kbd>1</kbd>–<kbd>6</kbd> vistas · <kbd>T</kbd> tema · <kbd>L</kbd> idioma · <kbd>Esc</kbd> cerrar.
 
 ## <img src="docs/assets/icons/brain-circuit.svg" width="20" height="20" valign="middle"/> Mapa mental
 
@@ -178,6 +179,11 @@ mindmap
       JCS RFC 8785, SHA-256 y HMAC
       Revisión humana con TOFU
       Paquete cifrado AES-256-GCM
+    Harness-Shield
+      SKILL.md, CLAUDE.md, AGENTS.md y .cursorrules
+      .mcp.json y hooks Bash, Python y PowerShell
+      Ocho reglas AHS sin ejecutar nada
+      OWASP LLM 2025 e ISO/IEC 42001 orientativos
     Salidas
       Riesgo 0–100 y nota A–F
       mcp.json endurecido con variables de entorno
@@ -198,6 +204,7 @@ mindmap
 |---|---|---|
 | <img src="docs/assets/icons/scan-search.svg" width="18"/> | **Auditor** (inicio) | Riesgo y nota, hallazgos, panel de **cobertura** (PASS / FAIL / NOT_EVALUATED / ERROR de cada regla y superficies analizadas), importador de **`tools/list`** por servidor, diff *Vulnerable vs Hardened* con veredicto **Endurecida / Parcialmente endurecida**, sandbox Docker y exportes con control final de secretos. |
 | <img src="docs/assets/icons/fingerprint.svg" width="18"/> | **Integridad** | Baseline aprobada frente a captura nueva, huellas SHA-256/HMAC, eventos por campo, revisión humana con TOFU, paquete cifrado y exportes. |
+| <img src="docs/assets/icons/file-scan.svg" width="18"/> | **Harness-Shield** | Auditor estático de `SKILL.md`, `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.mcp.json` y hooks: ocho reglas AHS con línea, fragmento, OWASP LLM 2025 y control ISO/IEC 42001, riesgo y nota, SARIF y Markdown. Nada se ejecuta. |
 | <img src="docs/assets/icons/swords.svg" width="18"/> | **Simulador (demo)** | Cuatro kill-chains con datos ficticios en tres paneles sincronizados (lo que ve el usuario, el JSON-RPC que recibe el modelo, el impacto en el host). Modo *Vulnerable* / *Hardened*. |
 | <img src="docs/assets/icons/landmark.svg" width="18"/> | **Gobernanza** | Cada regla mapeada a OWASP Agentic Top 10 2026, NSA MCP CSI, ISO/IEC 42001 y CSA, más incidentes reales verificados. |
 | <img src="docs/assets/icons/circle-help.svg" width="18"/> | **Ayuda** | Buscador, uso, figura «Cero telemetría», reglas, FAQ, **ecosistema GRC**, atajos, privacidad, aviso legal, créditos y acerca de. |
@@ -216,6 +223,10 @@ También incluye paleta de comandos (`Ctrl + K`), tema claro y oscuro con **siet
 <td><img src="docs/img/gobernanza-light.png" alt="Matriz de gobernanza en tema claro"/><br/><sub><b>Gobernanza</b> · OWASP Agentic, NSA, ISO/IEC 42001 y CSA</sub></td>
 </tr>
 <tr>
+<td><img src="docs/img/harness-dark.png" alt="Harness-Shield con los ficheros de ejemplo cargados"/><br/><sub><b>Harness-Shield</b> · un SKILL.md con texto oculto en Unicode Tags, decodificado</sub></td>
+<td><img src="docs/img/harness-light.png" alt="Harness-Shield en tema claro con un .mcp.json sin fijar"/><br/><sub><b>Harness-Shield</b> · tema claro, servidor MCP fijado a <code>@latest</code></sub></td>
+</tr>
+<tr>
 <td><img src="docs/img/paleta-dark.png" alt="Paleta de comandos filtrando ejemplos de demo"/><br/><sub><b>Paleta de comandos</b> · <code>Ctrl + K</code></sub></td>
 <td><img src="docs/img/auditor-light.png" alt="Auditor en tema claro e inglés"/><br/><sub><b>Auditor</b> · tema claro, inglés</sub></td>
 </tr>
@@ -225,7 +236,7 @@ También incluye paleta de comandos (`Ctrl + K`), tema claro y oscuro con **siet
   <img src="docs/img/mobile-auditor-dark.png" alt="Auditor en móvil" width="260"/>
   &nbsp;&nbsp;
   <img src="docs/img/mobile-menu-light.png" alt="Menú móvil con idioma, tema y colores de acento" width="260"/>
-  <br/><sub><b>Móvil</b> · barra inferior con las cinco vistas y menú con idioma, tema y acento</sub>
+  <br/><sub><b>Móvil</b> · barra inferior con las seis vistas y menú con idioma, tema y acento</sub>
 </p>
 
 ## <img src="docs/assets/icons/rocket.svg" width="20" height="20" valign="middle"/> Arranque rápido
@@ -326,6 +337,25 @@ Nuevo en v1.3.0 (RFC-001 «Tool Integrity Monitor», parte web offline). Compara
 
 Desviaciones respecto al RFC: PBKDF2 en lugar de Argon2id (WebCrypto no ofrece Argon2 y no se añaden dependencias criptográficas); `extensions` no es un campo de Tool en MCP 2026-07-28 y se usa solo como contenedor propio de claves desconocidas; los iconos se tratan como metadatos de anotación; MCPS-INT-006 compara nombres nuevos con la baseline (no con todos los perfiles guardados, porque no se guardan).
 
+## <img src="docs/assets/icons/file-scan.svg" width="20" height="20" valign="middle"/> Harness-Shield
+
+Nuevo en v1.7.0. Un agente no solo se configura con `mcp.json`: también lo hacen sus *skills*, sus instrucciones de proyecto y sus hooks, y esos ficheros se copian de repositorios ajenos sin leerlos. Harness-Shield los audita en el navegador **sin ejecutar nada**: suelta, abre o pega `SKILL.md` (con cabecera YAML), `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.mcp.json` y hooks en Bash, Python o PowerShell. «Cargar ejemplos» trae siete ficheros maliciosos de demostración.
+
+| ID | Qué detecta | OWASP LLM 2025 | ISO/IEC 42001 (Anexo A) |
+|---|---|---|---|
+| AHS-01 | Unicode invisible o bidireccional (*Trojan Source*, Unicode Tags), con el texto oculto decodificado | LLM01 | A.6.2.4 |
+| AHS-02 | Secuestro de instrucciones (ES/EN) y comentarios ocultos con órdenes, con la línea exacta | LLM01 | A.6.2.4 |
+| AHS-03 | Exfiltración por red graduada por contexto (hook, bloque de código, instrucción, prosa) y con confianza | LLM02 | A.6.2.4, A.6.2.6 |
+| AHS-04 | `.mcp.json`: error de sintaxis, `npx`/`uvx`/`pipx` sin versión exacta, `@latest`, `-y`, git sin commit | LLM03 | A.10.3 |
+| AHS-05 | Lectura de `~/.ssh`, `.env`, credenciales cloud o volcado del entorno | LLM02 | A.6.2.4 |
+| AHS-06 | Descarga y ejecución remota (`curl \| bash`, `iex (irm …)`) | LLM03 | A.10.3, A.6.2.4 |
+| AHS-07 | Payload en base64 que se decodifica y se ejecuta | LLM03 | A.6.2.4 |
+| AHS-08 | Aprobación automática o permisos desactivados (`autoApprove`, `Bash(*)`, `--dangerously-skip-permissions`) | LLM06 | A.9.2 |
+
+- Cada hallazgo muestra regla, severidad, confianza, fichero y línea, un fragmento de 140 caracteres como máximo (con los secretos ocultos), la categoría OWASP, el control ISO y la corrección. Los mapeos son **orientativos**: una lectura propia, no un *crosswalk* oficial.
+- **Riesgo de 0 a 100 y nota** con la fórmula del Auditor; exportes **SARIF 2.1.0** y **Markdown** por el mismo control de salida.
+- **Entrada**: el tamaño se comprueba antes de leer (5 MB por fichero, 50 ficheros); los binarios se rechazan leyendo solo los primeros 8 KiB; las líneas se recortan a 4096 caracteres y las expresiones regulares son lineales (sin *backtracking* catastrófico). El contenido se pinta solo como texto y desaparece al recargar o con «Vaciar».
+
 ## <img src="docs/assets/icons/workflow.svg" width="20" height="20" valign="middle"/> Ecosistema GRC
 
 MCP-Shield forma parte de las herramientas GRC de código abierto del autor, que se pasan los datos en ficheros y sin servidor. Los hallazgos de tu `mcp.json` llegan como evidencia técnica a los controles de Rosetta:
@@ -363,6 +393,7 @@ El contrato es el esquema JSON de CTEM-Nexus (`shared/schemas/yrd-ecosistema.sch
 
 | Versión | Qué cambia |
 |---|---|
+| **1.7.0** | Pestaña **Harness-Shield**: auditor estático de `SKILL.md`, `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.mcp.json` y hooks con ocho reglas AHS, OWASP LLM 2025, ISO/IEC 42001, SARIF y Markdown. |
 | **1.6.0** | Exportación **Ecosistema**: sobre `yrd-ecosistema` que CTEM-Nexus 1.2.1 importa con guía, ATT&CK y controles por categoría; GitHub Actions fijadas por SHA con Dependabot. |
 | **1.5.2** | Cabecera propia en azul eléctrico: un escudo que se dibuja, escanea por dentro y neutraliza los paquetes que llegan (SVG del repositorio, sin servicios externos, quieto con movimiento reducido). |
 | **1.5.1** | El mapa mental y la arquitectura vuelven a verse en GitHub (las llaves de `${VAR}` rompían Mermaid) y la CI renderiza cada diagrama del README antes de publicar. |
@@ -382,6 +413,7 @@ El detalle de cada versión está en [CHANGELOG.md](CHANGELOG.md).
 | Claves y SARIF (`keys-v134`, `sarif-v140`) | 40 | Servidores, `env` y cabeceras con nombres de `Object.prototype` (`__proto__`, `constructor`…), `npm exec`/`bun x`/`--package`, metadatos SARIF por regla y bandas de nota compartidas. |
 | Imágenes (`images-v150`) | 27 | MCPS-SC-004: lectura de la imagen como Docker (opciones globales, `container run`, `--`), registros con puerto, digest, severidades, `${VAR}` y `mcp-sandbox/*`, endurecimiento, corrección que nombra la imagen una sola vez y figura con un cartucho por regla. |
 | Ecosistema (`ecosystem-v160`) | 9 | Sobre `yrd-ecosistema` validado con el esquema de CTEM-Nexus en todas las demos, sin secretos, nombre de fichero saneado, `__proto__` como dato, análisis fallido honesto y ejemplo publicado idéntico. |
+| Harness-Shield (`harness-v170`) | 40 | Esteganografía Unicode (`U+200B`, `U+202E`, Unicode Tags), exfiltración desde hooks, `npx -y pkg@latest` marcado y `pkg@1.2.0` no, rechazo de más de 5 MB y binarios antes de leer, XSS pintado como texto, SARIF contra el esquema y tiempo lineal ante entradas patológicas. |
 | Exportes (`exporters`) | 15 | SARIF validado con el esquema OASIS 2.1.0, Markdown sin inyección, remediador y Dockerfile. |
 | Integridad (`integrity/*`) | 94 | Vectores de RFC 8785, importador y límites, huellas, cifrado (ida y vuelta, contraseña errónea, cabecera alterada), comparador (RFC-001 §13.1), TOFU y revisión v1.3.3. |
 | Contraste, i18n y estilo (`contrast`, `i18n`, `no-grid`) | 100 | WCAG AA de cada par de colores y de los 7 acentos en los dos temas, paridad ES/EN y sin fondos de cuadrícula. |
@@ -403,6 +435,7 @@ El [workflow](.github/workflows/pages.yml) solo publica en GitHub Pages si pasan
 - Las reglas son **heurísticas**: puede haber falsos positivos y negativos. No sustituye a una auditoría profesional.
 - La config corregida es un **punto de partida**: sustituye las versiones `@1.0.0`, construye las imágenes `mcp-sandbox/*` con el Dockerfile generado y adapta `${VAR}` a tu cliente (`${env:VAR}` en Cursor, `${input:id}` o `envFile` en VS Code; la documentación de Claude Desktop no describe interpolación).
 - El mapeo de gobernanza es **orientativo**, no una certificación.
+- Harness-Shield es un análisis estático por patrones: no sigue variables, no ejecuta los hooks ni resuelve paquetes, así que una exfiltración ofuscada de otra forma puede pasar y una URL legítima en un hook puede marcarse.
 - El análisis no se conecta a los servidores: solo ve las descripciones de herramientas que incluyas en el JSON.
 - Todas las apps de `heindall92.github.io` comparten origen; por eso MCP-Shield no guarda nada sensible.
 
@@ -423,13 +456,14 @@ mcp-shield/
 │   │   ├── ecosystemExporter.ts Sobre yrd-ecosistema para CTEM-Nexus
 │   │   └── grades.ts · ownKeys.ts · governance.ts · simulation.ts · toolsImport.ts
 │   ├── integrity/              Monitor de integridad: captura, huellas, cifrado, comparador, reglas, exportes
-│   ├── components/             auditor · integrity · simulator · governance · help · iso · ui
+│   ├── harness/                Harness-Shield: lectura segura, reglas AHS, SARIF/Markdown y ejemplos
+│   ├── components/             auditor · integrity · harness · simulator · governance · help · iso · ui
 │   ├── i18n/                   Textos ES/EN, preferencias (idioma, tema, acento) y almacenamiento
 │   └── data/                   Escenarios, ejemplos de demo e incidentes
 │
 ├── 🎨 palette.js               Tokens de color y acentos (Tailwind y prueba de contraste)
 ├── 🧪 tests/                   vitest + esquemas SARIF oficial y yrd-ecosistema de CTEM-Nexus
-├── 🛠️ scripts/                 e2e · e2e-mobile · capturas · readme-assets · readme-banner · readme-mermaid · sync-version
+├── 🛠️ scripts/                 e2e · e2e-mobile · capturas · harness-shots · readme-assets · readme-banner · readme-mermaid · sync-version
 ├── 📄 docs/                    SOURCES.md · DESIGN-REFERENCES.md · ecosistema/ (sobre de ejemplo) · capturas e iconos del README
 └── ⚙️ .github/                 pages.yml (pruebas, CodeQL, dependency review y despliegue) y Dependabot de las Actions
 ```
@@ -470,7 +504,7 @@ Errores, falsos positivos o propuestas de reglas: abre una *issue*, informa de v
 > [!WARNING]
 > **Security research lab — do NOT connect as an MCP server.** This repository contains intentionally malicious MCP tool definitions (e.g. the `add` tool with a hidden instruction to read `~/.ssh/id_rsa` and pass it in the `notes` parameter) used as fixtures for the in-browser kill-chain simulator. They are demonstration payloads for detecting tool poisoning, not real tools. mcp-shield runs 100% client-side with zero egress.
 
-**MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 12 configuration rules for supply chain (including container images not pinned by digest), filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. An offline **integrity monitor** pins an approved `tools/list` inventory (RFC 8785 canonicalisation, SHA-256 + in-memory HMAC-SHA-256), diffs new captures field by field (rules MCPS-INT-001..008) and requires explicit human approval with a TOFU checklist; it can save an AES-256-GCM encrypted baseline package (PBKDF2-SHA256, 600,000 iterations). The SARIF, or the “Ecosystem” `yrd-ecosistema` envelope, imports into CTEM-Nexus and reaches Rosetta as control evidence (supply chain → DES-09/OPE-05, secrets → ACC-06/OPE-14, file system → ACC-02/OPE-01, tool poisoning → OPE-01/OPE-10). Detected secrets are masked on screen and in every export, and a final output check blocks a download if anything secret-shaped remains (best effort, not a guarantee). Pasted text is never stored. Seven accent colours (electric blue by default), light and dark themes, ES/EN and a mobile layout.
+**MCP-Shield** audits Model Context Protocol configurations (Claude Desktop, Cursor, VS Code) entirely in your browser: 12 configuration rules for supply chain (including container images not pinned by digest), filesystem, secrets and tool poisoning (including ASCII smuggling with Unicode tag characters, inspired by NVIDIA garak); a hardened `mcp.json` with `${VAR}` references; a Docker sandbox; SARIF 2.1.0 and Markdown exports; and a printable report. An offline **integrity monitor** pins an approved `tools/list` inventory (RFC 8785 canonicalisation, SHA-256 + in-memory HMAC-SHA-256), diffs new captures field by field (rules MCPS-INT-001..008) and requires explicit human approval with a TOFU checklist; it can save an AES-256-GCM encrypted baseline package (PBKDF2-SHA256, 600,000 iterations). **Harness-Shield** (v1.7.0) statically audits agent harness files (`SKILL.md`, `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.mcp.json` and Bash/Python/PowerShell hooks) without executing anything: eight AHS rules (invisible Unicode, instruction hijacking, network exfiltration, unpinned MCP packages, sensitive files, `curl | bash`, base64 decode-and-run, auto-approval), each with line, snippet, OWASP Top 10 for LLM 2025 category and an orientative ISO/IEC 42001 Annex A control, plus SARIF and Markdown exports. The SARIF, or the “Ecosystem” `yrd-ecosistema` envelope, imports into CTEM-Nexus and reaches Rosetta as control evidence (supply chain → DES-09/OPE-05, secrets → ACC-06/OPE-14, file system → ACC-02/OPE-01, tool poisoning → OPE-01/OPE-10). Detected secrets are masked on screen and in every export, and a final output check blocks a download if anything secret-shaped remains (best effort, not a guarantee). Pasted text is never stored. Seven accent colours (electric blue by default), light and dark themes, ES/EN and a mobile layout.
 
 - Live: **https://heindall92.github.io/mcp-shield/**
 - Security headers: GitHub Pages cannot set response headers. HSTS is sent by GitHub; `X-Frame-Options` and header-based CSP/`frame-ancestors` are not available, so the CSP is delivered via `<meta>` (with `connect-src 'none'`) plus a `no-referrer` policy.
