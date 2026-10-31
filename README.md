@@ -380,6 +380,7 @@ El contrato es el esquema JSON de CTEM-Nexus (`shared/schemas/yrd-ecosistema.sch
 
 | Herramienta | Qué hace |
 |---|---|
+| [Atlas GRC](https://heindall92.github.io/atlas-grc/) | Aprender la ISO/IEC 27001 desde cero: lecciones, prácticas, simulacros CertiProf y la ciudad de Albatrel ([código](https://github.com/heindall92/atlas-grc)) |
 | [Rosetta Multinorma](https://heindall92.github.io/rosetta_multinorma/) | 16 normas y leyes sobre 152 controles unificados |
 | [ENS Compliance Studio](https://heindall92.github.io/grc_ens_compliance_studio/) | Categorización ENS, MAGERIT y declaración de aplicabilidad |
 | [CTEM-Nexus](https://heindall92.github.io/ctem-nexus/) | Exposición técnica y rutas de ataque hacia los activos críticos |
