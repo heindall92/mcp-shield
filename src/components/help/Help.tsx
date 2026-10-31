@@ -28,6 +28,7 @@ const RULES: [string, string, string][] = [
 ]
 /** Ecosystem (same list in every tool of the author). web: null when there is no published site. */
 const ECO: { n: string; es: string; en: string; repo: string; web: string | null }[] = [
+  { n: 'Atlas GRC', es: 'Aprender la ISO/IEC 27001 desde cero: lecciones, prácticas, simulacros CertiProf y la ciudad de Albatrel', en: 'Learn ISO/IEC 27001 from scratch: lessons, practice, CertiProf mock exams and the city of Albatrel', repo: 'atlas-grc', web: 'https://heindall92.github.io/atlas-grc/' },
   { n: 'Rosetta Multinorma', es: '16 normas y leyes sobre 152 controles unificados', en: '16 frameworks and laws over 152 unified controls', repo: 'rosetta_multinorma', web: 'https://heindall92.github.io/rosetta_multinorma/' },
   { n: 'ENS Compliance Studio', es: 'Categorización ENS, MAGERIT y declaración de aplicabilidad', en: 'ENS categorisation, MAGERIT and statement of applicability', repo: 'grc_ens_compliance_studio', web: 'https://heindall92.github.io/grc_ens_compliance_studio/' },
   { n: 'CTEM-Nexus', es: 'Exposición técnica y rutas de ataque hacia los activos críticos', en: 'Technical exposure and attack paths to critical assets', repo: 'ctem-nexus', web: 'https://heindall92.github.io/ctem-nexus/' },
