@@ -193,9 +193,15 @@ describe('rendering: file content is text, never HTML', () => {
       expect(code, f).not.toMatch(/innerHTML|dangerouslySetInnerHTML|insertAdjacentHTML|document\.write|\beval\(|new Function\(/)
     }
   })
+  it('harness sources never spell the browser network API names the CI zero-egress grep looks for', () => {
+    for (const d of ['src/harness', 'src/components/harness', 'src/i18n']) for (const f of readdirSync(d)) {
+      if (!/\.tsx?$/.test(f)) continue
+      expect(readFileSync(join(d, f), 'utf8'), f).not.toMatch(/XMLHttpRequest|sendBeacon|fetch\(/)
+    }
+  })
   it('CSP keeps connect-src \'none\' and no remote origins', () => {
     const html = readFileSync('index.html', 'utf8')
-    expect(html).toMatch(/connect-src 'none'/); expect(html).not.toMatch(/https?:\/\/(?!www\.w3\.org)/)
+    expect(html).toMatch(/connect-src 'none'/); expect((html.match(/\bhttps?:\/\/[^\s"'<>]+/g) ?? []).map(u => new URL(u).hostname).filter(h => h !== 'www.w3.org')).toEqual([])
   })
 })
 
