@@ -1,10 +1,13 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
-import { Shield, Swords, ScanSearch, Landmark, Sun, Moon, Languages, Search, CircleHelp, Upload, Printer, RotateCcw, Keyboard, ShieldCheck, Info, FlaskConical, FolderGit2, Fingerprint, Workflow } from 'lucide-react'
+import { Shield, Swords, ScanSearch, Landmark, Sun, Moon, Languages, Search, CircleHelp, Upload, Printer, RotateCcw, Keyboard, ShieldCheck, Info, FlaskConical, FolderGit2, Fingerprint, Workflow, FileScan } from 'lucide-react'
 import { Simulator } from './components/simulator/Simulator'
 import { Auditor } from './components/auditor/Auditor'
 import { Governance } from './components/governance/Governance'
 import { Help } from './components/help/Help'
 import { IntegrityProvider } from './components/integrity/IntegrityContext'
+import { EMPTY_HARNESS, type HarnessState } from './components/harness/state'
+import { hsStrings } from './i18n/harness'
+const HarnessView = lazy(() => import('./components/harness/HarnessView').then(m => ({ default: m.HarnessView })))
 const IntegrityView = lazy(() => import('./components/integrity/IntegrityView').then(m => ({ default: m.IntegrityView })))
 import { ZeroTelemetryModal } from './components/ui/ZeroTelemetry'
 import { Segmented } from './components/ui/Segmented'
@@ -19,8 +22,8 @@ import { usePrefs } from './i18n/prefs'
 import { sampleConfigs } from './data/sampleConfigs'
 import { REPO, VERSION, modKey, OPEN_FILE_EVENT } from './meta'
 
-type Tab = 'auditor' | 'integridad' | 'simulador' | 'gobernanza' | 'ayuda'
-const IDS: Tab[] = ['auditor', 'integridad', 'simulador', 'gobernanza', 'ayuda']
+type Tab = 'auditor' | 'integridad' | 'harness' | 'simulador' | 'gobernanza' | 'ayuda'
+const IDS: Tab[] = ['auditor', 'integridad', 'harness', 'simulador', 'gobernanza', 'ayuda']
 const parseHash = (): { tab: Tab; section?: string } => {
   const [h, section] = location.hash.slice(1).split('/')
   return { tab: IDS.find(t => t === h) ?? 'auditor', section }
@@ -39,7 +42,9 @@ export default function App() {
   const [text, setText] = useState('')
   const [epoch, setEpoch] = useState(0)
   const [autoRun, setAutoRun] = useState(false)
-  const resetAll = useCallback(() => { setText(''); clearAppStorage(); setEpoch(e => e + 1); toast(t.toastReset) }, [toast, t])
+  // Harness-Shield files: memory only, like the Auditor text.
+  const [harness, setHarness] = useState<HarnessState>(EMPTY_HARNESS)
+  const resetAll = useCallback(() => { setText(''); setHarness(EMPTY_HARNESS); clearAppStorage(); setEpoch(e => e + 1); toast(t.toastReset) }, [toast, t])
 
   useEffect(() => { const h = () => setRoute(parseHash()); addEventListener('hashchange', h); return () => removeEventListener('hashchange', h) }, [])
   const go = useCallback((x: Tab, section?: string) => {
@@ -58,16 +63,18 @@ export default function App() {
   const tabs = [
     { value: 'auditor' as const, label: t.tabAudit, Icon: ScanSearch },
     { value: 'integridad' as const, label: t.tabInt, Icon: Fingerprint },
+    { value: 'harness' as const, label: t.tabHarness, Icon: FileScan },
     { value: 'simulador' as const, label: t.tabSim, Icon: Swords },
     { value: 'gobernanza' as const, label: t.tabGov, Icon: Landmark },
   ]
   const commands: Command[] = useMemo(() => [
     ...tabs.map((x, i) => ({ id: `go-${x.value}`, group: t.grpGo, label: x.label, Icon: x.Icon, run: () => go(x.value), hint: String(i + 1) })),
-    { id: 'go-ayuda', group: t.grpGo, label: t.tabHelp, Icon: CircleHelp, run: () => go('ayuda'), hint: '5' },
+    { id: 'go-ayuda', group: t.grpGo, label: t.tabHelp, Icon: CircleHelp, run: () => go('ayuda'), hint: '6' },
     { id: 'open', group: t.grpAct, label: t.cmdOpen, Icon: Upload, run: () => { go('auditor'); requestAnimationFrame(() => dispatchEvent(new Event(OPEN_FILE_EVENT))) }, keywords: 'json file archivo import' },
     { id: 'print', group: t.grpAct, label: t.cmdPrint, Icon: Printer, run: () => { go('auditor'); setTimeout(() => print(), 50) }, keywords: 'pdf report informe' },
     { id: 'reset', group: t.grpAct, label: t.resetBtn, Icon: RotateCcw, run: () => setConfirmReset(true), keywords: 'clear limpiar borrar' },
     ...sampleConfigs.map(s => ({ id: `demo-${s.id}`, group: t.grpDemo, label: lang === 'en' ? s.labelEn : s.label, Icon: FlaskConical, run: () => loadDemo(s.id), keywords: 'demo ejemplo example sample' })),
+    { id: 'demo-harness', group: t.grpDemo, label: hsStrings(lang).samples + ' · Harness-Shield', Icon: FileScan, run: () => { void Promise.all([import('./harness/samples'), import('./harness/intake')]).then(([{ HARNESS_SAMPLES }, { detectKind }]) => { setHarness({ files: HARNESS_SAMPLES.map(f => ({ ...f, kind: detectKind(f.name, f.text) })), rejected: [] }); go('harness') }) }, keywords: 'harness skill claude agents cursorrules hooks demo ejemplo example sample' },
     { id: 'theme', group: t.grpPrefs, label: t.cmdTheme(theme === 'dark'), Icon: theme === 'dark' ? Sun : Moon, run: toggleTheme, hint: 'T', keywords: 'theme tema dark light' },
     { id: 'lang', group: t.grpPrefs, label: t.cmdLang, Icon: Languages, run: toggleLang, hint: 'L', keywords: 'language idioma' },
     { id: 'keys', group: t.grpHelp, label: t.cmdShortcuts, Icon: Keyboard, run: () => go('ayuda', 'atajos'), hint: '?' },
@@ -85,7 +92,7 @@ export default function App() {
       if (e.metaKey || e.ctrlKey || e.altKey || typing(e.target) || document.querySelector('dialog[open]')) return
       if (e.key === '/') { e.preventDefault(); const q = document.getElementById('help-q'); if (q && tab === 'ayuda') q.focus(); else setPalette(true) }
       else if (e.key === '?') { e.preventDefault(); go('ayuda', 'atajos') }
-      else if (/^[1-5]$/.test(e.key)) go(IDS[Number(e.key) - 1])
+      else if (/^[1-6]$/.test(e.key)) go(IDS[Number(e.key) - 1])
       else if (e.key === 't' || e.key === 'T') toggleTheme()
       else if (e.key === 'l' || e.key === 'L') toggleLang()
     }
@@ -110,7 +117,7 @@ export default function App() {
             </button>
             <button data-testid="search-pill" onClick={() => setPalette(true)} aria-label={t.search} aria-keyshortcuts="Control+K Meta+K"
               className="press focus-ring inline-flex h-8 w-8 shrink-0 items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] text-[0.75rem] sm:w-auto sm:px-2.5 text-slate-400 hover:bg-white/[0.06] hover:text-white">
-              <Search size={14} aria-hidden /><span className="hidden xl:inline">{t.searchShort}</span><span className="hidden sm:inline-flex"><kbd className="kbd whitespace-nowrap">{modKey()} K</kbd></span>
+              <Search size={14} aria-hidden /><span className="hidden 2xl:inline">{t.searchShort}</span><span className="hidden sm:inline-flex"><kbd className="kbd whitespace-nowrap">{modKey()} K</kbd></span>
             </button>
             <button onClick={() => setModal(true)} className="press focus-ring hidden h-8 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 text-[0.75rem] font-medium text-slate-300 hover:bg-white/[0.06] xl:inline-flex">
               <span aria-hidden className="relative flex h-1.5 w-1.5"><span className="absolute inset-0 rounded-full bg-emerald-400" /></span>
@@ -133,6 +140,7 @@ export default function App() {
         <ErrorBoundary lang={lang} resetKey={`${tab}-${epoch}`} onReset={resetAll}>
           {tab === 'auditor' && <Auditor key={epoch} text={text} setText={setText} onReset={resetAll} onLoadDemo={loadDemo} onAttack={() => { go('simulador'); setAutoRun(true) }} />}
           {tab === 'integridad' && <Suspense fallback={<p role="status" className="text-[0.8125rem] text-slate-400">…</p>}><IntegrityView key={epoch} /></Suspense>}
+          {tab === 'harness' && <Suspense fallback={<p role="status" className="text-[0.8125rem] text-slate-400">…</p>}><HarnessView state={harness} setState={setHarness} /></Suspense>}
           {tab === 'simulador' && <Simulator autoRun={autoRun} onAudit={j => { setText(j); go('auditor') }} />}
           {tab === 'gobernanza' && <Governance />}
           {tab === 'ayuda' && <Help initial={route.section} />}
@@ -148,7 +156,7 @@ export default function App() {
         <a href="#ayuda/atajos" onClick={e => { e.preventDefault(); go('ayuda', 'atajos') }} className="focus-ring rounded hover:text-white">{t.hKeys}</a>
       </footer>
       <BottomTabs label={t.navLabel} value={tab} onChange={x => go(x)} options={[
-        { value: 'auditor', label: t.tabAudit, Icon: ScanSearch }, { value: 'integridad', label: t.tabInt, Icon: Fingerprint },
+        { value: 'auditor', label: t.tabAudit, Icon: ScanSearch }, { value: 'integridad', label: t.tabInt, Icon: Fingerprint }, { value: 'harness', label: t.tabHarnessShort, Icon: FileScan },
         { value: 'simulador', label: t.tabSimShort, Icon: Swords }, { value: 'gobernanza', label: t.tabGov, Icon: Landmark }, { value: 'ayuda', label: t.tabHelp, Icon: CircleHelp }]} />
       <ZeroTelemetryModal open={modal} onClose={() => setModal(false)} />
       <CommandPalette open={palette} onClose={() => setPalette(false)} commands={commands} title={t.palTitle} placeholder={t.search} empty={t.palEmpty} hint={t.palHint} />

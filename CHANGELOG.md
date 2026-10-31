@@ -1,7 +1,23 @@
 # Changelog
 
-## Unreleased — patch
-
+## 1.7.0 — 2026-10-31 · Harness-Shield
+- **Nueva pestaña Harness-Shield.** Auditor estático de los ficheros que configuran a un agente: `SKILL.md` (con su cabecera YAML), `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.mcp.json` y hooks en Bash, Python o PowerShell. Se sueltan, se abren o se pegan; se leen en memoria y nunca se ejecutan, no se resuelve ninguna URL ni se instala ningún paquete.
+- **Ocho reglas AHS** (OWASP Top 10 for LLM Applications 2025 y control del Anexo A de ISO/IEC 42001, marcados como orientativos):
+  - **AHS-01** Unicode invisible o bidireccional (*Trojan Source*, Unicode Tags), con el texto oculto decodificado. Respeta las secuencias ZWJ de emoji.
+  - **AHS-02** Secuestro de instrucciones en español e inglés y comentarios ocultos (`<!-- -->`, `[//]: #`) sobre el texto completo, con la línea exacta aunque el comentario ocupe varias. Un comentario con una orden es crítico.
+  - **AHS-03** Exfiltración por red, graduada por contexto (hook o script, bloque de código, instrucción o prosa) y con nivel de confianza. Un `fetch` en documentación no es crítico.
+  - **AHS-04** Dependencias MCP sin fijar: el `.mcp.json` se analiza como JSON (un error de sintaxis es un hallazgo con su línea) y se marcan `npx`/`uvx`/`pipx` y equivalentes sin versión exacta, con `@latest`, con `-y`, y las URL git sin commit. `paquete@1.2.0` no se marca.
+  - **AHS-05** Lectura de ficheros sensibles (`~/.ssh`, `.env`, credenciales cloud) y volcados del entorno. Una mención suelta a `process.env` solo da confianza baja.
+  - **AHS-06** Descarga y ejecución remota (`curl | bash`, `iex (irm …)`).
+  - **AHS-07** Payload en base64 que se decodifica y se ejecuta, con el contenido decodificado a la vista.
+  - **AHS-08** Aprobación automática o permisos desactivados (`autoApprove`, `--dangerously-skip-permissions`, `Bash(*)`).
+- **Riesgo de 0 a 100 y nota**, con la misma fórmula que el Auditor (peso por severidad y confianza). Exportes **SARIF 2.1.0** (región con línea, OWASP e ISO como etiquetas) y **Markdown**, ocultando secretos y pasando por el control final de salida.
+- **Entrada endurecida:** el tamaño se comprueba antes de leer (máximo 5 MB por fichero y 50 ficheros); los binarios se rechazan con un mensaje claro tras leer solo los primeros 8 KiB; las líneas se recortan a 4096 caracteres y las expresiones regulares son lineales. El contenido se pinta solo como texto (nunca `innerHTML`) y los fragmentos se limitan a 140 caracteres.
+- **«Cargar ejemplos»**: siete ficheros maliciosos de demostración (dominios `.example.invalid`, sin secretos reales) que disparan las ocho reglas.
+- La CSP no cambia (`connect-src 'none'`); no hay peticiones nuevas. La vista se carga bajo demanda y el bundle principal sigue por debajo de 500 kB.
+- Atajos `1`–`6`, comando de paleta «Cargar ejemplos · Harness-Shield», sección en la Ayuda y barra inferior móvil con seis vistas. En la cabecera de escritorio, «Buscar» se muestra solo desde 1536 px para que quepan las seis pestañas a 1280 px; en la barra inferior cada pestaña parte del ancho de su texto para que «Gobernanza» no se corte a 320 px.
+- El sobre de ejemplo `docs/ecosistema/mcp-shield-hallazgos-ejemplo.json` pasa a `"version": "1.7.0"` (solo cambia esa línea).
+- Pruebas: 39 nuevas de vitest en `tests/harness-v170.test.ts` (esteganografía Unicode, exfiltración desde hooks, fijación de versiones, rechazo de más de 5 MB, XSS pintado como texto, SARIF contra el esquema, ReDoS). El e2e carga los ejemplos, comprueba que el XSS no crea elementos, descarga el SARIF y rechaza un fichero de 5 MB + 1 byte y un PNG.
 - **Pie de la tabla `mcp-shield.yaml` en el README.** `scripts/sync-version.mjs` también actualiza `version:` del `<tfoot>` a la de `package.json` (seguía en 1.5.2 con la 1.6.0). La prueba de fuente única falla si difieren.
 - **Aviso de laboratorio en el README.** Alerta GitHub `[!WARNING]` justo después de los distintivos (español + una línea en inglés) y la misma advertencia breve al inicio de la sección English: no conectar el repositorio como servidor MCP. Las definiciones de herramientas (p. ej. `add`, con instrucción oculta para leer `~/.ssh/id_rsa` y pasarlo en `notes`) son fixtures de demostración para detectar *tool poisoning*, no herramientas reales.
 
