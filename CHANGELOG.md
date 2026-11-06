@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- **Los payloads de la demo de Harness-Shield pasan a ser datos.** Viven en `src/data/harness-samples.json` (solo ASCII, cada carácter invisible como `\uXXXX`) y `samples.ts` solo los carga. Un escáner de código leía el `exec(base64.b64decode(…))` del hook de ejemplo como ofuscación del propio proyecto. Las demos y los hallazgos no cambian: la prueba compara cada fichero con el original.
 - **Ecosistema GRC.** La ayuda suma **Atlas GRC**, que enseña la ISO/IEC 27001 desde cero con lecciones, prácticas, simulacros CertiProf y la ciudad de Albatrel que crece contigo, con «Abrir» y «Código». También aparece en la tabla del README. La e2e comprueba las nueve herramientas y los dos enlaces de Atlas.
 
 ## 1.7.0 — 2026-10-31 · Harness-Shield
