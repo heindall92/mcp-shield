@@ -272,3 +272,20 @@ describe('multi-file scan', () => {
     expect(r.findings.map(f => `${f.file}:${f.line}:${f.ruleId}`).sort()).toEqual(['CLAUDE.md:3:AHS-02', 'a.sh:2:AHS-03'])
   })
 })
+
+describe('Harness-Shield · demo payloads are data, not code', () => {
+  it('samples.ts only loads the JSON fixture and carries no payload of its own', () => {
+    const src = readFileSync('src/harness/samples.ts', 'utf8')
+    expect(src).toMatch(/from '\.\.\/data\/harness-samples\.json'/)
+    expect(src).not.toMatch(/base64|b64decode|\bexec\(|\beval\(|atob\(|iex\s*\(|curl\s|\| ?sh\b/)
+  })
+  it('the fixture is ASCII-only, so every invisible character is a reviewable \\uXXXX escape', () => {
+    const raw = readFileSync('src/data/harness-samples.json', 'utf8')
+    expect([...raw].every(c => c === "\n" || (c >= " " && c <= "~"))).toBe(true)
+  })
+  it('every demo file still decodes to text with its hidden characters intact', () => {
+    const all = HARNESS_SAMPLES.map(f => f.text).join('\n')
+    expect(all).toMatch(/[​‮⁧]/)
+    expect(/[\u{E0000}-\u{E007F}]/u.test(all)).toBe(true)
+  })
+})
