@@ -24,9 +24,6 @@
   <img alt="Iconos Lucide" src="https://img.shields.io/badge/iconos-Lucide-F56565?style=flat&logo=lucide&logoColor=white"/>
 </p>
 
-<p align="center">
-</p>
-
 > [!WARNING]
 > **Laboratorio de investigación de seguridad. No lo conectes como servidor MCP.**
 > Este repositorio contiene **definiciones de herramientas MCP maliciosas a propósito** (por ejemplo, la tool `add`, con una instrucción oculta para leer `~/.ssh/id_rsa` y pasarlo en el parámetro `notes`) que sirven de fixtures para el simulador de kill-chain del navegador. Son payloads de demostración para detectar *tool poisoning*, no herramientas reales. MCP-Shield funciona 100% en el navegador y sin egress.
