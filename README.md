@@ -13,6 +13,7 @@
 <p align="center">
   <img alt="Versión 1.7.0" src="https://img.shields.io/badge/versi%C3%B3n-1.7.0-555?style=flat"/>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/LICENCIA-MIT-4169A1?style=flat"/></a>
+  <a href="https://m8ven.ai/mcp/heindall92-mcp-shield-1e7s23?s=readme"><img alt="M8ven Score" src="https://m8ven.ai/badge/mcp/heindall92-mcp-shield-1e7s23?v=fc8c516ce043d46dfb73a7ac4965e9c7"/></a>
   <img alt="MCP 2026-07-28" src="https://img.shields.io/badge/MCP-2026--07--28-3D6BFF?style=flat"/>
   <img alt="OWASP Agentic Top 10" src="https://img.shields.io/badge/OWASP-Agentic%20Top%2010-E0457B?style=flat"/>
   <img alt="ISO/IEC 42001:2023" src="https://img.shields.io/badge/ISO%2FIEC-42001%3A2023-2E9E7A?style=flat"/>
